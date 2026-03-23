@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <canvas id="bg-node-grid" class="bg-node-grid" aria-hidden="true"></canvas>
     <a class="skip-link" href="#main-content">Skip to main content</a>
 
     <div id="app-error" class="app-error hidden" role="alert" aria-live="polite">
@@ -105,6 +106,44 @@
             <p class="topbar__view-title" id="topbar-view-title" aria-live="polite">Dashboard</p>
           </div>
           <div class="topbar__right">
+            <div class="alerts-trigger-wrap">
+              <button
+                type="button"
+                id="btn-alerts"
+                class="alerts-trigger"
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                aria-controls="alerts-popover"
+                title="Alerts"
+              >
+                <span class="alerts-trigger__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14.5 18a2.5 2.5 0 1 1-5 0h5Z" />
+                    <path d="M6 16a6 6 0 1 1 12 0" />
+                    <path d="M9 7a3 3 0 0 1 6 0c0 2 1 3 1 5H8c0-2 1-3 1-5Z" />
+                  </svg>
+                </span>
+                <span id="alerts-badge" class="alerts-badge hidden" aria-live="polite"></span>
+              </button>
+              <div
+                id="alerts-popover"
+                class="alerts-popover hidden"
+                role="dialog"
+                aria-label="Active alerts"
+                aria-modal="false"
+              >
+                <div class="alerts-popover__head">
+                  <h2 class="alerts-popover__title">Alerts</h2>
+                  <button type="button" id="alerts-popover-close" class="alerts-popover__close" aria-label="Close">
+                    ×
+                  </button>
+                </div>
+                <div id="alerts-popover-body" class="alerts-popover__body"></div>
+                <button type="button" class="alerts-popover__footer" id="alerts-go-dashboard">
+                  Open dashboard
+                </button>
+              </div>
+            </div>
             <span class="utc-pill" id="utc-pill" title="Coordinated Universal Time">
               <span class="utc-pill__dot" aria-hidden="true"></span>
               <span id="utc-clock">UTC —:--:--</span>
