@@ -1,0 +1,167 @@
+/* World countries view — add to styles.css or link after main stylesheet */
+
+.world-map-view {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.world-map-view__h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.world-map-view__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.world-map-view__lede {
+  margin: 0;
+  flex: 1 1 18rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.world-map-view__lede code {
+  font-size: 0.82em;
+  color: var(--accent);
+}
+
+.world-map-view__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.world-map-view__toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.world-map-view__map {
+  padding: 1rem 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.world-map-view__loading,
+.world-map-view__error {
+  margin: 0;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.world-map-view__error {
+  color: var(--alert);
+}
+
+.world-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(70vh, 560px);
+}
+
+.map-country {
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
+}
+
+.map-country--default {
+  fill: #050508;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 0.65;
+}
+
+.map-country--visited {
+  fill: rgba(90, 155, 235, 0.5);
+  stroke: rgba(160, 205, 255, 0.55);
+  stroke-width: 0.75;
+  filter: drop-shadow(0 0 6px rgba(100, 170, 255, 0.55)) drop-shadow(0 0 14px rgba(80, 140, 220, 0.35));
+}
+
+.map-country--want {
+  fill: rgba(220, 145, 75, 0.42);
+  stroke: rgba(255, 200, 140, 0.45);
+  stroke-width: 0.7;
+  filter: drop-shadow(0 0 5px rgba(255, 180, 100, 0.4));
+}
+
+/* Visited wins if both (visited class replaces want in JS — no combo needed) */
+
+.world-map-view__map--hide-want .map-country--want {
+  fill: #050508;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 0.65;
+  filter: none;
+}
+
+.world-map-view__lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .world-map-view__lists {
+    grid-template-columns: 1fr;
+  }
+}
+
+.world-map-view__list-panel {
+  padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.world-map-view__list-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.world-map-view__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: 1.25rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.world-map-view__list li {
+  break-inside: avoid;
+  padding: 0.15rem 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-country {
+    transition: none;
+  }
+  .map-country--visited,
+  .map-country--want {
+    filter: none;
+  }
+}

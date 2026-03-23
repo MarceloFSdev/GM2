@@ -1,0 +1,415 @@
+Build a complete front-end web app called “CHRONOS GMT” using only HTML, CSS, and vanilla JavaScript. No frameworks, no backend, no build step, no TypeScript, no React, no Vue, no Tailwind, no external database. The app must run as a static site by opening it locally or serving it from any simple static hosting environment.
+
+Core principle:
+All app data must be controlled by a single external file called `config.json`. On load, the app fetches `config.json`, parses it, and populates the full UI from that file. The JavaScript should treat `config.json` as the single source of truth for user-controlled data. Do not hardcode changing user data inside JS or HTML. Static UI labels can be hardcoded in the app, but anything related to locations, clocks, alerts, travel history, dates, time zones, and configurable panels must come from `config.json`.
+
+Overall product concept:
+This is a premium, dark-mode, futuristic travel/timezone dashboard for a digital nomad or frequent traveler. It should feel like a luxury operational console for tracking:
+- current base
+- live local time
+- world clocks
+- US time zones
+- travel history
+- days spent in each country
+- rolling 365-day counts
+- calendar-year counts
+- upcoming alerts like visa expiry, apartment expiry, tax/residency reminders, flight reminders, and other date-based notices
+
+Design language:
+The aesthetic should feel like a high-end, Swiss-tech, cyber-minimal operations dashboard. It must look polished, premium, restrained, and intentional. Avoid gimmicky sci-fi excess. Think:
+- matte black / near-black background
+- subtle blue/cyan glow accents
+- soft glassy gradients
+- refined borders
+- large clean typography
+- strong spacing and hierarchy
+- premium dashboard cards
+- faint ambient light effects
+- thin dividers
+- carefully controlled use of bright cyan for highlights and active states
+- occasional muted warning red/orange for alerts
+- elegant futuristic but still usable and minimal
+
+Visual style requirements:
+- Full app in dark mode
+- Background should be almost black with subtle gradient depth
+- Accent color should be electric cyan / blue
+- Secondary accent can be muted slate/steel tones
+- Alert states use restrained coral/red/orange
+- Rounded corners around cards and buttons
+- Very subtle shadows and glow, not cheesy neon
+- Typography should feel modern, clean, geometric, high-end
+- Large bold headings for main city/time panels
+- Small uppercase section labels with letter spacing
+- Smooth hover states and transitions
+- Crisp layout with lots of breathing room
+- Responsive and elegant on desktop first, but also solid on tablet and mobile
+
+App structure:
+Create a single-page app with three internal views navigated by tabs or sidebar navigation:
+1. Dashboard
+2. Travel Log
+3. World Clocks
+
+The app should not require page reload between sections. Use vanilla JS to switch views.
+
+Layout:
+Desktop layout should have:
+- left sidebar navigation
+- top utility bar
+- main content area on the right
+
+Sidebar:
+- app logo/title at top: CHRONOS GMT
+- small subtitle under it, something like “Global Citizen” or “Global Elite”
+- navigation items:
+  - Dashboard
+  - Travel Log
+  - World Clocks
+- clear active state with cyan highlight
+- optional support/settings area at bottom
+- on smaller screens, collapse into a top nav or hamburger menu
+
+Top bar:
+- right-aligned utility items such as:
+  - small UTC live clock
+  - notifications icon
+  - profile/user icon
+- clean and minimal, mostly decorative but polished
+
+Files to create:
+- `index.html`
+- `styles.css`
+- `app.js`
+- `config.json`
+
+Optional:
+- a small `README.md` explaining how the app works and how to edit `config.json`
+
+Technical constraints:
+- Vanilla HTML/CSS/JS only
+- No backend
+- No external state management
+- No localStorage unless used only for view preference caching
+- Must fetch `config.json` asynchronously on app init
+- Must gracefully handle config load failure with a polished error state
+- Must validate expected config sections and fail softly if some are missing
+- Must use semantic HTML where reasonable
+- Must keep code clean, modular, readable, and commented
+- Separate rendering logic into small functions
+- No inline styles except where absolutely unavoidable
+- No inline event handlers
+- No dependency on third-party APIs for the core app to work
+- Weather is not required unless mock values are provided in config; do not fetch real weather APIs
+
+Important behavior:
+- The app must use the browser’s built-in Intl date/time formatting where possible
+- Time zones must use proper IANA timezone identifiers like `Europe/Madrid`, `Asia/Bangkok`, `America/New_York`
+- Live clocks should update every second or every minute depending on the display
+- Dates must support calculations for:
+  - current ongoing stay
+  - total days in country in current calendar year
+  - total days in country in rolling last 365 days
+  - continuous stay duration in current country
+  - countdown days to alerts
+- The app should calculate values dynamically from config data rather than storing redundant computed values in config
+
+Data model:
+Use `config.json` as the source of truth. It should support at least these top-level sections:
+
+- `app`
+- `currentBase`
+- `worldClocks`
+- `travelLog`
+- `alerts`
+
+Recommended schema shape:
+
+{
+  "app": {
+    "title": "CHRONOS GMT",
+    "subtitle": "Global Citizen",
+    "defaultView": "dashboard"
+  },
+  "currentBase": {
+    "city": "Madrid",
+    "country": "Spain",
+    "timezone": "Europe/Madrid",
+    "startDate": "2026-03-20",
+    "residencyLabel": "Active Residence"
+  },
+  "worldClocks": {
+    "priority": [
+      {
+        "label": "Madrid",
+        "country": "Spain",
+        "timezone": "Europe/Madrid"
+      },
+      {
+        "label": "Buenos Aires",
+        "country": "Argentina",
+        "timezone": "America/Argentina/Buenos_Aires"
+      },
+      {
+        "label": "Bangkok",
+        "country": "Thailand",
+        "timezone": "Asia/Bangkok"
+      }
+    ],
+    "us": [
+      {
+        "label": "Eastern",
+        "timezone": "America/New_York"
+      },
+      {
+        "label": "Central",
+        "timezone": "America/Chicago"
+      },
+      {
+        "label": "Mountain",
+        "timezone": "America/Denver"
+      },
+      {
+        "label": "Pacific",
+        "timezone": "America/Los_Angeles"
+      },
+      {
+        "label": "Alaska",
+        "timezone": "America/Anchorage"
+      },
+      {
+        "label": "Hawaii",
+        "timezone": "Pacific/Honolulu"
+      }
+    ]
+  },
+  "travelLog": [
+    {
+      "id": "stay-001",
+      "country": "Thailand",
+      "city": "Bangkok",
+      "timezone": "Asia/Bangkok",
+      "entryDate": "2026-01-10",
+      "exitDate": "2026-02-02",
+      "notes": ""
+    },
+    {
+      "id": "stay-002",
+      "country": "Indonesia",
+      "city": "Bali",
+      "timezone": "Asia/Makassar",
+      "entryDate": "2026-02-02",
+      "exitDate": "2026-03-20",
+      "notes": ""
+    },
+    {
+      "id": "stay-003",
+      "country": "Spain",
+      "city": "Madrid",
+      "timezone": "Europe/Madrid",
+      "entryDate": "2026-03-20",
+      "exitDate": null,
+      "notes": "Current stay"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert-001",
+      "type": "flat",
+      "title": "Flat expires",
+      "date": "2026-05-31",
+      "country": "Spain",
+      "city": "Madrid",
+      "notes": "Decide whether to renew",
+      "severity": "medium",
+      "isActive": true
+    },
+    {
+      "id": "alert-002",
+      "type": "visa",
+      "title": "Visa expires",
+      "date": "2026-06-15",
+      "country": "Thailand",
+      "city": "Bangkok",
+      "notes": "",
+      "severity": "high",
+      "isActive": true
+    }
+  ]
+}
+
+You may add optional sections if useful, but keep the architecture simple and config-driven.
+
+Feature requirements by section:
+
+1. DASHBOARD VIEW
+
+This is the main executive overview screen.
+
+Include:
+- large hero card for current base
+- current city and country displayed prominently
+- live local time in the current base timezone
+- UTC offset display
+- current date in readable format
+- label pills such as “Current Base” and the residency label from config
+- a stat card showing continuous time spent in current base since `currentBase.startDate`
+- a stat card showing next relevant departure/expiry or the nearest upcoming alert
+- a prominent alert card showing the nearest active alert
+- a world clocks summary panel with the priority cities and their live times
+- a location summary / YTD report panel listing countries visited this year with computed day counts
+- optional lower summary strip with metrics like:
+  - countries visited this year
+  - total travel entries
+  - total alerts active
+  - current timezone
+
+Dashboard calculations:
+- `time spent` in current base = days from `currentBase.startDate` to now
+- nearest alert = active alert with the soonest future date
+- YTD location log = aggregate total days per country intersecting the current calendar year
+- current base time should tick live
+
+YTD report table should include columns such as:
+- country
+- total days this year
+- status label such as PRIMARY / VISITING / TRANSIT if inferred or based on longest stay
+- optional impact label like LOW / MEDIUM / HIGH based on configurable thresholds or simple heuristics
+
+Do not overcomplicate tax logic. Keep any “impact” classification simple and clearly heuristic, not legal advice.
+
+2. TRAVEL LOG VIEW
+
+This screen is a detailed chronological travel history console.
+
+Include at top:
+- page title: Travel Log
+- subtitle describing it as a chronological record of global movements and temporal residency status
+- a segmented control to toggle between:
+  - Calendar Year
+  - Rolling 365 Days
+
+Summary cards:
+- total countries visited in the selected period
+- total days abroad or total days outside a configurable home country if provided, otherwise just total days logged
+- current location residency block showing current base and continuous stay
+
+Main content:
+- a detailed table of travel stays
+- each row should represent one stay from `travelLog`
+- show:
+  - date range
+  - country
+  - city
+  - timezone
+  - total days in that stay
+  - stay status such as CURRENT if exitDate is null
+  - notes if available
+- allow sorting in reverse chronological order by default
+- include a filter or toggle to change chronological order if easy
+- include a footer summary or “load archives” style visual cue, even if fully client-side
+
+Travel Log calculations:
+- For calendar year mode:
+  include only portions of stays intersecting the current calendar year, and compute days correctly even when a stay crosses year boundaries
+- For rolling 365 mode:
+  include only portions of stays intersecting the last 365 days from today
+- If a stay is currently ongoing (`exitDate: null`), calculations should use today as the end date
+- count days robustly and consistently
+
+3. WORLD CLOCKS VIEW
+
+This is a dedicated live time synchronization interface.
+
+Include:
+- large top hero area showing current base city and country
+- very large live local time display for current base
+- timezone label and UTC offset
+- current day/date
+- a “Global Sync” section showing cards for priority cities
+- each priority city card shows:
+  - label
+  - timezone short label if derivable
+  - live local time
+  - optional small sublabel for country
+- a second section for US time zones showing all configured US clocks
+- optionally include a clean horizontal time comparison rail or timeline if feasible in vanilla JS
+- include an “Add City” button visually, but it does not need full persistence unless driven by config editing
+- include a reset/focus control if useful for the timeline visualization
+
+World clock behavior:
+- all clocks update live
+- cards visually indicate day difference if the date differs from current base
+- highlight business-relevant zones subtly
+- keep it elegant, not cluttered
+
+User experience details:
+- smooth transitions between views
+- loading skeleton or subtle loading state while fetching config
+- polished empty states if arrays are empty
+- alert states for missing config sections
+- responsive layout across desktop/tablet/mobile
+- maintain premium feel everywhere
+
+Accessibility:
+- good contrast
+- keyboard navigable sidebar tabs
+- buttons and controls accessible
+- semantic headings
+- avoid tiny text for important content
+
+Implementation notes:
+Write the JavaScript in a modular way, with functions like:
+- `loadConfig()`
+- `validateConfig()`
+- `initApp()`
+- `renderSidebar()`
+- `renderDashboard()`
+- `renderTravelLog()`
+- `renderWorldClocks()`
+- `renderAlerts()`
+- `computeStayDays()`
+- `computeYtdCountryTotals()`
+- `computeRolling365Totals()`
+- `getNearestAlert()`
+- `formatTimeForZone()`
+- `formatDateForZone()`
+- `getUtcOffsetLabel()`
+- `startClockUpdates()`
+
+Important date logic:
+- Dates in config use `YYYY-MM-DD`
+- Treat entryDate as inclusive
+- Treat exitDate as the day of leaving; choose a consistent rule and document it
+- Be explicit in code about how days are counted
+- Avoid hidden timezone bugs when calculating durations
+- Use a safe approach for date-only arithmetic, ideally normalizing to midnight and calculating in UTC for day math
+- Keep clock display timezone-aware via Intl APIs
+
+Error handling:
+- if `config.json` cannot load, show a centered elegant error panel explaining the file could not be loaded
+- if required fields are missing, show a non-breaking warning UI and render whatever is possible
+- if timezones are invalid, display fallback text instead of crashing
+
+Performance:
+- keep it lightweight
+- no unnecessary rerenders
+- live clocks can update once per second for hero clocks and once per minute for small clocks if desired
+
+Deliverable expectations:
+Generate all code for:
+- `index.html`
+- `styles.css`
+- `app.js`
+- `config.json`
+
+The result should be visually polished and immediately usable. It should feel like a real premium product, not a generic template.
+
+Also ensure:
+- the HTML includes root containers for sidebar, topbar, and view content
+- the CSS is comprehensive and production-like
+- the JavaScript is fully working and not pseudocode
+- the sample `config.json` contains realistic example data
+- all three sections are functional from the start
+
+Do not output explanations first. Output the full project files clearly separated by filename headings and complete code blocks for each file.

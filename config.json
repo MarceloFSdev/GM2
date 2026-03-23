@@ -1,0 +1,184 @@
+{
+  "app": {
+    "title": "CHRONOS GMT",
+    "subtitle": "Global Citizen",
+    "defaultView": "dashboard",
+    "homeCountry": "Indonesia",
+    "systemStatus": "OPTIMAL"
+  },
+  "countriesVisitedEver": [
+    "Portugal",
+    "France",
+    "Spain",
+    "United Kingdom",
+    "United States",
+    "Cuba",
+    "Mexico",
+    "Morocco",
+    "Tunisia",
+    "Italy",
+    "Malta",
+    "Poland",
+    "Hungary",
+    "Ukraine",
+    "Czech Republic",
+    "Croatia",
+    "Greece",
+    "Slovenia",
+    "Slovakia",
+    "Indonesia",
+    "India",
+    "Thailand",
+    "Vietnam",
+    "China",
+    "Malaysia",
+    "Denmark",
+    "Vatican",
+    "Turkey",
+    "Austria",
+    "Germany",
+    "Switzerland"
+  ],
+  "countriesWantToVisit": ["Japan", "Iceland", "Philippines", "New Zealand"],
+  "currentBase": {
+    "city": "Bali",
+    "country": "Indonesia",
+    "timezone": "Asia/Makassar",
+    "startDate": "2026-03-07",
+    "residencyLabel": "Active Residence"
+  },
+  "worldClocks": {
+    "priority": [
+      {
+        "label": "Bali",
+        "country": "Indonesia",
+        "timezone": "Asia/Makassar",
+        "hq": true
+      },
+      {
+        "label": "Madrid",
+        "country": "Spain",
+        "timezone": "Europe/Madrid"
+      },
+      {
+        "label": "Buenos Aires",
+        "country": "Argentina",
+        "timezone": "America/Argentina/Buenos_Aires"
+      },
+      {
+        "label": "Bangkok",
+        "country": "Thailand",
+        "timezone": "Asia/Bangkok"
+      }
+    ],
+    "us": [
+      { "label": "Eastern", "timezone": "America/New_York" },
+      { "label": "Central", "timezone": "America/Chicago" },
+      { "label": "Mountain", "timezone": "America/Denver" },
+      { "label": "Pacific", "timezone": "America/Los_Angeles" },
+      { "label": "Alaska", "timezone": "America/Anchorage" },
+      { "label": "Hawaii", "timezone": "Pacific/Honolulu" }
+    ]
+  },
+  "travelTimeline": [
+    { "date": "2026-01-29", "action": "exit", "country": "Spain" },
+    { "date": "2026-01-29", "action": "entry", "country": "Greece" },
+    { "date": "2026-01-30", "action": "exit", "country": "Greece" },
+    { "date": "2026-01-31", "action": "entry", "country": "India" },
+    { "date": "2026-02-01", "action": "exit", "country": "India" },
+    { "date": "2026-02-01", "action": "entry", "country": "Indonesia" },
+    { "date": "2026-02-11", "action": "exit", "country": "Indonesia" },
+    { "date": "2026-02-11", "action": "entry", "country": "Malaysia" },
+    { "date": "2026-02-12", "action": "exit", "country": "Malaysia" },
+    { "date": "2026-02-12", "action": "entry", "country": "Thailand" },
+    { "date": "2026-03-07", "action": "exit", "country": "Thailand" },
+    { "date": "2026-03-07", "action": "entry", "country": "Indonesia" }
+  ],
+  "travelLog": [
+    {
+      "id": "stay-001",
+      "country": "Spain",
+      "city": "Madrid",
+      "timezone": "Europe/Madrid",
+      "entryDate": "2026-01-01",
+      "exitDate": "2026-01-29",
+      "entryType": "entry",
+      "notes": "Prior segment"
+    },
+    {
+      "id": "stay-002",
+      "country": "Greece",
+      "city": "Athens",
+      "timezone": "Europe/Athens",
+      "entryDate": "2026-01-29",
+      "exitDate": "2026-01-30",
+      "entryType": "entry",
+      "notes": ""
+    },
+    {
+      "id": "stay-003",
+      "country": "India",
+      "city": "Delhi",
+      "timezone": "Asia/Kolkata",
+      "entryDate": "2026-01-31",
+      "exitDate": "2026-02-01",
+      "entryType": "entry",
+      "notes": ""
+    },
+    {
+      "id": "stay-004",
+      "country": "Indonesia",
+      "city": "Bali",
+      "timezone": "Asia/Makassar",
+      "entryDate": "2026-02-01",
+      "exitDate": "2026-02-11",
+      "entryType": "entry",
+      "notes": ""
+    },
+    {
+      "id": "stay-005",
+      "country": "Malaysia",
+      "city": "Kuala Lumpur",
+      "timezone": "Asia/Kuala_Lumpur",
+      "entryDate": "2026-02-11",
+      "exitDate": "2026-02-12",
+      "entryType": "entry",
+      "notes": ""
+    },
+    {
+      "id": "stay-006",
+      "country": "Thailand",
+      "city": "Bangkok",
+      "timezone": "Asia/Bangkok",
+      "entryDate": "2026-02-12",
+      "exitDate": "2026-03-07",
+      "entryType": "entry",
+      "notes": ""
+    },
+    {
+      "id": "stay-007",
+      "country": "Indonesia",
+      "city": "Bali",
+      "timezone": "Asia/Makassar",
+      "entryDate": "2026-03-07",
+      "exitDate": null,
+      "entryType": "entry",
+      "notes": "Current stay"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert-bike",
+      "type": "rental",
+      "title": "Bike",
+      "startDate": "2026-03-11",
+      "expiresDate": "2026-04-11",
+      "rentalMonths": 1,
+      "country": "Indonesia",
+      "city": "Bali",
+      "notes": "1-month rental",
+      "severity": "medium",
+      "isActive": true
+    }
+  ]
+}
