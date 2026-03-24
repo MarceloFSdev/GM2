@@ -6,6 +6,7 @@
   'use strict';
 
   const STORAGE_VIEW = 'chronos-gmt-view';
+  const STORAGE_DASH_STAY_PERIOD = 'chronos-gmt-dashboard-stay-period';
   const ABROAD_ANCHOR_COUNTRY = 'Spain';
 
   const VIEW_TITLES = {
@@ -18,6 +19,8 @@
   let config = null;
   let validationWarnings = [];
   let travelLogMode = 'calendar';
+  /** Dashboard Stay card: second metric — 'calendar' | 'rolling'. */
+  let dashboardStayCountryDaysMode = 'calendar';
   /** Offset from system time in ms; World Clocks view only — drives slider + all zone readouts. */
   let worldClocksShiftMs = 0;
 
@@ -249,6 +252,34 @@
     return Math.max(0, Math.floor((addUtcDaysMs(today, 1) - start) / 86400000));
   }
 
+  /** Continuous days in the ongoing travel-log stay (prefers row matching current base country). */
+  function daysConsecutiveCurrentStay() {
+    const cb = config.currentBase || {};
+    const baseCountry = cb.country ? String(cb.country).trim() : '';
+    const ongoing = (config.travelLog || []).filter((s) => s && s.exitDate == null);
+    let stay = null;
+    if (baseCountry && ongoing.length) {
+      stay = ongoing.find((s) => String(s.country || '').trim() === baseCountry) || null;
+    }
+    if (!stay && ongoing.length) stay = ongoing[ongoing.length - 1];
+    if (stay) {
+      const s = stayInclusiveStartMs(stay);
+      if (!Number.isNaN(s)) {
+        const today = parseYmdToUtcMs(todayUtcYmd());
+        return Math.max(0, Math.floor((addUtcDaysMs(today, 1) - s) / 86400000));
+      }
+    }
+    return daysSinceBaseStart();
+  }
+
+  function countryDaysCurrentBaseCountry(mode) {
+    const country = (config.currentBase || {}).country;
+    if (!country) return 0;
+    const win = mode === 'rolling' ? rolling365Window() : currentCalendarYearWindow();
+    const map = countryDaysInPeriod(config.travelLog || [], win.startMs, win.endExMs);
+    return map[country] || 0;
+  }
+
   function stayRowDays(stay) {
     const s = stayInclusiveStartMs(stay);
     const e = stayExclusiveEndMs(stay);
@@ -380,14 +411,6 @@
     const s = String(t || 'notice').replace(/_/g, ' ');
     if (!s) return 'Notice';
     return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-  }
-
-  function getNearestAlert() {
-    const sorted = getVisibleAlertsSorted();
-    if (!sorted.length) return null;
-    const today = parseYmdToUtcMs(todayUtcYmd());
-    const upcoming = sorted.find((a) => parseYmdToUtcMs(alertSortDate(a)) >= today);
-    return upcoming || sorted[sorted.length - 1];
   }
 
   function mergeDefaults(raw) {
@@ -609,7 +632,8 @@
     const totals = computeYtdCountryTotals();
     const primary = ytdPrimaryCountry(totals);
     const alertsSorted = getVisibleAlertsSorted();
-    const nearest = getNearestAlert();
+    const nextAlertsDash = alertsSorted.slice(0, 3);
+    const panelSeverityClass = nextAlertsDash[0] ? alertSeverityClass(nextAlertsDash[0].severity) : '';
     const rows = Object.keys(totals)
       .filter((k) => totals[k] > 0)
       .sort((a, b) => totals[b] - totals[a])
@@ -635,6 +659,14 @@
       })
       .join('');
 
+    const stayConsec = daysConsecutiveCurrentStay();
+    const countryDaysMetric = countryDaysCurrentBaseCountry(dashboardStayCountryDaysMode);
+    const calYear = new Date().getUTCFullYear();
+    const countryDaysLabel =
+      dashboardStayCountryDaysMode === 'calendar'
+        ? `In ${escapeHtml(cb.country || '—')} · ${calYear} (calendar year)`
+        : `In ${escapeHtml(cb.country || '—')} · rolling 365 days`;
+
     elDashboard.innerHTML = `
       <div class="dashboard-grid">
         <div class="hero-card card">
@@ -647,26 +679,50 @@
           <p style="margin:0.5rem 0 0;font-size:0.85rem;color:var(--text-muted)">${escapeHtml(formatDateForZone(tz))} · ${escapeHtml(getUtcOffsetLabel(tz))}</p>
         </div>
         <div>
-          <div class="card" style="margin-bottom:1rem">
+          <div class="card stay-card" style="margin-bottom:1rem">
             <div class="panel-head"><h2>Stay</h2></div>
-            <p style="margin:0;font-size:1.5rem;font-weight:700;color:var(--accent)">${daysSinceBaseStart()} days</p>
-            <p style="margin:0.25rem 0 0;font-size:0.8rem;color:var(--text-muted)">Since start date</p>
+            <div class="stay-metrics">
+              <div class="stay-metrics__block">
+                <p class="stay-metrics__value">${stayConsec}</p>
+                <p class="stay-metrics__label">Consecutive days · this stay</p>
+                <p class="stay-metrics__hint">From current travel-log segment (or base start date)</p>
+              </div>
+              <div class="stay-metrics__block">
+                <p class="stay-metrics__value">${countryDaysMetric}</p>
+                <p class="stay-metrics__label stay-metrics__label--period">${countryDaysLabel}</p>
+                <div class="segmented stay-metrics__toggle" role="group" aria-label="Country days period">
+                  <button type="button" id="dash-stay-cal" class="${dashboardStayCountryDaysMode === 'calendar' ? 'is-active' : ''}">Calendar year</button>
+                  <button type="button" id="dash-stay-roll" class="${dashboardStayCountryDaysMode === 'rolling' ? 'is-active' : ''}">Rolling 365</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="card alert-feature ${nearest ? alertSeverityClass(nearest.severity) : ''}" id="alerts-panel">
+          <div class="card alert-feature ${panelSeverityClass}" id="alerts-panel">
             <div class="alert-feature__head">
-              <div class="panel-head"><h2>Nearest alert</h2></div>
-              ${nearest ? `<span class="alert-feature__type">${escapeHtml(formatAlertType(nearest.type))}</span>` : ''}
+              <div class="panel-head"><h2>Next alerts</h2></div>
+              ${
+                alertsSorted.length > 3
+                  ? `<span class="alert-feature__type">+${alertsSorted.length - 3} more below</span>`
+                  : nextAlertsDash.length
+                    ? '<span class="alert-feature__type">Soonest first</span>'
+                    : ''
+              }
             </div>
             ${
-              nearest
-                ? `<p class="alert-feature__title">${escapeHtml(nearest.title || 'Alert')}</p>
-            <p class="alert-feature__meta">${escapeHtml(alertSortDate(nearest))} · ${escapeHtml(alertCountdownLabel(alertDaysUntil(nearest)))}</p>
-            ${
-              [nearest.city, nearest.country].filter(Boolean).length
-                ? `<p class="alert-feature__where">${escapeHtml([nearest.city, nearest.country].filter(Boolean).join(' · '))}</p>`
-                : ''
-            }
-            ${nearest.notes ? `<p class="alert-feature__notes">${escapeHtml(nearest.notes)}</p>` : ''}`
+              nextAlertsDash.length
+                ? `<ul class="alert-preview">${nextAlertsDash
+                    .map((a) => {
+                      const place = [a.city, a.country].filter(Boolean).join(' · ');
+                      return `<li class="alert-preview__item ${alertSeverityClass(a.severity)}">
+                      <div>
+                        <p class="alert-preview__title">${escapeHtml(a.title || 'Alert')}</p>
+                        <p class="alert-preview__meta">${escapeHtml(alertSortDate(a))} · ${escapeHtml(alertCountdownLabel(alertDaysUntil(a)))}</p>
+                        ${place ? `<p class="alert-preview__where">${escapeHtml(place)}</p>` : ''}
+                      </div>
+                      <span class="alert-preview__type">${escapeHtml(formatAlertType(a.type))}</span>
+                    </li>`;
+                    })
+                    .join('')}</ul>`
                 : '<p class="alert-feature__empty">No scheduled alerts in config.</p>'
             }
           </div>
@@ -734,7 +790,35 @@
       const el = $('dash-hero-time');
       if (el) el.textContent = formatTimeForZone(tz, true);
     });
+
     updateAllClocks();
+  }
+
+  let dashboardStayPeriodWired = false;
+  function wireDashboardStayPeriod() {
+    if (dashboardStayPeriodWired || !elDashboard) return;
+    dashboardStayPeriodWired = true;
+    elDashboard.addEventListener('click', (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLElement)) return;
+      if (t.id === 'dash-stay-cal') {
+        dashboardStayCountryDaysMode = 'calendar';
+        try {
+          localStorage.setItem(STORAGE_DASH_STAY_PERIOD, 'calendar');
+        } catch {
+          /* ignore */
+        }
+        if (config) renderDashboard();
+      } else if (t.id === 'dash-stay-roll') {
+        dashboardStayCountryDaysMode = 'rolling';
+        try {
+          localStorage.setItem(STORAGE_DASH_STAY_PERIOD, 'rolling');
+        } catch {
+          /* ignore */
+        }
+        if (config) renderDashboard();
+      }
+    });
   }
 
   function renderTravelLog() {
@@ -1118,7 +1202,14 @@
     } catch {
       /* ignore */
     }
+    try {
+      const sp = localStorage.getItem(STORAGE_DASH_STAY_PERIOD);
+      if (sp === 'rolling' || sp === 'calendar') dashboardStayCountryDaysMode = sp;
+    } catch {
+      /* ignore */
+    }
 
+    wireDashboardStayPeriod();
     startClockUpdates();
     setView(initial);
   }

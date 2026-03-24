@@ -176,7 +176,33 @@
       "rentalMonths": 1,
       "country": "Indonesia",
       "city": "Bali",
-      "notes": "1-month rental",
+      "notes": "1-month lease · started 11 Mar 2026",
+      "severity": "medium",
+      "isActive": true
+    },
+    {
+      "id": "alert-home",
+      "type": "rental",
+      "title": "Home",
+      "startDate": "2026-03-13",
+      "expiresDate": "2026-04-13",
+      "rentalMonths": 1,
+      "country": "Indonesia",
+      "city": "Bali",
+      "notes": "1-month lease · started 13 Mar 2026",
+      "severity": "medium",
+      "isActive": true
+    },
+    {
+      "id": "alert-b-work",
+      "type": "rental",
+      "title": "B-Work",
+      "startDate": "2026-03-22",
+      "expiresDate": "2026-04-22",
+      "rentalMonths": 1,
+      "country": "Indonesia",
+      "city": "Bali",
+      "notes": "1-month lease · started 22 Mar 2026",
       "severity": "medium",
       "isActive": true
     }
