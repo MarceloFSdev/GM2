@@ -407,6 +407,18 @@
     return 'alert-severity--medium';
   }
 
+  function isAlertUrgent(a) {
+    const days = alertDaysUntil(a);
+    return days !== null && days <= 10;
+  }
+
+  function tripDaysUntil(trip) {
+    const departure = parseYmdToUtcMs(trip.departureDate);
+    const today = parseYmdToUtcMs(todayUtcYmd());
+    if (Number.isNaN(departure) || Number.isNaN(today)) return null;
+    return Math.round((departure - today) / 86400000);
+  }
+
   function formatAlertType(t) {
     const s = String(t || 'notice').replace(/_/g, ' ');
     if (!s) return 'Notice';
@@ -424,6 +436,7 @@
       alerts: Array.isArray(o.alerts) ? o.alerts : [],
       countriesVisitedEver: Array.isArray(o.countriesVisitedEver) ? o.countriesVisitedEver : [],
       countriesWantToVisit: Array.isArray(o.countriesWantToVisit) ? o.countriesWantToVisit : [],
+      upcomingTrips: Array.isArray(o.upcomingTrips) ? o.upcomingTrips : [],
     };
   }
 
@@ -667,6 +680,67 @@
         ? `In ${escapeHtml(cb.country || '—')} · ${calYear} (calendar year)`
         : `In ${escapeHtml(cb.country || '—')} · rolling 365 days`;
 
+    const upcomingTripsArr = (config.upcomingTrips || []).filter((t) => {
+      const days = tripDaysUntil(t);
+      return days !== null && days >= 0;
+    }).sort((a, b) => {
+      const da = parseYmdToUtcMs(a.departureDate);
+      const db = parseYmdToUtcMs(b.departureDate);
+      return da - db;
+    });
+
+    const tripsHtml = upcomingTripsArr.slice(0, 2).map((t) => {
+      const days = tripDaysUntil(t);
+      const daysLabel = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days}d`;
+      return `<div class="upcoming-trip">
+        <p class="upcoming-trip__route">${escapeHtml(t.departureCity)} → ${escapeHtml(t.arrivalCity)}</p>
+        <p class="upcoming-trip__when">${escapeHtml(t.departureDate)} ${escapeHtml(t.departureTime)} · ${daysLabel}</p>
+        <p class="upcoming-trip__detail">${escapeHtml(t.airline)} ${escapeHtml(t.flightNumber)}</p>
+      </div>`;
+    }).join('');
+
+    const combinedAlertAndTrips = [
+      ...alertsSorted.map((a) => ({ type: 'alert', item: a, sortDate: alertSortDate(a) })),
+      ...upcomingTripsArr.map((t) => ({ type: 'trip', item: t, sortDate: t.departureDate }))
+    ].sort((a, b) => {
+      const da = parseYmdToUtcMs(a.sortDate);
+      const db = parseYmdToUtcMs(b.sortDate);
+      return da - db;
+    });
+
+    const alertAndTripHtml = combinedAlertAndTrips.map((entry) => {
+      if (entry.type === 'alert') {
+        const a = entry.item;
+        const place = [a.city, a.country].filter(Boolean).join(' · ');
+        const sub = [formatAlertType(a.type), place].filter(Boolean).join(' · ');
+        const urgentClass = isAlertUrgent(a) ? 'is-urgent' : '';
+        return `<li class="alerts-queue__item ${alertSeverityClass(a.severity)} ${urgentClass}">
+          <div>
+            <p class="alerts-queue__title">${escapeHtml(a.title || 'Alert')}</p>
+            <p class="alerts-queue__sub">${escapeHtml(sub)}</p>
+          </div>
+          <div>
+            <p class="alerts-queue__when">${escapeHtml(alertSortDate(a))}</p>
+            <p class="alerts-queue__countdown">${escapeHtml(alertCountdownLabel(alertDaysUntil(a)))}</p>
+          </div>
+        </li>`;
+      } else {
+        const t = entry.item;
+        const days = tripDaysUntil(t);
+        const daysLabel = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days}d`;
+        return `<li class="alerts-queue__item is-trip">
+          <div>
+            <p class="alerts-queue__title">${escapeHtml(t.departureCity)} → ${escapeHtml(t.arrivalCity)}</p>
+            <p class="alerts-queue__sub">${escapeHtml(t.airline)} ${escapeHtml(t.flightNumber)} · ${escapeHtml(t.duration)}</p>
+          </div>
+          <div>
+            <p class="alerts-queue__when">${escapeHtml(t.departureDate)}</p>
+            <p class="alerts-queue__countdown">${escapeHtml(daysLabel)}</p>
+          </div>
+        </li>`;
+      }
+    }).join('');
+
     elDashboard.innerHTML = `
       <div class="dashboard-grid">
         <div class="hero-card card">
@@ -677,6 +751,11 @@
           <h2 class="hero-card__title" id="dashboard-heading">${escapeHtml([cb.city, cb.country].filter(Boolean).join(', ') || '—')}</h2>
           <div class="hero-time" id="dash-hero-time">—</div>
           <p style="margin:0.5rem 0 0;font-size:0.85rem;color:var(--text-muted)">${escapeHtml(formatDateForZone(tz))} · ${escapeHtml(getUtcOffsetLabel(tz))}</p>
+          ${
+            upcomingTripsArr.length
+              ? `<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.06)">${tripsHtml}</div>`
+              : ''
+          }
         </div>
         <div>
           <div class="card stay-card" style="margin-bottom:1rem">
@@ -701,11 +780,9 @@
             <div class="alert-feature__head">
               <div class="panel-head"><h2>Next alerts</h2></div>
               ${
-                alertsSorted.length > 3
-                  ? `<span class="alert-feature__type">+${alertsSorted.length - 3} more below</span>`
-                  : nextAlertsDash.length
-                    ? '<span class="alert-feature__type">Soonest first</span>'
-                    : ''
+                alertsSorted.length > 0
+                  ? `<span class="alert-feature__type">${alertsSorted.length} total active</span>`
+                  : ''
               }
             </div>
             ${
@@ -713,7 +790,8 @@
                 ? `<ul class="alert-preview">${nextAlertsDash
                     .map((a) => {
                       const place = [a.city, a.country].filter(Boolean).join(' · ');
-                      return `<li class="alert-preview__item ${alertSeverityClass(a.severity)}">
+                      const urgentClass = isAlertUrgent(a) ? 'is-urgent' : '';
+                      return `<li class="alert-preview__item ${alertSeverityClass(a.severity)} ${urgentClass}">
                       <div>
                         <p class="alert-preview__title">${escapeHtml(a.title || 'Alert')}</p>
                         <p class="alert-preview__meta">${escapeHtml(alertSortDate(a))} · ${escapeHtml(alertCountdownLabel(alertDaysUntil(a)))}</p>
@@ -747,23 +825,8 @@
           <span style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">${alertsSorted.length} total</span>
         </div>
         ${
-          alertsSorted.length
-            ? `<ul class="alerts-queue">${alertsSorted
-                .map((a) => {
-                  const place = [a.city, a.country].filter(Boolean).join(' · ');
-                  const sub = [formatAlertType(a.type), place].filter(Boolean).join(' · ');
-                  return `<li class="alerts-queue__item ${alertSeverityClass(a.severity)}">
-                    <div>
-                      <p class="alerts-queue__title">${escapeHtml(a.title || 'Alert')}</p>
-                      <p class="alerts-queue__sub">${escapeHtml(sub)}</p>
-                    </div>
-                    <div>
-                      <p class="alerts-queue__when">${escapeHtml(alertSortDate(a))}</p>
-                      <p class="alerts-queue__countdown">${escapeHtml(alertCountdownLabel(alertDaysUntil(a)))}</p>
-                    </div>
-                  </li>`;
-                })
-                .join('')}</ul>`
+          combinedAlertAndTrips.length
+            ? `<div class="alerts-queue-scroll"><ul class="alerts-queue">${alertAndTripHtml}</ul></div>`
             : '<p style="margin:0.75rem 0 0;color:var(--text-dim)">No active alerts. Add objects under <code style="font-size:0.85em">alerts</code> in <code style="font-size:0.85em">config.json</code>.</p>'
         }
       </div>

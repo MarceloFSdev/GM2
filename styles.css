@@ -646,6 +646,51 @@ body {
   background: rgba(255, 138, 122, 0.1);
 }
 
+.alert-preview__item.is-urgent {
+  background: rgba(255, 138, 122, 0.08);
+  padding-left: 0.65rem;
+  margin-left: -0.65rem;
+  border-left: 3px solid #ff8a5e;
+  border-bottom: 1px solid rgba(255, 138, 122, 0.15);
+}
+
+.alert-preview__item.is-urgent .alert-preview__title {
+  color: #ffb4a8;
+}
+
+.alert-preview__item.is-urgent .alert-preview__type {
+  color: #ff8a5e;
+  border-color: rgba(255, 138, 122, 0.5);
+  background: rgba(255, 138, 122, 0.15);
+}
+
+.alerts-queue-scroll {
+  max-height: 500px;
+  overflow-y: auto;
+  margin: 0.75rem -1rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.alerts-queue-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.alerts-queue-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.alerts-queue-scroll::-webkit-scrollbar-thumb {
+  background: rgba(126, 184, 212, 0.2);
+  border-radius: 3px;
+}
+
+.alerts-queue-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(126, 184, 212, 0.35);
+}
+
 .alerts-queue {
   list-style: none;
   margin: 0.75rem 0 0;
@@ -697,6 +742,46 @@ body {
 
 .alerts-queue__item.alert-severity--high .alerts-queue__when {
   color: #ffb4a8;
+}
+
+.alerts-queue__item.is-urgent {
+  background: rgba(255, 138, 122, 0.08);
+  border-left: 3px solid #ff8a5e;
+  border-bottom: 1px solid rgba(255, 138, 122, 0.15);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+.alerts-queue__item.is-urgent .alerts-queue__title {
+  color: #ffb4a8;
+  font-weight: 700;
+}
+
+.alerts-queue__item.is-urgent .alerts-queue__when {
+  color: #ff8a5e;
+  font-weight: 700;
+}
+
+.alerts-queue__item.is-trip {
+  background: rgba(126, 184, 212, 0.08);
+  border-left: 3px solid #5ba3dc;
+  border-bottom: 1px solid rgba(126, 184, 212, 0.15);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+.alerts-queue__item.is-trip .alerts-queue__title {
+  color: #7ecbff;
+  font-weight: 700;
+}
+
+.alerts-queue__item.is-trip .alerts-queue__when {
+  color: #5ba3dc;
+  font-weight: 700;
+}
+
+.alerts-queue__item.is-trip .alerts-queue__countdown {
+  color: #7ecbff;
 }
 
 .dashboard-metrics {
@@ -913,6 +998,31 @@ body {
   border-color: var(--border-strong);
   color: var(--accent);
   background: var(--accent-soft);
+}
+
+.upcoming-trip {
+  margin-top: 0.75rem;
+}
+
+.upcoming-trip__route {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #7ecbff;
+  line-height: 1.3;
+}
+
+.upcoming-trip__when {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.upcoming-trip__detail {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-dim);
 }
 
 .data-table {
