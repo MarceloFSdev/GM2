@@ -223,12 +223,12 @@
       "id": "alert-sim-card",
       "type": "subscription",
       "title": "Mobile SIM",
-      "startDate": "2026-03-07",
-      "expiresDate": "2026-04-06",
+      "startDate": "2026-04-08",
+      "expiresDate": "2026-05-08",
       "rentalMonths": 1,
       "country": "Indonesia",
       "city": "Bali",
-      "notes": "30-day SIM card · purchased 7 Mar 2026",
+      "notes": "30-day SIM card · renewed 8 Apr 2026",
       "severity": "medium",
       "isActive": true
     }
