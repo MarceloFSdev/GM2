@@ -161,6 +161,26 @@
       "city": "Bali",
       "timezone": "Asia/Makassar",
       "entryDate": "2026-03-07",
+      "exitDate": "2026-04-10",
+      "entryType": "entry",
+      "notes": ""
+    },
+    {
+      "id": "stay-008",
+      "country": "Singapore",
+      "city": "Singapore",
+      "timezone": "Asia/Singapore",
+      "entryDate": "2026-04-10",
+      "exitDate": "2026-04-14",
+      "entryType": "entry",
+      "notes": "Return trip · 4 days"
+    },
+    {
+      "id": "stay-009",
+      "country": "Indonesia",
+      "city": "Bali",
+      "timezone": "Asia/Makassar",
+      "entryDate": "2026-04-14",
       "exitDate": null,
       "entryType": "entry",
       "notes": "Current stay"

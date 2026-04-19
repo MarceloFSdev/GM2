@@ -1367,3 +1367,418 @@ body {
     order: -1;
   }
 }
+
+.fiscal-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 1.25rem;
+}
+.fiscal-header > p {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.fiscal-year-range {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.fiscal-trip__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  min-width: 0;
+}
+.fiscal-trip__field-hint {
+  font-style: normal;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  opacity: 0.75;
+  margin-left: 0.25rem;
+}
+.fiscal-trip__field input[type='date'],
+.fiscal-trip__field input[type='text'] {
+  font: inherit;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+  background: rgba(10, 14, 22, 0.65);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  color-scheme: dark;
+}
+.fiscal-trip__field input[type='date'] {
+  cursor: pointer;
+  min-width: 10rem;
+}
+.fiscal-trip__field input[type='date']:hover {
+  border-color: rgba(126, 184, 212, 0.45);
+}
+.fiscal-trip__field input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(0.75);
+  cursor: pointer;
+  opacity: 0.85;
+}
+.fiscal-trip__field input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+.fiscal-trip__field input:focus {
+  border-color: rgba(126, 184, 212, 0.55);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.fiscal-summary-card.fiscal-status--ok {
+  border-color: rgba(126, 212, 165, 0.45);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 24px rgba(126, 212, 165, 0.08);
+}
+.fiscal-summary-card.fiscal-status--ok .summary-card__metric {
+  color: #8fe0b5;
+}
+.fiscal-summary-card.fiscal-status--bad {
+  border-color: rgba(255, 138, 122, 0.45);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 24px rgba(255, 138, 122, 0.08);
+}
+.fiscal-summary-card.fiscal-status--bad .summary-card__metric {
+  color: var(--alert);
+}
+
+.fiscal-timeline-card {
+  margin-top: 1.25rem;
+}
+.fiscal-timeline__hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-dim);
+  max-width: 42rem;
+}
+.fiscal-timeline {
+  margin-top: 1rem;
+}
+.fiscal-timeline__bar {
+  position: relative;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    rgba(126, 212, 165, 0.18) 0%,
+    rgba(126, 212, 165, 0.1) 100%
+  );
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+.fiscal-timeline__seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 138, 122, 0.85), rgba(255, 138, 122, 0.55));
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 14px rgba(255, 138, 122, 0.35);
+  pointer-events: auto;
+  min-width: 2px;
+}
+.fiscal-timeline__logged {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--fiscal-c, #7ecbff) 65%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--fiscal-c, #7ecbff) 85%, white 15%);
+  border-right: 1px solid color-mix(in srgb, var(--fiscal-c, #7ecbff) 85%, white 15%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--fiscal-c, #7ecbff) 55%, transparent);
+  min-width: 2px;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.fiscal-timeline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.fiscal-timeline__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.fiscal-timeline__legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: #7ecbff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.08);
+}
+.fiscal-timeline__legend-swatch--planned {
+  background: linear-gradient(180deg, rgba(255, 138, 122, 0.9), rgba(255, 138, 122, 0.6));
+}
+
+.fiscal-trip__field--toggle {
+  justify-content: flex-end;
+}
+.fiscal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  user-select: none;
+}
+.fiscal-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.fiscal-toggle__track {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  transition: background var(--transition), border-color var(--transition);
+}
+.fiscal-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #cdd3da;
+  transition: transform var(--transition), background var(--transition);
+}
+.fiscal-toggle input:checked ~ .fiscal-toggle__track {
+  background: var(--accent-soft);
+  border-color: rgba(126, 184, 212, 0.55);
+}
+.fiscal-toggle input:checked ~ .fiscal-toggle__track .fiscal-toggle__thumb {
+  transform: translateX(16px);
+  background: var(--accent);
+}
+.fiscal-toggle__label {
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+  font-weight: 600;
+}
+.fiscal-toggle input:focus-visible ~ .fiscal-toggle__track {
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.fiscal-timeline__anchor {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: linear-gradient(180deg, #9fe0c6, #5fb58a);
+  box-shadow: 0 0 10px rgba(143, 224, 181, 0.65);
+  pointer-events: auto;
+  z-index: 2;
+}
+.fiscal-timeline__anchor-flag {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #062018;
+  background: #8fe0b5;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.fiscal-timeline__month-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.09);
+  pointer-events: none;
+  z-index: 1;
+}
+.fiscal-timeline__months {
+  position: relative;
+  height: 1.1rem;
+  margin-top: 0.4rem;
+}
+.fiscal-timeline__month-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.fiscal-timeline__years {
+  position: relative;
+  height: 0.95rem;
+  margin-top: 0.1rem;
+}
+.fiscal-timeline__year-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 0 0.3rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  border-left: 1px solid var(--border-strong);
+  line-height: 1;
+}
+
+.fiscal-trips-card {
+  margin-top: 1.25rem;
+}
+.fiscal-trips-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.fiscal-trips-head h2 {
+  margin: 0;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fiscal-trips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.fiscal-trips__empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.fiscal-trip {
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-md);
+  background: rgba(10, 14, 22, 0.55);
+  border: 1px solid var(--border);
+}
+.fiscal-trip__head {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.fiscal-trip__name {
+  flex: 1;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.5rem;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+}
+.fiscal-trip__name:hover,
+.fiscal-trip__name:focus {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.03);
+}
+.fiscal-trip__remove {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.fiscal-trip__remove:hover {
+  color: var(--alert);
+  border-color: rgba(255, 138, 122, 0.45);
+  background: rgba(255, 138, 122, 0.08);
+}
+.fiscal-trip__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+}
+@media (max-width: 520px) {
+  .fiscal-trip__controls {
+    grid-template-columns: 1fr;
+  }
+}
+.fiscal-trip__field--slider {
+  gap: 0.45rem;
+}
+.fiscal-trip__slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.fiscal-trip__slider-header strong {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.fiscal-slider {
+  width: 100%;
+}
+.fiscal-trip__return {
+  margin: 0.85rem 0 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.fiscal-trip__return strong {
+  color: var(--text);
+}
