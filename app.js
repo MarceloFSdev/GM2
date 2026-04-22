@@ -15,6 +15,7 @@
     travel: 'Travel Log',
     clocks: 'World Clocks',
     world: 'Countries',
+    bookings: 'Bookings',
     fiscal: 'Fiscal Year',
   };
 
@@ -34,6 +35,7 @@
   let elTravel;
   let elClocks;
   let elWorld;
+  let elBookings;
   let elFiscal;
 
   let fiscalState = null;
@@ -442,6 +444,7 @@
       countriesVisitedEver: Array.isArray(o.countriesVisitedEver) ? o.countriesVisitedEver : [],
       countriesWantToVisit: Array.isArray(o.countriesWantToVisit) ? o.countriesWantToVisit : [],
       upcomingTrips: Array.isArray(o.upcomingTrips) ? o.upcomingTrips : [],
+      bookings: Array.isArray(o.bookings) ? o.bookings : [],
     };
   }
 
@@ -541,6 +544,8 @@
       refreshAlertsChrome();
       pop.classList.remove('hidden');
       btn.setAttribute('aria-expanded', 'true');
+      const sidebar = $('sidebar');
+      if (sidebar && sidebar.classList.contains('is-open')) closeMobileMenu();
     }
 
     function toggleAlertsPopover() {
@@ -650,8 +655,6 @@
     const totals = computeYtdCountryTotals();
     const primary = ytdPrimaryCountry(totals);
     const alertsSorted = getVisibleAlertsSorted();
-    const nextAlertsDash = alertsSorted.slice(0, 3);
-    const panelSeverityClass = nextAlertsDash[0] ? alertSeverityClass(nextAlertsDash[0].severity) : '';
     const rows = Object.keys(totals)
       .filter((k) => totals[k] > 0)
       .sort((a, b) => totals[b] - totals[a])
@@ -712,6 +715,14 @@
       const db = parseYmdToUtcMs(b.sortDate);
       return da - db;
     });
+
+    const nextEntriesDash = combinedAlertAndTrips.slice(0, 3);
+    const firstEntry = nextEntriesDash[0];
+    const panelSeverityClass = firstEntry
+      ? firstEntry.type === 'alert'
+        ? alertSeverityClass(firstEntry.item.severity)
+        : ''
+      : '';
 
     const alertAndTripHtml = combinedAlertAndTrips.map((entry) => {
       if (entry.type === 'alert') {
@@ -785,24 +796,40 @@
             <div class="alert-feature__head">
               <div class="panel-head"><h2>Next alerts</h2></div>
               ${
-                alertsSorted.length > 0
-                  ? `<span class="alert-feature__type">${alertsSorted.length} total active</span>`
+                combinedAlertAndTrips.length > 0
+                  ? `<span class="alert-feature__type">${combinedAlertAndTrips.length} total active</span>`
                   : ''
               }
             </div>
             ${
-              nextAlertsDash.length
-                ? `<ul class="alert-preview">${nextAlertsDash
-                    .map((a) => {
-                      const place = [a.city, a.country].filter(Boolean).join(' · ');
-                      const urgentClass = isAlertUrgent(a) ? 'is-urgent' : '';
-                      return `<li class="alert-preview__item ${alertSeverityClass(a.severity)} ${urgentClass}">
+              nextEntriesDash.length
+                ? `<ul class="alert-preview">${nextEntriesDash
+                    .map((entry) => {
+                      if (entry.type === 'alert') {
+                        const a = entry.item;
+                        const place = [a.city, a.country].filter(Boolean).join(' · ');
+                        const urgentClass = isAlertUrgent(a) ? 'is-urgent' : '';
+                        return `<li class="alert-preview__item ${alertSeverityClass(a.severity)} ${urgentClass}">
                       <div>
                         <p class="alert-preview__title">${escapeHtml(a.title || 'Alert')}</p>
                         <p class="alert-preview__meta">${escapeHtml(alertSortDate(a))} · ${escapeHtml(alertCountdownLabel(alertDaysUntil(a)))}</p>
                         ${place ? `<p class="alert-preview__where">${escapeHtml(place)}</p>` : ''}
                       </div>
                       <span class="alert-preview__type">${escapeHtml(formatAlertType(a.type))}</span>
+                    </li>`;
+                      }
+                      const t = entry.item;
+                      const days = tripDaysUntil(t);
+                      const daysLabel = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days}d`;
+                      const timePart = t.departureTime ? ` ${t.departureTime}` : '';
+                      const detail = [t.airline, t.flightNumber].filter(Boolean).join(' ');
+                      return `<li class="alert-preview__item is-trip">
+                      <div>
+                        <p class="alert-preview__title">${escapeHtml(t.departureCity)} → ${escapeHtml(t.arrivalCity)}</p>
+                        <p class="alert-preview__meta">${escapeHtml(t.departureDate)}${escapeHtml(timePart)} · ${escapeHtml(daysLabel)}</p>
+                        ${detail ? `<p class="alert-preview__where">${escapeHtml(detail)}</p>` : ''}
+                      </div>
+                      <span class="alert-preview__type">Flight</span>
                     </li>`;
                     })
                     .join('')}</ul>`
@@ -971,6 +998,177 @@
       travelLogMode = 'rolling';
       renderTravelLog();
     });
+  }
+
+  function bookingPrimaryMs(b) {
+    const ms = parseYmdToUtcMs(b.startDate || b.date || b.checkIn || b.departureDate);
+    return Number.isNaN(ms) ? 0 : ms;
+  }
+
+  function bookingEndMs(b) {
+    const ms = parseYmdToUtcMs(b.endDate || b.checkOut || b.returnDate || b.startDate || b.date);
+    return Number.isNaN(ms) ? bookingPrimaryMs(b) : ms;
+  }
+
+  function bookingIcon(type) {
+    if (type === 'flight') {
+      return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 18.5 8 21l-1-.5.5-4L3 14l.5-1.5L8 13l4-5-8-4 .5-1.5L14 4l4.5-2c1 0 1.5.5 1.5 1.5L18 8l2 9.5-1.5.5-4-4.5-4 5Z"/></svg>`;
+    }
+    if (type === 'hotel') {
+      return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20V7h18v13"/><path d="M3 14h18"/><path d="M7 11h3"/><path d="M3 20h18"/></svg>`;
+    }
+    return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>`;
+  }
+
+  function formatBookingDate(ymd) {
+    const ms = parseYmdToUtcMs(ymd);
+    if (Number.isNaN(ms)) return escapeHtml(ymd || '');
+    const d = new Date(ms);
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  }
+
+  function mapsLinkFor(b) {
+    if (b && b.mapsUrl) return b.mapsUrl;
+    const q = [b && b.address, b && b.city, b && b.country].filter(Boolean).join(', ');
+    if (!q) return '';
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  }
+
+  function renderBookingDetailRows(b) {
+    const rows = [];
+    const push = (label, value) => {
+      if (value == null || value === '') return;
+      rows.push(`<div class="booking-field"><span class="booking-field__label">${escapeHtml(label)}</span><span class="booking-field__value">${value}</span></div>`);
+    };
+
+    if (b.type === 'flight') {
+      push('Flight', escapeHtml([b.airline, b.flightNumber].filter(Boolean).join(' · ')));
+      const dep = [b.departureAirport, b.departureCity].filter(Boolean).join(' · ');
+      const arr = [b.arrivalAirport, b.arrivalCity].filter(Boolean).join(' · ');
+      if (dep || b.departureTime) push('Departs', escapeHtml(`${dep}${b.departureTime ? ' @ ' + b.departureTime : ''}`));
+      if (arr || b.arrivalTime) push('Arrives', escapeHtml(`${arr}${b.arrivalTime ? ' @ ' + b.arrivalTime : ''}`));
+      if (b.duration) push('Duration', escapeHtml(b.duration));
+      if (b.seat) push('Seat', escapeHtml(b.seat));
+      if (b.confirmation) push('Confirmation', escapeHtml(b.confirmation));
+    } else if (b.type === 'hotel') {
+      if (b.checkIn || b.checkOut) {
+        push('Stay', escapeHtml(`${b.checkIn || '…'} → ${b.checkOut || '…'}`));
+      }
+      if (b.checkInTime || b.checkOutTime) {
+        push('Times', escapeHtml(`in ${b.checkInTime || '—'} · out ${b.checkOutTime || '—'}`));
+      }
+      if (b.confirmation) push('Confirmation', escapeHtml(b.confirmation));
+      if (b.phone) push('Phone', escapeHtml(b.phone));
+    } else {
+      if (b.startDate || b.endDate) push('Dates', escapeHtml(`${b.startDate || '…'} → ${b.endDate || '…'}`));
+      if (b.confirmation) push('Confirmation', escapeHtml(b.confirmation));
+    }
+
+    const addressPieces = [b.address, b.city, b.country].filter(Boolean).join(', ');
+    if (addressPieces) {
+      const href = mapsLinkFor(b);
+      const inner = href
+        ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(addressPieces)}</a>`
+        : escapeHtml(addressPieces);
+      push('Address', inner);
+    } else if (b.mapsUrl) {
+      push('Map', `<a href="${escapeHtml(b.mapsUrl)}" target="_blank" rel="noopener">Open in Google Maps</a>`);
+    }
+
+    if (b.url) {
+      push('Link', `<a href="${escapeHtml(b.url)}" target="_blank" rel="noopener">Open booking</a>`);
+    }
+
+    return rows.join('');
+  }
+
+  function renderBookingCard(b) {
+    const type = (b.type || 'other').toLowerCase();
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    const whenMs = bookingPrimaryMs(b);
+    const whenText = whenMs ? formatBookingDate(b.startDate || b.date || b.checkIn || b.departureDate) : '';
+    const today = parseYmdToUtcMs(todayUtcYmd());
+    const endMs = bookingEndMs(b);
+    const isPast = endMs && endMs < today;
+    const daysOut = whenMs ? Math.round((whenMs - today) / 86400000) : null;
+    let countdown = '';
+    if (!isPast && daysOut !== null) {
+      if (daysOut === 0) countdown = 'Today';
+      else if (daysOut === 1) countdown = 'Tomorrow';
+      else if (daysOut > 0) countdown = `in ${daysOut} days`;
+    }
+    const attachments = Array.isArray(b.attachments) ? b.attachments : [];
+    const attachList = attachments
+      .map((a) => {
+        const path = typeof a === 'string' ? a : a.path;
+        const name = typeof a === 'string' ? a.split('/').pop() : a.label || (a.path || '').split('/').pop();
+        if (!path) return '';
+        return `<li><a href="${escapeHtml(path)}" target="_blank" rel="noopener">${escapeHtml(name)}</a></li>`;
+      })
+      .filter(Boolean)
+      .join('');
+
+    return `
+      <article class="booking-card booking-card--${escapeHtml(type)} ${isPast ? 'booking-card--past' : ''}">
+        <header class="booking-card__head">
+          <span class="booking-card__icon" aria-hidden="true">${bookingIcon(type)}</span>
+          <div class="booking-card__heading">
+            <p class="booking-card__type">${escapeHtml(typeLabel)}</p>
+            <h3 class="booking-card__title">${escapeHtml(b.title || b.name || typeLabel)}</h3>
+          </div>
+          <div class="booking-card__when">
+            ${whenText ? `<p class="booking-card__date">${escapeHtml(whenText)}</p>` : ''}
+            ${countdown ? `<p class="booking-card__countdown">${escapeHtml(countdown)}</p>` : ''}
+            ${isPast ? `<p class="booking-card__countdown booking-card__countdown--past">Past</p>` : ''}
+          </div>
+        </header>
+        <div class="booking-card__body">
+          ${renderBookingDetailRows(b)}
+        </div>
+        ${b.notes ? `<p class="booking-card__notes">${escapeHtml(b.notes)}</p>` : ''}
+        ${attachList ? `<div class="booking-card__attachments"><p class="booking-card__attachments-label">Files</p><ul>${attachList}</ul></div>` : ''}
+      </article>`;
+  }
+
+  function renderBookings() {
+    if (!elBookings) return;
+    const all = [...(config.bookings || [])];
+    const today = parseYmdToUtcMs(todayUtcYmd());
+
+    const upcoming = all
+      .filter((b) => bookingEndMs(b) >= today)
+      .sort((a, b) => bookingPrimaryMs(a) - bookingPrimaryMs(b));
+    const past = all
+      .filter((b) => bookingEndMs(b) < today)
+      .sort((a, b) => bookingPrimaryMs(b) - bookingPrimaryMs(a));
+
+    const emptyMsg = `<p class="booking-empty">No bookings saved yet. Send Claude a flight or hotel confirmation and it will be added here.</p>`;
+
+    elBookings.innerHTML = `
+      <h1 id="bookings-heading">Bookings</h1>
+      <div class="travel-header">
+        <div>
+          <p>Stored reservations for upcoming trips — flights, hotels, and anything else worth remembering on the road.</p>
+        </div>
+      </div>
+
+      <section class="bookings-section">
+        <div class="bookings-section__head">
+          <h2>Upcoming</h2>
+          <span class="bookings-count">${upcoming.length}</span>
+        </div>
+        ${upcoming.length ? `<div class="bookings-grid">${upcoming.map(renderBookingCard).join('')}</div>` : emptyMsg}
+      </section>
+
+      ${past.length ? `
+        <section class="bookings-section">
+          <div class="bookings-section__head">
+            <h2>Past</h2>
+            <span class="bookings-count">${past.length}</span>
+          </div>
+          <div class="bookings-grid bookings-grid--past">${past.map(renderBookingCard).join('')}</div>
+        </section>` : ''}
+    `;
   }
 
   function paintWcRail() {
@@ -1871,7 +2069,7 @@
   }
 
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'fiscal'];
+    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'fiscal'];
     if (!allowed.includes(view)) view = 'dashboard';
 
     try {
@@ -1885,6 +2083,7 @@
       travel: $('view-travel'),
       clocks: $('view-clocks'),
       world: $('view-world'),
+      bookings: $('view-bookings'),
       fiscal: $('view-fiscal'),
     };
 
@@ -1911,6 +2110,7 @@
     if (view === 'travel') renderTravelLog();
     if (view === 'clocks') renderWorldClocks();
     if (view === 'world') renderWorldCountries();
+    if (view === 'bookings') renderBookings();
     if (view === 'fiscal') renderFiscal();
     refreshAlertsChrome();
     updateAllClocks();
@@ -1951,8 +2151,19 @@
         backdrop.hidden = !open;
         backdrop.classList.toggle('is-open', open);
       }
+      if (open) {
+        const pop = $('alerts-popover');
+        const alertsBtn = $('btn-alerts');
+        if (pop && !pop.classList.contains('hidden')) {
+          pop.classList.add('hidden');
+          alertsBtn?.setAttribute('aria-expanded', 'false');
+        }
+      }
     });
     backdrop?.addEventListener('click', closeMobileMenu);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('is-open')) closeMobileMenu();
+    });
   }
 
   async function initApp() {
@@ -1964,6 +2175,7 @@
     elTravel = $('travel-mount');
     elClocks = $('clocks-mount');
     elWorld = $('world-mount');
+    elBookings = $('bookings-mount');
     elFiscal = $('fiscal-mount');
 
     try {
@@ -1989,7 +2201,7 @@
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'fiscal') initial = saved;
+      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'fiscal') initial = saved;
     } catch {
       /* ignore */
     }
