@@ -297,6 +297,24 @@
       "attachments": ["docs/bookings/2026-04-29_DPS-SIN_Scoot-TR283_kiwi-762610772.pdf"]
     },
     {
+      "id": "booking-003",
+      "type": "flight",
+      "title": "Singapore → Denpasar",
+      "startDate": "2026-05-04",
+      "airline": "Scoot",
+      "flightNumber": "TR282",
+      "departureAirport": "SIN",
+      "departureCity": "Singapore",
+      "departureTime": "15:55",
+      "arrivalAirport": "DPS",
+      "arrivalCity": "Denpasar",
+      "arrivalTime": "18:40",
+      "duration": "2h 45m",
+      "notes": "Imported from upcoming trips.",
+      "bookingRef": "776015405",
+      "attachments": ["docs/bookings/2026-05-04_SIN-DPS_Scoot-TR282_kiwi-776015405.pdf"]
+    },
+    {
       "id": "booking-002",
       "type": "hotel",
       "title": "Campbell Inn",

@@ -214,18 +214,20 @@
             <span>Show wishlist on map</span>
           </label>
         </header>
-        <div class="world-map-view__map card" id="world-map-svg-wrap" aria-busy="true">
-          <p class="world-map-view__loading">Loading map…</p>
-        </div>
-        <div class="world-map-view__lists">
-          <section class="world-map-view__list-panel card" aria-labelledby="wm-visited-h">
-            <h2 id="wm-visited-h" class="world-map-view__list-title">Visited (${visited.size})</h2>
-            <ul class="world-map-view__list" id="wm-list-visited"></ul>
-          </section>
-          <section class="world-map-view__list-panel card" aria-labelledby="wm-want-h">
-            <h2 id="wm-want-h" class="world-map-view__list-title">Want to visit (${want.size})</h2>
-            <ul class="world-map-view__list" id="wm-list-want"></ul>
-          </section>
+        <div class="world-map-view__body">
+          <div class="world-map-view__map card" id="world-map-svg-wrap" aria-busy="true">
+            <p class="world-map-view__loading">Loading map…</p>
+          </div>
+          <div class="world-map-view__lists">
+            <section class="world-map-view__list-panel card" aria-labelledby="wm-visited-h">
+              <h2 id="wm-visited-h" class="world-map-view__list-title">Visited (${visited.size})</h2>
+              <ul class="world-map-view__list" id="wm-list-visited"></ul>
+            </section>
+            <section class="world-map-view__list-panel card" aria-labelledby="wm-want-h">
+              <h2 id="wm-want-h" class="world-map-view__list-title">Want to visit (${want.size})</h2>
+              <ul class="world-map-view__list" id="wm-list-want"></ul>
+            </section>
+          </div>
         </div>
       </div>`;
 

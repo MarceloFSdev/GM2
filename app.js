@@ -2138,6 +2138,34 @@
     if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
   }
 
+  function wireSidebarCollapse() {
+    const root = $('app-root');
+    const btn = $('btn-sidebar-toggle');
+    if (!root || !btn) return;
+    const KEY = 'chronos-gmt-sidebar-collapsed';
+    let collapsed = false;
+    try {
+      collapsed = localStorage.getItem(KEY) === '1';
+    } catch {
+      /* ignore */
+    }
+    const apply = () => {
+      root.classList.toggle('sidebar-collapsed', collapsed);
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    };
+    apply();
+    btn.addEventListener('click', () => {
+      collapsed = !collapsed;
+      apply();
+      try {
+        localStorage.setItem(KEY, collapsed ? '1' : '0');
+      } catch {
+        /* ignore */
+      }
+    });
+  }
+
   function wireMobileMenu() {
     const sidebar = $('sidebar');
     const backdrop = $('sidebar-backdrop');
@@ -2195,6 +2223,7 @@
     renderConfigWarnings();
     wireNavigation();
     wireMobileMenu();
+    wireSidebarCollapse();
     wireAlertsPopover();
     refreshAlertsChrome();
 

@@ -11,3 +11,13 @@ Store all original media the user sends that contains booking or reservation inf
   - Hotels/rentals: `YYYY-MM-DD_<CITY>_<PROPERTY>_<vendor-ref>.<ext>`.
 - When adding the corresponding entry to `config.json` (`upcomingTrips`, `bookings`, `alerts`), include the vendor reference in a `bookingRef` field and reference the stored file path in `attachments`.
 - Do not delete stored media when entries are superseded; move outdated files to `docs/bookings/archive/` instead.
+
+## Flights must be recorded in both `upcomingTrips` and `bookings`
+
+Every flight is recorded twice in `config.json`: once in `upcomingTrips` (which feeds the dashboard alerts panel) and once in `bookings` (the canonical bookings list).
+
+- IDs follow sequence: `trip-NNN` in `upcomingTrips`, `booking-NNN` in `bookings`. They do not have to share the same number — just keep each sequence contiguous.
+- The two entries for the same flight must agree on: date, times, airline, flight number, airports, cities, duration, `bookingRef`, and `attachments`.
+- `bookings.notes` for mirrored flights: `"Imported from upcoming trips."`.
+- `upcomingTrips` uses the richer schema (`departureDate/Time`, `arrivalDate/Time`, `departureAirportName`, `arrivalAirportName`, `departureCountry`, `arrivalCountry`). `bookings` uses the flatter schema (`startDate`, `departureTime`, `arrivalTime`, `departureCity`, `arrivalCity`, `departureAirport`, `arrivalAirport`, `title: "From → To"`).
+- When a flight is added, updated, or cancelled, update both entries in the same edit. Never leave one side out of sync.

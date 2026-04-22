@@ -213,7 +213,44 @@ body {
   flex-direction: column;
   gap: 2rem;
   z-index: 40;
+  transition: transform 0.35s ease, margin-left 0.35s ease;
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 50%;
+  left: var(--sidebar-w);
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 52px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(10, 14, 22, 0.88);
+  backdrop-filter: blur(8px);
+  color: var(--text-muted);
+  cursor: pointer;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: left 0.35s ease, color 0.15s ease, background 0.15s ease;
+}
+.sidebar-toggle:hover {
+  color: var(--accent);
+  background: rgba(20, 28, 40, 0.95);
+}
+.sidebar-toggle__icon {
   transition: transform 0.35s ease;
+}
+.app-root.sidebar-collapsed .sidebar {
+  margin-left: calc(var(--sidebar-w) * -1);
+}
+.app-root.sidebar-collapsed .sidebar-toggle {
+  left: 0;
+}
+.app-root.sidebar-collapsed .sidebar-toggle__icon {
+  transform: rotate(180deg);
 }
 .sidebar__logo {
   margin: 0;
@@ -1366,6 +1403,9 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 0.65rem 0.9rem;
+  }
+  .sidebar-toggle {
+    display: none;
   }
   .app-root {
     flex-direction: column;

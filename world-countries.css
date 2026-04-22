@@ -1,8 +1,35 @@
 /* World countries view — add to styles.css or link after main stylesheet */
 
 .world-map-view {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+}
+
+.world-map-view__body {
+  display: block;
+}
+
+@media (min-width: 960px) {
+  .world-map-view__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(20rem, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .world-map-view__body .world-map-view__map {
+    position: sticky;
+    top: 1rem;
+    margin-bottom: 0;
+  }
+  .world-map-view__body .world-map-view__lists {
+    grid-template-columns: 1fr;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+  .world-map-view__body .world-map-view__list {
+    columns: 1;
+  }
 }
 
 .world-map-view__h1 {
