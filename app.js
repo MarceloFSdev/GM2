@@ -17,6 +17,7 @@
     world: 'Countries',
     bookings: 'Bookings',
     fiscal: 'Fiscal Year',
+    schedule: 'Daily Rhythm',
   };
 
   let config = null;
@@ -37,6 +38,7 @@
   let elWorld;
   let elBookings;
   let elFiscal;
+  let elSchedule;
 
   let fiscalState = null;
 
@@ -2058,6 +2060,232 @@
     });
   }
 
+  const SCHEDULE_ANCHOR_MIN = 240;
+  const SCHEDULE_BLOCKS = [
+    { start: 240, end: 660, label: 'Main sleep', kind: 'sleep', summary: 'Anchor block. Dark room, AC, eye mask, phone away. Treat this as your real night.' },
+    { start: 660, end: 750, label: 'Breakfast + light work', kind: 'wake', summary: 'Coffee here. Breakfast, sunlight, planning, inbox, light tasks, checking leads/automations.' },
+    { start: 750, end: 870, label: 'Gym + chill work', kind: 'gym', summary: 'Train in the first half of the day. Optional light work/admin around gym time.' },
+    { start: 870, end: 915, label: 'Post-gym meal + reset', kind: 'meal', summary: 'Protein + carbs. Not a giant coma meal. Start dimming stimulation before the nap.' },
+    { start: 930, end: 1020, label: 'Second sleep / nap', kind: 'sleep', summary: '90-minute pre-shift nap. The move that protects the night work block.' },
+    { start: 1020, end: 1050, label: 'Wake buffer', kind: 'wake', summary: 'Water, light, quick walk/shower. No calls the second you wake up.' },
+    { start: 1050, end: 1290, label: 'Deep work block', kind: 'work', summary: 'Coworking opens. Coffee + protein snack at the start. Best block for sales follow-up, systems, funnels, demos.' },
+    { start: 1290, end: 1350, label: 'Dinner break', kind: 'meal', summary: 'Real dinner. Keep it sane. Avoid making 11pm the biggest meal of your day.' },
+    { start: 1350, end: 180, label: 'US calls + night shift', kind: 'shift', summary: 'Calls, follow-up, support, sales. No more caffeine. Keep the work operational and focused.' },
+    { start: 180, end: 240, label: 'Shutdown', kind: 'wind', summary: 'Hard stop, low light, shower, prep room, no doom-scrolling. Protect the 4am sleep start.' },
+  ];
+  const SCHEDULE_RULES = [
+    { metric: 'Total sleep', target: '7+ hours actual sleep across both blocks' },
+    { metric: 'Main sleep', target: 'At least 6 hours actual sleep most days' },
+    { metric: 'Nap', target: '60-90 minutes actual sleep; skip it max 1x/week' },
+    { metric: 'Caffeine', target: 'Coffee at 11am and 5:30pm only. No later caffeine.' },
+    { metric: 'Hard stop', target: 'Stop work by 3:00am unless there is a real emergency' },
+    { metric: 'Red flags', target: 'Irritability, anxiety, bad gym performance, needing late caffeine, or missing the nap repeatedly' },
+  ];
+  const SCHEDULE_HEADLINES = [
+    { label: 'Main sleep', value: '4:00am – 11:00am', kind: 'sleep' },
+    { label: 'Second sleep', value: '3:30pm – 5:00pm', kind: 'sleep' },
+    { label: 'Main shift', value: '5:30pm – 3:00am', kind: 'shift' },
+    { label: 'Caffeine cutoff', value: '5:30pm — last one', kind: 'wake' },
+  ];
+
+  function fmtMinAsClock(min) {
+    const m = ((min % 1440) + 1440) % 1440;
+    const h24 = Math.floor(m / 60);
+    const mm = m % 60;
+    const period = h24 < 12 ? 'am' : 'pm';
+    const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+    return mm === 0 ? `${h12}${period}` : `${h12}:${String(mm).padStart(2, '0')}${period}`;
+  }
+
+  function scheduleBlockLength(b) {
+    return (((b.end - b.start) % 1440) + 1440) % 1440 || 1440;
+  }
+
+  function scheduleAnchorOffset(min, anchor = SCHEDULE_ANCHOR_MIN) {
+    return (((min - anchor) % 1440) + 1440) % 1440;
+  }
+
+  function scheduleIsNowIn(nowMin, b) {
+    const s = b.start;
+    const e = b.end;
+    if (s === e) return false;
+    if (s < e) return nowMin >= s && nowMin < e;
+    return nowMin >= s || nowMin < e;
+  }
+
+  function nowMinutesLocal() {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+  }
+
+  function scheduleProgressPct(nowMin, b) {
+    const len = scheduleBlockLength(b);
+    const offset = (((nowMin - b.start) % 1440) + 1440) % 1440;
+    return Math.max(0, Math.min(100, (offset / len) * 100));
+  }
+
+  function scheduleTimeUntil(nowMin, target) {
+    let diff = (((target - nowMin) % 1440) + 1440) % 1440;
+    const h = Math.floor(diff / 60);
+    const m = Math.floor(diff % 60);
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+  }
+
+  function renderSchedule() {
+    if (!elSchedule) return;
+
+    const headlineHtml = SCHEDULE_HEADLINES.map(
+      (h) => `<article class="schedule-headline schedule-headline--${h.kind}">
+        <p class="schedule-headline__label">${escapeHtml(h.label)}</p>
+        <p class="schedule-headline__value">${escapeHtml(h.value)}</p>
+      </article>`
+    ).join('');
+
+    const tickHtml = [0, 4, 8, 12, 16, 20, 24]
+      .map((h) => {
+        const min = (SCHEDULE_ANCHOR_MIN + h * 60) % 1440;
+        const leftPct = ((h * 60) / 1440) * 100;
+        return `<span class="schedule-timeline__tick" style="left:${leftPct.toFixed(3)}%">
+          <span class="schedule-timeline__tick-label">${escapeHtml(fmtMinAsClock(min))}</span>
+        </span>`;
+      })
+      .join('');
+
+    const segHtml = SCHEDULE_BLOCKS.map((b, i) => {
+      const len = scheduleBlockLength(b);
+      const leftPct = (scheduleAnchorOffset(b.start) / 1440) * 100;
+      const widthPct = (len / 1440) * 100;
+      return `<span class="schedule-timeline__seg schedule-timeline__seg--${b.kind}" data-block-index="${i}" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(3)}%" title="${escapeHtml(`${b.label} · ${fmtMinAsClock(b.start)}–${fmtMinAsClock(b.end)}`)}"></span>`;
+    }).join('');
+
+    const rowsHtml = SCHEDULE_BLOCKS.map((b, i) => {
+      const range = `${fmtMinAsClock(b.start)} – ${fmtMinAsClock(b.end)}`;
+      return `<div class="schedule-row schedule-row--${b.kind}" data-block-index="${i}">
+        <div class="schedule-row__time">${escapeHtml(range)}</div>
+        <div class="schedule-row__body">
+          <p class="schedule-row__label">${escapeHtml(b.label)}</p>
+          <p class="schedule-row__summary">${escapeHtml(b.summary)}</p>
+        </div>
+      </div>`;
+    }).join('');
+
+    const rulesHtml = SCHEDULE_RULES.map(
+      (r) => `<div class="schedule-rule">
+        <span class="schedule-rule__metric">${escapeHtml(r.metric)}</span>
+        <span class="schedule-rule__target">${escapeHtml(r.target)}</span>
+      </div>`
+    ).join('');
+
+    elSchedule.innerHTML = `
+      <h1 id="schedule-heading">Daily Rhythm</h1>
+      <div class="schedule-header">
+        <p>Biphasic Bali → US-market schedule. Long anchor sleep at 4am, tactical 90-minute nap before the night shift, caffeine only at 11am and 5:30pm. Run this as a 14-day experiment, not a personality trait — if the nap fails, the whole system fails.</p>
+      </div>
+
+      <div class="schedule-headlines">${headlineHtml}</div>
+
+      <article class="card schedule-now-card">
+        <div class="schedule-now" data-role="now">
+          <div class="schedule-now__head">
+            <span class="schedule-now__kicker">Right now</span>
+            <span class="schedule-now__clock" data-role="now-clock">--:--</span>
+          </div>
+          <p class="schedule-now__label" data-role="now-label">—</p>
+          <p class="schedule-now__meta" data-role="now-meta">—</p>
+          <div class="schedule-now__progress">
+            <span class="schedule-now__progress-fill" data-role="now-fill" style="width:0%"></span>
+          </div>
+          <p class="schedule-now__next" data-role="now-next">—</p>
+        </div>
+      </article>
+
+      <article class="card schedule-timeline-card">
+        <header class="schedule-timeline-card__head">
+          <h2>24-hour timeline</h2>
+          <p class="schedule-timeline-card__hint">Starts at 4am wake. Hover a block for details.</p>
+        </header>
+        <div class="schedule-timeline">
+          <div class="schedule-timeline__bar" data-role="timeline-bar">
+            ${segHtml}
+            <span class="schedule-timeline__now" data-role="timeline-now" style="left:0%"></span>
+          </div>
+          <div class="schedule-timeline__ticks">${tickHtml}</div>
+        </div>
+      </article>
+
+      <article class="card schedule-list-card">
+        <header class="schedule-list-card__head">
+          <h2>Daily blocks</h2>
+        </header>
+        <div class="schedule-list">${rowsHtml}</div>
+      </article>
+
+      <article class="card schedule-rules-card">
+        <header class="schedule-list-card__head">
+          <h2>Two-week test rules</h2>
+        </header>
+        <div class="schedule-rules">${rulesHtml}</div>
+      </article>
+    `;
+
+    registerClock('schedule-now', updateScheduleNow);
+    updateScheduleNow();
+  }
+
+  function updateScheduleNow() {
+    if (!elSchedule || !elSchedule.querySelector('[data-role="now"]')) return;
+    const nowMin = nowMinutesLocal();
+    const activeIdx = SCHEDULE_BLOCKS.findIndex((b) => scheduleIsNowIn(nowMin, b));
+    const active = activeIdx >= 0 ? SCHEDULE_BLOCKS[activeIdx] : null;
+
+    const clockEl = elSchedule.querySelector('[data-role="now-clock"]');
+    if (clockEl) {
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const ss = String(d.getSeconds()).padStart(2, '0');
+      clockEl.textContent = `${hh}:${mm}:${ss}`;
+    }
+
+    const labelEl = elSchedule.querySelector('[data-role="now-label"]');
+    const metaEl = elSchedule.querySelector('[data-role="now-meta"]');
+    const fillEl = elSchedule.querySelector('[data-role="now-fill"]');
+    const nextEl = elSchedule.querySelector('[data-role="now-next"]');
+    const nowCard = elSchedule.querySelector('[data-role="now"]');
+
+    if (active) {
+      const pct = scheduleProgressPct(nowMin, active);
+      if (labelEl) labelEl.textContent = active.label;
+      if (metaEl) metaEl.textContent = `${fmtMinAsClock(active.start)} – ${fmtMinAsClock(active.end)} · ${active.summary}`;
+      if (fillEl) fillEl.style.width = `${pct.toFixed(2)}%`;
+      const nextIdx = (activeIdx + 1) % SCHEDULE_BLOCKS.length;
+      const next = SCHEDULE_BLOCKS[nextIdx];
+      if (nextEl) nextEl.textContent = `Next: ${next.label} at ${fmtMinAsClock(next.start)} (in ${scheduleTimeUntil(nowMin, active.end)})`;
+      if (nowCard) nowCard.setAttribute('data-kind', active.kind);
+    } else {
+      if (labelEl) labelEl.textContent = 'Off-schedule';
+      if (metaEl) metaEl.textContent = 'Current time falls outside any defined block.';
+      if (fillEl) fillEl.style.width = '0%';
+      if (nextEl) nextEl.textContent = '';
+      if (nowCard) nowCard.setAttribute('data-kind', 'idle');
+    }
+
+    elSchedule.querySelectorAll('.schedule-row').forEach((row) => {
+      const idx = Number(row.getAttribute('data-block-index'));
+      row.classList.toggle('schedule-row--active', idx === activeIdx);
+    });
+    elSchedule.querySelectorAll('.schedule-timeline__seg').forEach((seg) => {
+      const idx = Number(seg.getAttribute('data-block-index'));
+      seg.classList.toggle('schedule-timeline__seg--active', idx === activeIdx);
+    });
+
+    const nowOffsetPct = (scheduleAnchorOffset(nowMin) / 1440) * 100;
+    const nowMarker = elSchedule.querySelector('[data-role="timeline-now"]');
+    if (nowMarker) nowMarker.style.left = `${nowOffsetPct.toFixed(3)}%`;
+  }
+
   async function renderWorldCountries() {
     if (!elWorld) return;
     if (typeof ChronosWorldMap === 'undefined') {
@@ -2069,7 +2297,7 @@
   }
 
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'fiscal'];
+    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'fiscal', 'schedule'];
     if (!allowed.includes(view)) view = 'dashboard';
 
     try {
@@ -2085,6 +2313,7 @@
       world: $('view-world'),
       bookings: $('view-bookings'),
       fiscal: $('view-fiscal'),
+      schedule: $('view-schedule'),
     };
 
     for (const k of Object.keys(views)) {
@@ -2112,6 +2341,7 @@
     if (view === 'world') renderWorldCountries();
     if (view === 'bookings') renderBookings();
     if (view === 'fiscal') renderFiscal();
+    if (view === 'schedule') renderSchedule();
     refreshAlertsChrome();
     updateAllClocks();
   }
@@ -2205,6 +2435,7 @@
     elWorld = $('world-mount');
     elBookings = $('bookings-mount');
     elFiscal = $('fiscal-mount');
+    elSchedule = $('schedule-mount');
 
     try {
       const raw = await loadConfig();
@@ -2230,7 +2461,7 @@
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'fiscal') initial = saved;
+      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'fiscal' || saved === 'schedule') initial = saved;
     } catch {
       /* ignore */
     }
