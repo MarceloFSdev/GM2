@@ -17,7 +17,7 @@
     world: 'Countries',
     bookings: 'Bookings',
     fiscal: 'Fiscal Year',
-    schedule: 'Daily Rhythm',
+    schedule: 'Schedule',
   };
 
   let config = null;
@@ -2179,7 +2179,7 @@
     ).join('');
 
     elSchedule.innerHTML = `
-      <h1 id="schedule-heading">Daily Rhythm</h1>
+      <h1 id="schedule-heading">Schedule</h1>
       <div class="schedule-header">
         <p>Biphasic Bali → US-market schedule. Long anchor sleep at 4am, tactical 90-minute nap before the night shift, caffeine only at 11am and 5:30pm. Run this as a 14-day experiment, not a personality trait — if the nap fails, the whole system fails.</p>
       </div>
