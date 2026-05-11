@@ -18,6 +18,7 @@
     bookings: 'Bookings',
     fiscal: 'Fiscal Year',
     schedule: 'Schedule',
+    adulting: 'Adulting',
   };
 
   let config = null;
@@ -39,6 +40,7 @@
   let elBookings;
   let elFiscal;
   let elSchedule;
+  let elAdulting;
 
   let fiscalState = null;
 
@@ -2286,6 +2288,25 @@
     if (nowMarker) nowMarker.style.left = `${nowOffsetPct.toFixed(3)}%`;
   }
 
+  function renderAdulting() {
+    if (!elAdulting) return;
+    const items = ['Pay rent', 'Check bills', 'Book appointments', 'Review documents'];
+    const itemsHtml = items
+      .map((item) => `<li class="adulting-item"><span class="adulting-item__check" aria-hidden="true"></span><span>${escapeHtml(item)}</span></li>`)
+      .join('');
+
+    elAdulting.innerHTML = `
+      <h1 id="adulting-heading">Adulting</h1>
+      <div class="adulting-header">
+        <p>A tiny starter checklist for boring-but-important life admin.</p>
+      </div>
+      <article class="card adulting-card">
+        <h2>To-do list</h2>
+        <ul class="adulting-list">${itemsHtml}</ul>
+      </article>
+    `;
+  }
+
   async function renderWorldCountries() {
     if (!elWorld) return;
     if (typeof ChronosWorldMap === 'undefined') {
@@ -2297,7 +2318,7 @@
   }
 
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'fiscal', 'schedule'];
+    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'fiscal', 'schedule', 'adulting'];
     if (!allowed.includes(view)) view = 'dashboard';
 
     try {
@@ -2314,6 +2335,7 @@
       bookings: $('view-bookings'),
       fiscal: $('view-fiscal'),
       schedule: $('view-schedule'),
+      adulting: $('view-adulting'),
     };
 
     for (const k of Object.keys(views)) {
@@ -2342,6 +2364,7 @@
     if (view === 'bookings') renderBookings();
     if (view === 'fiscal') renderFiscal();
     if (view === 'schedule') renderSchedule();
+    if (view === 'adulting') renderAdulting();
     refreshAlertsChrome();
     updateAllClocks();
   }
@@ -2436,6 +2459,7 @@
     elBookings = $('bookings-mount');
     elFiscal = $('fiscal-mount');
     elSchedule = $('schedule-mount');
+    elAdulting = $('adulting-mount');
 
     try {
       const raw = await loadConfig();
@@ -2461,7 +2485,7 @@
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'fiscal' || saved === 'schedule') initial = saved;
+      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'fiscal' || saved === 'schedule' || saved === 'adulting') initial = saved;
     } catch {
       /* ignore */
     }
