@@ -2,7 +2,8 @@
   "name": "chronos-gmt",
   "private": true,
   "scripts": {
-    "start": "serve . -l 8765"
+    "start": "serve . -l 8765",
+    "test": "node tests/travel-log-derived.test.js"
   },
   "devDependencies": {
     "serve": "^14.2.4"

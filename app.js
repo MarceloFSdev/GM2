@@ -16,6 +16,7 @@
     clocks: 'World Clocks',
     world: 'Countries',
     bookings: 'Bookings',
+    renewals: 'Renewals',
     fiscal: 'Fiscal Year',
     schedule: 'Schedule',
   };
@@ -37,6 +38,7 @@
   let elClocks;
   let elWorld;
   let elBookings;
+  let elRenewals;
   let elFiscal;
   let elSchedule;
 
@@ -239,6 +241,125 @@
     return map;
   }
 
+  const COUNTRY_TIMEZONES = {
+    Indonesia: 'Asia/Makassar',
+    Singapore: 'Asia/Singapore',
+    Malaysia: 'Asia/Kuala_Lumpur',
+    Thailand: 'Asia/Bangkok',
+    India: 'Asia/Kolkata',
+    Greece: 'Europe/Athens',
+    Spain: 'Europe/Madrid',
+  };
+
+  const COUNTRY_FLAGS = {
+    Greece: '🇬🇷',
+    India: '🇮🇳',
+    Indonesia: '🇮🇩',
+    Malaysia: '🇲🇾',
+    Singapore: '🇸🇬',
+    Spain: '🇪🇸',
+    Thailand: '🇹🇭',
+  };
+
+  function countryFlag(country) {
+    return COUNTRY_FLAGS[String(country || '').trim()] || '🌐';
+  }
+
+  function normCountry(country) {
+    return String(country || '').trim().toLowerCase();
+  }
+
+  function normalizeFlightTrip(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const departureDate = raw.departureDate || raw.startDate;
+    const arrivalDate = raw.arrivalDate || raw.endDate || departureDate;
+    const departureCountry = raw.departureCountry || '';
+    const arrivalCountry = raw.arrivalCountry || raw.country || '';
+    if (!departureDate || !arrivalDate || !departureCountry || !arrivalCountry) return null;
+    if (Number.isNaN(parseYmdToUtcMs(departureDate)) || Number.isNaN(parseYmdToUtcMs(arrivalDate))) return null;
+    if (normCountry(departureCountry) === normCountry(arrivalCountry)) return null;
+    return {
+      id: raw.id || raw.bookingRef || `${departureDate}-${departureCountry}-${arrivalCountry}`,
+      departureDate,
+      arrivalDate,
+      departureCountry,
+      arrivalCountry,
+      departureCity: raw.departureCity || '',
+      arrivalCity: raw.arrivalCity || raw.city || '',
+      arrivalTimezone: raw.arrivalTimezone || raw.timezone || COUNTRY_TIMEZONES[arrivalCountry] || '',
+      label: raw.title || [raw.departureAirport, raw.arrivalAirport].filter(Boolean).join(' → ') || `${departureCountry} → ${arrivalCountry}`,
+    };
+  }
+
+  function collectFlightTrips(source) {
+    const trips = [];
+    const seen = new Set();
+    for (const trip of source.upcomingTrips || []) {
+      const normalized = normalizeFlightTrip(trip);
+      if (!normalized) continue;
+      const key = `${normalized.departureDate}|${normCountry(normalized.departureCountry)}|${normalized.arrivalDate}|${normCountry(normalized.arrivalCountry)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      trips.push(normalized);
+    }
+    for (const booking of source.bookings || []) {
+      if (String(booking && booking.type || '').toLowerCase() !== 'flight') continue;
+      const normalized = normalizeFlightTrip(booking);
+      if (!normalized) continue;
+      const key = `${normalized.departureDate}|${normCountry(normalized.departureCountry)}|${normalized.arrivalDate}|${normCountry(normalized.arrivalCountry)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      trips.push(normalized);
+    }
+    return trips.sort((a, b) => {
+      const da = parseYmdToUtcMs(a.departureDate) - parseYmdToUtcMs(b.departureDate);
+      if (da !== 0) return da;
+      return parseYmdToUtcMs(a.arrivalDate) - parseYmdToUtcMs(b.arrivalDate);
+    });
+  }
+
+  function closeCoveringStay(stays, country, date) {
+    const dateMs = parseYmdToUtcMs(date);
+    if (Number.isNaN(dateMs)) return;
+    const stay = stays
+      .filter((s) => normCountry(s.country) === normCountry(country))
+      .find((s) => {
+        const sMs = parseYmdToUtcMs(s.entryDate);
+        const eMs = s.exitDate ? parseYmdToUtcMs(s.exitDate) : Infinity;
+        return Number.isFinite(sMs) && sMs < dateMs && eMs > dateMs;
+      });
+    if (stay) stay.exitDate = date;
+  }
+
+  function hasStayStarting(stays, country, date) {
+    return stays.some((s) => normCountry(s.country) === normCountry(country) && s.entryDate === date);
+  }
+
+  function deriveTravelLogFromFlights(source) {
+    const stays = (source.travelLog || []).map((s) => ({ ...s }));
+    const trips = collectFlightTrips(source);
+    for (const trip of trips) {
+      closeCoveringStay(stays, trip.departureCountry, trip.departureDate);
+      if (!hasStayStarting(stays, trip.arrivalCountry, trip.arrivalDate)) {
+        stays.push({
+          id: `flight-stay-${trip.arrivalDate}-${normCountry(trip.arrivalCountry).replace(/[^a-z0-9]+/g, '-')}`,
+          country: trip.arrivalCountry,
+          city: trip.arrivalCity,
+          timezone: trip.arrivalTimezone,
+          entryDate: trip.arrivalDate,
+          exitDate: null,
+          entryType: 'flight',
+          notes: `Auto-created from flight ${trip.label}`,
+        });
+      }
+    }
+    return stays.sort((a, b) => {
+      const da = parseYmdToUtcMs(a.entryDate) - parseYmdToUtcMs(b.entryDate);
+      if (da !== 0) return da;
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
+  }
+
   function homeCountry() {
     return (config.app && config.app.homeCountry) || null;
   }
@@ -374,11 +495,38 @@
   }
 
   function alertSortDate(a) {
-    return a.expiresDate || a.date || a.startDate || '';
+    return a.expiresDate || a.renewDate || a.date || a.startDate || '';
+  }
+
+  function getLongTermBookings(source = config) {
+    return (source && Array.isArray(source.longTermBookings) ? source.longTermBookings : []).filter((item) => item && item.isActive !== false);
+  }
+
+  function getVisaStatus(source = config) {
+    return getLongTermBookings(source).find((item) => String(item.type || '').toLowerCase() === 'visa') || null;
+  }
+
+  function longTermRenewalAlerts(source = config) {
+    return getLongTermBookings(source)
+      .filter((item) => item.renewDate && !Number.isNaN(parseYmdToUtcMs(item.renewDate)))
+      .map((item) => ({
+        id: `renewal-alert-${item.id || item.title || item.renewDate}`,
+        type: 'renewal',
+        title: `${item.title || 'Long-term booking'} renewal`,
+        startDate: item.startDate,
+        expiresDate: item.renewDate,
+        country: item.country,
+        city: item.city,
+        notes: item.notes,
+        severity: item.severity || 'medium',
+        isActive: item.isActive !== false,
+        sourceId: item.id,
+        sourceType: item.type,
+      }));
   }
 
   function getVisibleAlerts() {
-    return (config.alerts || []).filter((a) => {
+    return [...(config.alerts || []), ...longTermRenewalAlerts()].filter((a) => {
       if (!a || a.isActive === false) return false;
       const raw = alertSortDate(a);
       if (!raw || String(raw).trim() === '') return false;
@@ -436,18 +584,21 @@
 
   function mergeDefaults(raw) {
     const o = raw && typeof raw === 'object' ? raw : {};
-    return {
+    const base = {
       app: Object.assign({ title: 'CHRONOS GMT', subtitle: 'Global Citizen', defaultView: 'dashboard', systemStatus: 'OPTIMAL' }, o.app || {}),
       currentBase: o.currentBase || {},
       worldClocks: o.worldClocks || { priority: [], us: [] },
       travelLog: Array.isArray(o.travelLog) ? o.travelLog : [],
       travelTimeline: Array.isArray(o.travelTimeline) ? o.travelTimeline : [],
       alerts: Array.isArray(o.alerts) ? o.alerts : [],
+      longTermBookings: Array.isArray(o.longTermBookings) ? o.longTermBookings : [],
       countriesVisitedEver: Array.isArray(o.countriesVisitedEver) ? o.countriesVisitedEver : [],
       countriesWantToVisit: Array.isArray(o.countriesWantToVisit) ? o.countriesWantToVisit : [],
       upcomingTrips: Array.isArray(o.upcomingTrips) ? o.upcomingTrips : [],
       bookings: Array.isArray(o.bookings) ? o.bookings : [],
     };
+    base.travelLog = deriveTravelLogFromFlights(base);
+    return base;
   }
 
   function validateConfig() {
@@ -657,6 +808,7 @@
     const totals = computeYtdCountryTotals();
     const primary = ytdPrimaryCountry(totals);
     const alertsSorted = getVisibleAlertsSorted();
+    const visaStatus = getVisaStatus();
     const rows = Object.keys(totals)
       .filter((k) => totals[k] > 0)
       .sort((a, b) => totals[b] - totals[a])
@@ -794,6 +946,13 @@
               </div>
             </div>
           </div>
+          ${visaStatus ? `<div class="card visa-status-card" style="margin-bottom:1rem">
+            <div class="panel-head"><h2>Visa status</h2></div>
+            <p class="visa-status-card__title">${escapeHtml(visaStatus.title || 'Visa')}</p>
+            <p class="visa-status-card__state">${escapeHtml(visaStatus.status || 'Active')}</p>
+            <p class="visa-status-card__meta">${escapeHtml([visaStatus.city, visaStatus.country].filter(Boolean).join(' · ') || '—')}</p>
+            <p class="visa-status-card__note">${escapeHtml(visaStatus.renewDate ? `Next date: ${visaStatus.renewDate}` : 'No visa expiry/extension date recorded yet.')}</p>
+          </div>` : ''}
           <div class="card alert-feature ${panelSeverityClass}" id="alerts-panel">
             <div class="alert-feature__head">
               <div class="panel-head"><h2>Next alerts</h2></div>
@@ -937,14 +1096,24 @@
     const rows = stays
       .map((s) => {
         const days = stayRowDays(s);
-        const cur = s.exitDate == null ? 'CURRENT' : '';
-        return `<tr>
-          <td>${escapeHtml(s.entryDate)} → ${escapeHtml(s.exitDate || '…')}</td>
-          <td>${escapeHtml(s.country)}</td>
-          <td>${escapeHtml(s.city || '')}</td>
-          <td>${escapeHtml(s.timezone || '')}</td>
-          <td>${days}</td>
-          <td>${cur}</td>
+        const cur = s.exitDate == null;
+        const dateLabel = `${s.entryDate} → ${s.exitDate || 'Now'}`;
+        const dayLabel = days === 1 ? 'day' : 'days';
+        const entryLabel = s.entryType ? `${s.entryType}` : '';
+        const meta = [s.city, s.timezone, entryLabel, s.notes].filter(Boolean).join(' · ');
+        return `<tr class="travel-log-row ${cur ? 'travel-log-row--current' : ''}">
+          <td class="travel-log-country">
+            <span class="travel-log-country__flag" aria-hidden="true">${countryFlag(s.country)}</span>
+            <span class="travel-log-country__text">
+              <strong>${escapeHtml(s.country)}</strong>
+              ${cur ? '<span class="travel-log-status">Current</span>' : ''}
+            </span>
+          </td>
+          <td class="travel-log-days"><span>${days}</span><small>${dayLabel}</small></td>
+          <td class="travel-log-detail">
+            <strong>${escapeHtml(dateLabel)}</strong>
+            ${meta ? `<span>${escapeHtml(meta)}</span>` : ''}
+          </td>
         </tr>`;
       })
       .join('');
@@ -978,15 +1147,15 @@
           <div class="summary-card__body">
             <p class="summary-card__place">${escapeHtml([cb.city, cb.country].filter(Boolean).join(', ') || '—')}</p>
             <h3 class="summary-card__title-line">Current location</h3>
-            <p class="summary-card__subtitle-line summary-card__subtitle-line--meta">${daysSinceBaseStart()} days in country (since start) · continuous stay</p>
+            <p class="summary-card__subtitle-line summary-card__subtitle-line--meta">${daysConsecutiveCurrentStay()} days in current stay</p>
           </div>
         </article>
       </div>
-      <div class="card">
+      <div class="card travel-log-card">
         <div class="panel-head"><h2>Stays</h2></div>
-        <div style="overflow-x:auto;margin-top:0.75rem">
-          <table class="data-table">
-            <thead><tr><th>Dates</th><th>Country</th><th>City</th><th>TZ</th><th>Days</th><th></th></tr></thead>
+        <div class="travel-log-table-wrap">
+          <table class="data-table travel-log-table">
+            <thead><tr><th>Country</th><th>Days</th><th>Date & details</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -1150,7 +1319,7 @@
       <h1 id="bookings-heading">Bookings</h1>
       <div class="travel-header">
         <div>
-          <p>Stored reservations for upcoming trips — flights, hotels, and anything else worth remembering on the road.</p>
+          <p>One-time reservations for trips — flights, hotels, short stays, and fixed-date bookings. These do not create renewal alerts.</p>
         </div>
       </div>
 
@@ -1170,6 +1339,107 @@
           </div>
           <div class="bookings-grid bookings-grid--past">${past.map(renderBookingCard).join('')}</div>
         </section>` : ''}
+    `;
+  }
+
+  function formatLongTermType(type) {
+    const s = String(type || 'renewal').replace(/[_-]/g, ' ');
+    return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : 'Renewal';
+  }
+
+  function longTermDaysUntil(item) {
+    if (!item || !item.renewDate) return null;
+    const event = parseYmdToUtcMs(item.renewDate);
+    const today = parseYmdToUtcMs(todayUtcYmd());
+    if (Number.isNaN(event) || Number.isNaN(today)) return null;
+    return Math.round((event - today) / 86400000);
+  }
+
+  function renderRenewalCard(item) {
+    const type = String(item.type || 'renewal').toLowerCase();
+    const days = longTermDaysUntil(item);
+    const countdown = item.renewDate ? alertCountdownLabel(days) : 'No renewal date';
+    const place = [item.city, item.country].filter(Boolean).join(' · ');
+    const status = item.status || (item.isActive === false ? 'inactive' : 'active');
+    const renewalMeta = item.renewDate
+      ? `${formatBookingDate(item.renewDate)} · ${countdown}`
+      : 'Date needed to enable alerts';
+    const detailRows = [
+      ['Status', status],
+      ['Started / renewed', item.startDate ? formatBookingDate(item.startDate) : '—'],
+      ['Next renewal', renewalMeta],
+      ['Cycle', item.billingCycle || (item.termMonths ? `${item.termMonths} month${item.termMonths === 1 ? '' : 's'}` : '')],
+      ['Location', place],
+    ].filter(([, value]) => value != null && value !== '');
+
+    return `<article class="booking-card renewal-card renewal-card--${escapeHtml(type)} ${days !== null && days <= 10 ? 'renewal-card--urgent' : ''}">
+      <header class="booking-card__head">
+        <span class="booking-card__icon" aria-hidden="true">${bookingIcon(type === 'visa' ? 'other' : type)}</span>
+        <div class="booking-card__heading">
+          <p class="booking-card__type">${escapeHtml(formatLongTermType(type))}</p>
+          <h3 class="booking-card__title">${escapeHtml(item.title || 'Renewal')}</h3>
+        </div>
+        <div class="booking-card__when">
+          ${item.renewDate ? `<p class="booking-card__date">${escapeHtml(formatBookingDate(item.renewDate))}</p>` : ''}
+          <p class="booking-card__countdown ${days !== null && days < 0 ? 'booking-card__countdown--past' : ''}">${escapeHtml(countdown)}</p>
+        </div>
+      </header>
+      <div class="booking-card__body">
+        ${detailRows.map(([label, value]) => `<div class="booking-field"><span class="booking-field__label">${escapeHtml(label)}</span><span class="booking-field__value">${escapeHtml(value)}</span></div>`).join('')}
+      </div>
+      ${item.notes ? `<p class="booking-card__notes">${escapeHtml(item.notes)}</p>` : ''}
+    </article>`;
+  }
+
+  function renderRenewals() {
+    if (!elRenewals) return;
+    const items = getLongTermBookings().sort((a, b) => {
+      const da = a.renewDate ? parseYmdToUtcMs(a.renewDate) : Infinity;
+      const db = b.renewDate ? parseYmdToUtcMs(b.renewDate) : Infinity;
+      return da - db;
+    });
+    const activeRenewals = items.filter((item) => String(item.type || '').toLowerCase() !== 'visa');
+    const visa = items.filter((item) => String(item.type || '').toLowerCase() === 'visa');
+    const next = activeRenewals.filter((item) => item.renewDate).slice(0, 3);
+
+    elRenewals.innerHTML = `
+      <h1 id="renewals-heading">Renewals</h1>
+      <div class="travel-header">
+        <div>
+          <p>Long-term commitments that need renewal tracking: rent, bike rental, gym, workspace, SIM, and visa status. Items with a renewal date automatically feed dashboard alerts.</p>
+        </div>
+      </div>
+      <div class="travel-summary">
+        <article class="card summary-card--travel">
+          <div class="summary-card__body">
+            <p class="summary-card__metric">${activeRenewals.length}</p>
+            <h3 class="summary-card__title-line">Active renewals</h3>
+          </div>
+        </article>
+        <article class="card summary-card--travel">
+          <div class="summary-card__body">
+            <p class="summary-card__metric">${next.length ? escapeHtml(alertCountdownLabel(longTermDaysUntil(next[0])).replace(' days left', 'd').replace(' day left', 'd')) : '—'}</p>
+            <h3 class="summary-card__title-line">Next due</h3>
+            <p class="summary-card__subtitle-line">${next.length ? escapeHtml(next[0].title || '') : 'No dated renewals'}</p>
+          </div>
+        </article>
+        <article class="card summary-card--travel">
+          <div class="summary-card__body">
+            <p class="summary-card__place">${visa[0] ? escapeHtml(visa[0].status || 'Active') : '—'}</p>
+            <h3 class="summary-card__title-line">Visa status</h3>
+            <p class="summary-card__subtitle-line summary-card__subtitle-line--meta">${visa[0] ? escapeHtml(visa[0].title || 'Visa') : 'No visa record'}</p>
+          </div>
+        </article>
+      </div>
+
+      ${visa.length ? `<section class="bookings-section"><div class="bookings-section__head"><h2>Visa status</h2><span class="bookings-count">${visa.length}</span></div><div class="bookings-grid">${visa.map(renderRenewalCard).join('')}</div></section>` : ''}
+      <section class="bookings-section">
+        <div class="bookings-section__head">
+          <h2>Long-term bookings</h2>
+          <span class="bookings-count">${activeRenewals.length}</span>
+        </div>
+        ${activeRenewals.length ? `<div class="bookings-grid">${activeRenewals.map(renderRenewalCard).join('')}</div>` : '<p class="booking-empty">No long-term renewals saved yet.</p>'}
+      </section>
     `;
   }
 
@@ -2297,7 +2567,7 @@
   }
 
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'fiscal', 'schedule'];
+    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule'];
     if (!allowed.includes(view)) view = 'dashboard';
 
     try {
@@ -2312,6 +2582,7 @@
       clocks: $('view-clocks'),
       world: $('view-world'),
       bookings: $('view-bookings'),
+      renewals: $('view-renewals'),
       fiscal: $('view-fiscal'),
       schedule: $('view-schedule'),
     };
@@ -2340,6 +2611,7 @@
     if (view === 'clocks') renderWorldClocks();
     if (view === 'world') renderWorldCountries();
     if (view === 'bookings') renderBookings();
+    if (view === 'renewals') renderRenewals();
     if (view === 'fiscal') renderFiscal();
     if (view === 'schedule') renderSchedule();
     refreshAlertsChrome();
@@ -2434,6 +2706,7 @@
     elClocks = $('clocks-mount');
     elWorld = $('world-mount');
     elBookings = $('bookings-mount');
+    elRenewals = $('renewals-mount');
     elFiscal = $('fiscal-mount');
     elSchedule = $('schedule-mount');
 
@@ -2461,7 +2734,7 @@
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'fiscal' || saved === 'schedule') initial = saved;
+      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'renewals' || saved === 'fiscal' || saved === 'schedule') initial = saved;
     } catch {
       /* ignore */
     }
@@ -2480,6 +2753,19 @@
   function boot() {
     initNodeGridBackground();
     initApp();
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__chronosTestApi = {
+      collectFlightTrips,
+      countryDaysInPeriod,
+      deriveTravelLogFromFlights,
+      getLongTermBookings,
+      getVisibleAlerts,
+      longTermRenewalAlerts,
+      mergeDefaults,
+      parseYmdToUtcMs,
+    };
   }
 
   if (document.readyState === 'loading') {

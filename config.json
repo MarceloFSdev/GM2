@@ -39,7 +39,12 @@
     "Germany",
     "Switzerland"
   ],
-  "countriesWantToVisit": ["Japan", "Iceland", "Philippines", "New Zealand"],
+  "countriesWantToVisit": [
+    "Japan",
+    "Iceland",
+    "Philippines",
+    "New Zealand"
+  ],
   "currentBase": {
     "city": "Bali",
     "country": "Indonesia",
@@ -72,27 +77,113 @@
       }
     ],
     "us": [
-      { "label": "Eastern", "timezone": "America/New_York" },
-      { "label": "Central", "timezone": "America/Chicago" },
-      { "label": "Mountain", "timezone": "America/Denver" },
-      { "label": "Pacific", "timezone": "America/Los_Angeles" },
-      { "label": "Alaska", "timezone": "America/Anchorage" },
-      { "label": "Hawaii", "timezone": "Pacific/Honolulu" }
+      {
+        "label": "Eastern",
+        "timezone": "America/New_York"
+      },
+      {
+        "label": "Central",
+        "timezone": "America/Chicago"
+      },
+      {
+        "label": "Mountain",
+        "timezone": "America/Denver"
+      },
+      {
+        "label": "Pacific",
+        "timezone": "America/Los_Angeles"
+      },
+      {
+        "label": "Alaska",
+        "timezone": "America/Anchorage"
+      },
+      {
+        "label": "Hawaii",
+        "timezone": "Pacific/Honolulu"
+      }
     ]
   },
   "travelTimeline": [
-    { "date": "2026-01-29", "action": "exit", "country": "Spain" },
-    { "date": "2026-01-29", "action": "entry", "country": "Greece" },
-    { "date": "2026-01-30", "action": "exit", "country": "Greece" },
-    { "date": "2026-01-31", "action": "entry", "country": "India" },
-    { "date": "2026-02-01", "action": "exit", "country": "India" },
-    { "date": "2026-02-01", "action": "entry", "country": "Indonesia" },
-    { "date": "2026-02-11", "action": "exit", "country": "Indonesia" },
-    { "date": "2026-02-11", "action": "entry", "country": "Malaysia" },
-    { "date": "2026-02-12", "action": "exit", "country": "Malaysia" },
-    { "date": "2026-02-12", "action": "entry", "country": "Thailand" },
-    { "date": "2026-03-07", "action": "exit", "country": "Thailand" },
-    { "date": "2026-03-07", "action": "entry", "country": "Indonesia" }
+    {
+      "date": "2026-01-29",
+      "action": "exit",
+      "country": "Spain"
+    },
+    {
+      "date": "2026-01-29",
+      "action": "entry",
+      "country": "Greece"
+    },
+    {
+      "date": "2026-01-30",
+      "action": "exit",
+      "country": "Greece"
+    },
+    {
+      "date": "2026-01-31",
+      "action": "entry",
+      "country": "India"
+    },
+    {
+      "date": "2026-02-01",
+      "action": "exit",
+      "country": "India"
+    },
+    {
+      "date": "2026-02-01",
+      "action": "entry",
+      "country": "Indonesia"
+    },
+    {
+      "date": "2026-02-11",
+      "action": "exit",
+      "country": "Indonesia"
+    },
+    {
+      "date": "2026-02-11",
+      "action": "entry",
+      "country": "Malaysia"
+    },
+    {
+      "date": "2026-02-12",
+      "action": "exit",
+      "country": "Malaysia"
+    },
+    {
+      "date": "2026-02-12",
+      "action": "entry",
+      "country": "Thailand"
+    },
+    {
+      "date": "2026-03-07",
+      "action": "exit",
+      "country": "Thailand"
+    },
+    {
+      "date": "2026-03-07",
+      "action": "entry",
+      "country": "Indonesia"
+    },
+    {
+      "date": "2026-04-29",
+      "action": "exit",
+      "country": "Indonesia"
+    },
+    {
+      "date": "2026-04-29",
+      "action": "entry",
+      "country": "Singapore"
+    },
+    {
+      "date": "2026-05-04",
+      "action": "exit",
+      "country": "Singapore"
+    },
+    {
+      "date": "2026-05-04",
+      "action": "entry",
+      "country": "Indonesia"
+    }
   ],
   "travelLog": [
     {
@@ -161,78 +252,32 @@
       "city": "Bali",
       "timezone": "Asia/Makassar",
       "entryDate": "2026-03-07",
-      "exitDate": null,
+      "exitDate": "2026-04-29",
       "entryType": "entry",
-      "notes": "Current stay"
+      "notes": ""
+    },
+    {
+      "id": "stay-008",
+      "country": "Singapore",
+      "city": "Singapore",
+      "timezone": "Asia/Singapore",
+      "entryDate": "2026-04-29",
+      "exitDate": "2026-05-04",
+      "entryType": "flight",
+      "notes": "Singapore trip from Scoot flights TR283/TR282."
+    },
+    {
+      "id": "stay-009",
+      "country": "Indonesia",
+      "city": "Bali",
+      "timezone": "Asia/Makassar",
+      "entryDate": "2026-05-04",
+      "exitDate": null,
+      "entryType": "flight",
+      "notes": "Current stay after returning from Singapore."
     }
   ],
-  "alerts": [
-    {
-      "id": "alert-bike",
-      "type": "rental",
-      "title": "Bike",
-      "startDate": "2026-03-11",
-      "expiresDate": "2026-04-29",
-      "rentalMonths": 1,
-      "country": "Indonesia",
-      "city": "Bali",
-      "notes": "Extended through 29 Apr 2026 · departure to Singapore.",
-      "severity": "medium",
-      "isActive": true
-    },
-    {
-      "id": "alert-home",
-      "type": "rental",
-      "title": "Home",
-      "startDate": "2026-03-13",
-      "expiresDate": "2026-04-29",
-      "rentalMonths": 1,
-      "country": "Indonesia",
-      "city": "Bali",
-      "notes": "Extended through 29 Apr 2026 · departure to Singapore.",
-      "severity": "medium",
-      "isActive": true
-    },
-    {
-      "id": "alert-b-work",
-      "type": "rental",
-      "title": "B-Work",
-      "startDate": "2026-04-22",
-      "expiresDate": "2026-05-22",
-      "rentalMonths": 1,
-      "country": "Indonesia",
-      "city": "Bali",
-      "notes": "1-month lease · renewed 22 Apr 2026",
-      "severity": "medium",
-      "isActive": true
-    },
-    {
-      "id": "alert-wellness-gym",
-      "type": "subscription",
-      "title": "Wellness Gym Canggu",
-      "startDate": "2026-03-25",
-      "expiresDate": "2026-04-25",
-      "rentalMonths": 1,
-      "country": "Indonesia",
-      "city": "Bali",
-      "notes": "Monthly membership · started 25 Mar 2026",
-      "severity": "low",
-      "isActive": true
-    },
-    {
-      "id": "alert-sim-card",
-      "type": "subscription",
-      "title": "Mobile SIM",
-      "startDate": "2026-04-08",
-      "expiresDate": "2026-05-08",
-      "rentalMonths": 1,
-      "country": "Indonesia",
-      "city": "Bali",
-      "notes": "30-day SIM card · renewed 8 Apr 2026",
-      "severity": "medium",
-      "isActive": true
-    }
-  ],
+  "alerts": [],
   "upcomingTrips": [
     {
       "id": "trip-001",
@@ -253,7 +298,9 @@
       "duration": "2h 55m",
       "notes": "Flight to Singapore",
       "bookingRef": "762610772",
-      "attachments": ["docs/bookings/2026-04-29_DPS-SIN_Scoot-TR283_kiwi-762610772.pdf"]
+      "attachments": [
+        "docs/bookings/2026-04-29_DPS-SIN_Scoot-TR283_kiwi-762610772.pdf"
+      ]
     },
     {
       "id": "trip-002",
@@ -274,7 +321,9 @@
       "duration": "2h 45m",
       "notes": "Return flight from Singapore",
       "bookingRef": "776015405",
-      "attachments": ["docs/bookings/2026-05-04_SIN-DPS_Scoot-TR282_kiwi-776015405.pdf"]
+      "attachments": [
+        "docs/bookings/2026-05-04_SIN-DPS_Scoot-TR282_kiwi-776015405.pdf"
+      ]
     }
   ],
   "bookings": [
@@ -294,7 +343,12 @@
       "duration": "2h 55m",
       "notes": "Imported from upcoming trips.",
       "bookingRef": "762610772",
-      "attachments": ["docs/bookings/2026-04-29_DPS-SIN_Scoot-TR283_kiwi-762610772.pdf"]
+      "attachments": [
+        "docs/bookings/2026-04-29_DPS-SIN_Scoot-TR283_kiwi-762610772.pdf"
+      ],
+      "departureCountry": "Indonesia",
+      "arrivalCountry": "Singapore",
+      "arrivalDate": "2026-04-29"
     },
     {
       "id": "booking-003",
@@ -312,7 +366,12 @@
       "duration": "2h 45m",
       "notes": "Imported from upcoming trips.",
       "bookingRef": "776015405",
-      "attachments": ["docs/bookings/2026-05-04_SIN-DPS_Scoot-TR282_kiwi-776015405.pdf"]
+      "attachments": [
+        "docs/bookings/2026-05-04_SIN-DPS_Scoot-TR282_kiwi-776015405.pdf"
+      ],
+      "departureCountry": "Singapore",
+      "arrivalCountry": "Indonesia",
+      "arrivalDate": "2026-05-04"
     },
     {
       "id": "booking-002",
@@ -329,6 +388,98 @@
       "country": "Singapore",
       "notes": "4-star · postal 209922 · 5-night stay.",
       "attachments": []
+    }
+  ],
+  "longTermBookings": [
+    {
+      "id": "renewal-motorbike-bali",
+      "type": "motorbike",
+      "title": "Motorbike rental",
+      "status": "active",
+      "country": "Indonesia",
+      "city": "Bali",
+      "startDate": "2026-04-06",
+      "renewDate": "2026-05-06",
+      "billingCycle": "monthly",
+      "termMonths": 1,
+      "notes": "Renewed on 6 Apr 2026 for one month.",
+      "severity": "high",
+      "isActive": true
+    },
+    {
+      "id": "renewal-mobile-sim",
+      "type": "sim",
+      "title": "Mobile SIM",
+      "status": "active",
+      "country": "Indonesia",
+      "city": "Bali",
+      "startDate": "2026-05-04",
+      "renewDate": "2026-06-04",
+      "billingCycle": "monthly",
+      "termMonths": 1,
+      "notes": "1-month SIM card · started on arrival in Bali, 4 May 2026",
+      "severity": "medium",
+      "isActive": true
+    },
+    {
+      "id": "renewal-b-work-canggu",
+      "type": "workspace",
+      "title": "B-Work",
+      "status": "active",
+      "country": "Indonesia",
+      "city": "Bali",
+      "startDate": "2026-04-22",
+      "renewDate": "2026-05-22",
+      "billingCycle": "monthly",
+      "termMonths": 1,
+      "notes": "1-month lease · renewed 22 Apr 2026",
+      "severity": "medium",
+      "isActive": true
+    },
+    {
+      "id": "renewal-wellness-gym-canggu",
+      "type": "gym",
+      "title": "Wellness Gym Canggu",
+      "status": "active",
+      "country": "Indonesia",
+      "city": "Bali",
+      "startDate": "2026-04-26",
+      "renewDate": "2026-05-26",
+      "billingCycle": "monthly",
+      "termMonths": 1,
+      "notes": "Renewed on 26 Apr 2026 for one month.",
+      "severity": "low",
+      "isActive": true
+    },
+    {
+      "id": "renewal-rent-bali-home",
+      "type": "rent",
+      "title": "Bali rent",
+      "status": "active",
+      "country": "Indonesia",
+      "city": "Bali",
+      "startDate": "2026-05-04",
+      "renewDate": "2026-06-04",
+      "billingCycle": "monthly",
+      "termMonths": 1,
+      "notes": "Renewed on 4 May 2026 for one month.",
+      "severity": "medium",
+      "isActive": true
+    },
+    {
+      "id": "visa-indonesia-current",
+      "type": "visa",
+      "title": "Indonesia visa status",
+      "status": "active",
+      "country": "Indonesia",
+      "city": "Bali",
+      "startDate": "2026-05-04",
+      "renewDate": null,
+      "billingCycle": "status",
+      "notes": "Current visa status lives here. Add the visa expiry/extension date when confirmed to enable alerts.",
+      "severity": "medium",
+      "isActive": true,
+      "showOnDashboard": true
     }
   ]
 }

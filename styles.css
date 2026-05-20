@@ -1213,6 +1213,188 @@ body {
   color: var(--text-muted);
 }
 
+.travel-log-card {
+  padding-bottom: 0.85rem;
+}
+
+.travel-log-table-wrap {
+  overflow-x: auto;
+  margin-top: 0.95rem;
+}
+
+.travel-log-table {
+  border-collapse: separate;
+  border-spacing: 0 0.55rem;
+}
+
+.travel-log-table th {
+  padding-top: 0;
+  padding-bottom: 0.3rem;
+}
+
+.travel-log-table td {
+  border-bottom: 0;
+  background: rgba(10, 16, 26, 0.62);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+.travel-log-table td:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px 0 0 16px;
+}
+
+.travel-log-table td:last-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 16px 16px 0;
+}
+
+.travel-log-row--current td {
+  background: linear-gradient(135deg, rgba(64, 142, 205, 0.22), rgba(10, 16, 26, 0.72));
+  border-color: rgba(126, 203, 255, 0.3);
+}
+
+.travel-log-country {
+  min-width: 13rem;
+}
+
+.travel-log-country,
+.travel-log-country__text,
+.travel-log-days,
+.travel-log-detail {
+  line-height: 1.2;
+}
+
+.travel-log-country {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.travel-log-country__flag {
+  display: inline-grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  font-size: 1.35rem;
+  flex: 0 0 auto;
+}
+
+.travel-log-country__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.travel-log-country__text strong {
+  font-size: 0.98rem;
+  color: var(--text);
+}
+
+.travel-log-status {
+  width: fit-content;
+  padding: 0.16rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(126, 203, 255, 0.13);
+  border: 1px solid rgba(126, 203, 255, 0.35);
+  color: var(--accent);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.travel-log-days {
+  width: 7rem;
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.travel-log-days span {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.travel-log-days small {
+  display: block;
+  margin-top: 0.08rem;
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.travel-log-detail {
+  min-width: 19rem;
+}
+
+.travel-log-detail strong,
+.travel-log-detail span {
+  display: block;
+}
+
+.travel-log-detail strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+}
+
+.travel-log-detail span {
+  margin-top: 0.32rem;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+@media (max-width: 720px) {
+  .travel-log-table,
+  .travel-log-table thead,
+  .travel-log-table tbody,
+  .travel-log-table tr,
+  .travel-log-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .travel-log-table thead {
+    display: none;
+  }
+
+  .travel-log-table tr {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 18px;
+    background: rgba(10, 16, 26, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .travel-log-table td,
+  .travel-log-table td:first-child,
+  .travel-log-table td:last-child {
+    padding: 0.35rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .travel-log-days {
+    text-align: left !important;
+    width: auto;
+    margin: 0.25rem 0;
+  }
+
+  .travel-log-days span,
+  .travel-log-days small {
+    display: inline;
+  }
+}
+
 .clocks-hero__place {
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
@@ -2015,6 +2197,48 @@ body {
 }
 .booking-card--other .booking-card__icon {
   color: var(--text);
+}
+.renewal-card {
+  border-color: rgba(126, 184, 212, 0.18);
+}
+.renewal-card--urgent {
+  border-color: rgba(255, 138, 94, 0.38);
+  background: linear-gradient(155deg, rgba(255, 138, 94, 0.1) 0%, rgba(255, 255, 255, 0.03) 42%, transparent 100%),
+    rgba(12, 16, 26, 0.58);
+}
+.renewal-card--rent .booking-card__icon,
+.renewal-card--gym .booking-card__icon,
+.renewal-card--motorbike .booking-card__icon {
+  color: var(--accent);
+}
+.renewal-card--visa .booking-card__icon {
+  color: #d0a876;
+}
+.visa-status-card__title,
+.visa-status-card__state,
+.visa-status-card__meta,
+.visa-status-card__note {
+  margin: 0;
+}
+.visa-status-card__title {
+  margin-top: 0.65rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--text);
+}
+.visa-status-card__state {
+  margin-top: 0.35rem;
+  color: var(--accent);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.visa-status-card__meta,
+.visa-status-card__note {
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 .booking-card__heading {
   flex: 1 1 auto;
