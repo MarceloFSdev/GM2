@@ -1713,6 +1713,21 @@ body {
   line-height: 1.5;
 }
 
+.fiscal-header__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.85rem;
+}
+@media (max-width: 720px) {
+  .fiscal-header__controls {
+    align-items: stretch;
+    width: 100%;
+  }
+}
+.fiscal-mode {
+  align-self: flex-end;
+}
 .fiscal-year-range {
   display: flex;
   gap: 0.85rem;
@@ -1737,7 +1752,8 @@ body {
   margin-left: 0.25rem;
 }
 .fiscal-trip__field input[type='date'],
-.fiscal-trip__field input[type='text'] {
+.fiscal-trip__field input[type='text'],
+.fiscal-trip__select {
   font: inherit;
   font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
@@ -1751,6 +1767,24 @@ body {
   outline: none;
   transition: border-color var(--transition), box-shadow var(--transition);
   color-scheme: dark;
+}
+.fiscal-trip__select {
+  cursor: pointer;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 1.9rem;
+}
+.fiscal-trip__select:hover {
+  border-color: rgba(126, 184, 212, 0.45);
+}
+.fiscal-trip__field--country {
+  grid-column: 1 / -1;
 }
 .fiscal-trip__field input[type='date'] {
   cursor: pointer;
@@ -1767,7 +1801,8 @@ body {
 .fiscal-trip__field input[type='date']::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
-.fiscal-trip__field input:focus {
+.fiscal-trip__field input:focus,
+.fiscal-trip__select:focus {
   border-color: rgba(126, 184, 212, 0.55);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
@@ -1824,6 +1859,17 @@ body {
   pointer-events: auto;
   min-width: 2px;
 }
+.fiscal-timeline__seg--country {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--fiscal-c, #7ecbff) 88%, transparent) 0 7px,
+    color-mix(in srgb, var(--fiscal-c, #7ecbff) 38%, transparent) 7px 14px
+  );
+  border-left-color: color-mix(in srgb, var(--fiscal-c, #7ecbff) 90%, white 10%);
+  border-right-color: color-mix(in srgb, var(--fiscal-c, #7ecbff) 90%, white 10%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fiscal-c, #7ecbff) 50%, transparent);
+  z-index: 2;
+}
 .fiscal-timeline__logged {
   position: absolute;
   top: 0;
@@ -1862,6 +1908,16 @@ body {
 }
 .fiscal-timeline__legend-swatch--planned {
   background: linear-gradient(180deg, rgba(255, 138, 122, 0.9), rgba(255, 138, 122, 0.6));
+}
+.fiscal-timeline__legend-swatch--solid {
+  background: color-mix(in srgb, #7ecbff 65%, transparent);
+}
+.fiscal-timeline__legend-swatch--striped {
+  background: repeating-linear-gradient(
+    -45deg,
+    #7ecbff 0 3px,
+    color-mix(in srgb, #7ecbff 38%, transparent) 3px 6px
+  );
 }
 
 .fiscal-trip__field--toggle {
@@ -2026,6 +2082,19 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+.fiscal-trip__swatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--fiscal-c, #7ecbff);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--fiscal-c, #7ecbff) 55%, transparent);
+}
+.fiscal-trip__swatch--empty {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+  border: 1px dashed var(--border-strong);
 }
 .fiscal-trip__name {
   flex: 1;

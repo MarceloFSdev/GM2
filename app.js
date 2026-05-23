@@ -43,6 +43,7 @@
   let elSchedule;
 
   let fiscalState = null;
+  let fiscalWrap = null;
 
   const clockHandlers = new Map();
 
@@ -1637,7 +1638,39 @@
     return FISCAL_COUNTRY_PALETTE[Math.abs(h) % FISCAL_COUNTRY_PALETTE.length];
   }
 
-  function defaultFiscalState() {
+  /** Countries ordered by how frequently they appear in the travel record, for the trip dropdown. */
+  function fiscalCountryOptions() {
+    const freq = Object.create(null);
+    const order = [];
+    const bump = (name, weight) => {
+      const c = String(name || '').trim();
+      if (!c) return;
+      if (!(c in freq)) {
+        freq[c] = 0;
+        order.push(c);
+      }
+      freq[c] += weight;
+    };
+    // Travel-log stays are the strongest frequency signal.
+    for (const stay of config.travelLog || []) bump(stay && stay.country, 100);
+    for (const c of config.countriesVisitedEver || []) bump(c, 1);
+    for (const c of config.countriesWantToVisit || []) bump(c, 0.5);
+    bump(homeCountry(), 0.1);
+    // Keep any country already chosen in either view so custom picks never disappear.
+    if (fiscalWrap && fiscalWrap.views) {
+      for (const view of Object.values(fiscalWrap.views)) {
+        for (const t of (view && view.trips) || []) bump(t.country, 0.01);
+      }
+    }
+    return order.sort((a, b) => freq[b] - freq[a] || a.localeCompare(b));
+  }
+
+  /** Whether the travel log feeds the active view (only the current-year view, when enabled). */
+  function fiscalUsesLog() {
+    return !!(fiscalWrap && fiscalWrap.mode === 'current' && fiscalState && fiscalState.useTravelLog);
+  }
+
+  function defaultFiscalCurrentView() {
     const y = new Date().getUTCFullYear();
     return {
       yearStart: `${y}-01-01`,
@@ -1645,9 +1678,54 @@
       companyStart: '',
       useTravelLog: true,
       trips: [
-        { id: 'tsum', label: 'Summer trip', start: `${y}-07-01`, days: 14 },
-        { id: 'teoy', label: 'End of year trip', start: `${y}-12-15`, days: 14 },
+        { id: 'tsum', label: 'Summer trip', country: '', start: `${y}-07-01`, days: 14 },
+        { id: 'teoy', label: 'End of year trip', country: '', start: `${y}-12-15`, days: 14 },
       ],
+    };
+  }
+
+  function defaultFiscalPlannedView() {
+    const y = new Date().getUTCFullYear() + 1;
+    return {
+      yearStart: `${y}-01-01`,
+      yearEnd: `${y}-12-31`,
+      companyStart: '',
+      useTravelLog: false,
+      trips: [],
+    };
+  }
+
+  function defaultFiscalWrap() {
+    return {
+      mode: 'current',
+      views: { current: defaultFiscalCurrentView(), planned: defaultFiscalPlannedView() },
+    };
+  }
+
+  function sanitizeFiscalView(parsed, fallback) {
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      !Array.isArray(parsed.trips) ||
+      typeof parsed.yearStart !== 'string' ||
+      typeof parsed.yearEnd !== 'string'
+    ) {
+      return fallback;
+    }
+    return {
+      yearStart: parsed.yearStart,
+      yearEnd: parsed.yearEnd,
+      companyStart: typeof parsed.companyStart === 'string' ? parsed.companyStart : '',
+      useTravelLog: parsed.useTravelLog !== false,
+      trips: parsed.trips
+        .filter((t) => t && typeof t === 'object')
+        .map((t, i) => ({
+          id: String(t.id || `t${i}-${Date.now().toString(36)}`),
+          label: String(t.label || `Trip ${i + 1}`).slice(0, 60),
+          country: typeof t.country === 'string' ? t.country : '',
+          start: String(t.start || parsed.yearStart),
+          days: Math.max(1, Math.min(180, Number(t.days) || 14)),
+        })),
     };
   }
 
@@ -1656,41 +1734,55 @@
       const raw = localStorage.getItem(STORAGE_FISCAL);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (
-          parsed &&
-          typeof parsed === 'object' &&
-          Array.isArray(parsed.trips) &&
-          typeof parsed.yearStart === 'string' &&
-          typeof parsed.yearEnd === 'string'
-        ) {
-          return {
-            yearStart: parsed.yearStart,
-            yearEnd: parsed.yearEnd,
-            companyStart: typeof parsed.companyStart === 'string' ? parsed.companyStart : '',
-            useTravelLog: parsed.useTravelLog !== false,
-            trips: parsed.trips
-              .filter((t) => t && typeof t === 'object')
-              .map((t, i) => ({
-                id: String(t.id || `t${i}-${Date.now().toString(36)}`),
-                label: String(t.label || `Trip ${i + 1}`).slice(0, 60),
-                start: String(t.start || parsed.yearStart),
-                days: Math.max(1, Math.min(180, Number(t.days) || 14)),
-              })),
-          };
+        if (parsed && typeof parsed === 'object') {
+          // New shape: { mode, views: { current, planned } }
+          if (parsed.views && typeof parsed.views === 'object') {
+            const mode = parsed.mode === 'planned' ? 'planned' : 'current';
+            fiscalWrap = {
+              mode,
+              views: {
+                current: sanitizeFiscalView(parsed.views.current, defaultFiscalCurrentView()),
+                planned: sanitizeFiscalView(parsed.views.planned, defaultFiscalPlannedView()),
+              },
+            };
+            return fiscalWrap.views[mode];
+          }
+          // Legacy flat shape — migrate into the current-year view.
+          if (Array.isArray(parsed.trips)) {
+            fiscalWrap = {
+              mode: 'current',
+              views: {
+                current: sanitizeFiscalView(parsed, defaultFiscalCurrentView()),
+                planned: defaultFiscalPlannedView(),
+              },
+            };
+            return fiscalWrap.views.current;
+          }
         }
       }
     } catch {
       /* ignore */
     }
-    return defaultFiscalState();
+    fiscalWrap = defaultFiscalWrap();
+    return fiscalWrap.views[fiscalWrap.mode];
   }
 
   function saveFiscalState() {
     try {
-      localStorage.setItem(STORAGE_FISCAL, JSON.stringify(fiscalState));
+      if (fiscalWrap) localStorage.setItem(STORAGE_FISCAL, JSON.stringify(fiscalWrap));
     } catch {
       /* ignore */
     }
+  }
+
+  function setFiscalMode(mode) {
+    if (mode !== 'current' && mode !== 'planned') return;
+    if (!fiscalWrap) fiscalState = loadFiscalState();
+    if (fiscalWrap.mode === mode) return;
+    fiscalWrap.mode = mode;
+    fiscalState = fiscalWrap.views[mode];
+    saveFiscalState();
+    paintFiscal();
   }
 
   function buildFiscalMonthMarks(startMs, endExMs, span, valid) {
@@ -1777,8 +1869,9 @@
     const endExMs = valid ? addUtcDaysMs(endMs, 1) : NaN;
     const totalDays = valid ? Math.floor((endExMs - startMs) / 86400000) : 0;
     const intervals = [];
-    const loggedSegs = fiscalState.useTravelLog ? buildLoggedAbroadSegments(startMs, endExMs, valid) : [];
-    if (fiscalState.useTravelLog) {
+    const useLog = fiscalUsesLog();
+    const loggedSegs = useLog ? buildLoggedAbroadSegments(startMs, endExMs, valid) : [];
+    if (useLog) {
       for (const seg of loggedSegs) intervals.push({ start: seg.start, endEx: seg.endEx });
     }
     const tripsResolved = fiscalState.trips.map((t) => {
@@ -1833,7 +1926,7 @@
           return { start: ivStart, endEx: ivEnd };
         })
         .filter(Boolean);
-      if (fiscalState.useTravelLog) {
+      if (useLog) {
         for (const seg of loggedSegs) {
           const ivStart = Math.max(seg.start, projStartMs);
           const ivEnd = Math.min(seg.endEx, endExMs);
@@ -1866,6 +1959,94 @@
       projInCountry,
       projThreshold,
     };
+  }
+
+  function fiscalLoggedSegHtml(seg, startMs, span) {
+    if (span <= 0) return '';
+    const leftPct = ((seg.start - startMs) / span) * 100;
+    const widthPct = ((seg.endEx - seg.start) / span) * 100;
+    const color = fiscalCountryColor(seg.country);
+    const title = `${seg.country}${seg.city ? ' · ' + seg.city : ''} · ${seg.days}d (travel log)`;
+    return `<span class="fiscal-timeline__logged" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(
+      3
+    )}%;--fiscal-c:${color}" title="${escapeHtml(title)}"></span>`;
+  }
+
+  function fiscalPlannedSegHtml(r, startMs, endExMs, span) {
+    if (!Number.isFinite(r.startMs) || !Number.isFinite(r.endExMs) || span <= 0) return '';
+    const cs = Math.max(r.startMs, startMs);
+    const ce = Math.min(r.endExMs, endExMs);
+    if (ce <= cs) return '';
+    const leftPct = ((cs - startMs) / span) * 100;
+    const widthPct = ((ce - cs) / span) * 100;
+    const country = String(r.country || '').trim();
+    const cls = country ? 'fiscal-timeline__seg fiscal-timeline__seg--country' : 'fiscal-timeline__seg';
+    const colorStyle = country ? `;--fiscal-c:${fiscalCountryColor(country)}` : '';
+    const title = `${r.label}${country ? ' · ' + country : ''} · ${r.effective}d`;
+    return `<span class="${cls}" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(
+      3
+    )}%${colorStyle}" title="${escapeHtml(title)}"></span>`;
+  }
+
+  function buildFiscalBarHtml(data) {
+    const { valid, startMs, endExMs } = data;
+    const span = valid ? endExMs - startMs : 0;
+    if (!valid || span <= 0) return '';
+    const months = buildFiscalMonthMarks(startMs, endExMs, span, valid);
+    const dividers = months
+      .filter((m) => m.leftPct > 0.01)
+      .map((m) => `<span class="fiscal-timeline__month-divider" style="left:${m.leftPct.toFixed(3)}%"></span>`)
+      .join('');
+    const logged = (data.loggedSegs || []).map((seg) => fiscalLoggedSegHtml(seg, startMs, span)).join('');
+    const segs = (data.tripsResolved || [])
+      .map((r) => fiscalPlannedSegHtml(r, startMs, endExMs, span))
+      .join('');
+    let anchor = '';
+    if (data.companySet && data.companyMs >= startMs && data.companyMs <= endExMs) {
+      const pct = ((data.companyMs - startMs) / span) * 100;
+      anchor = `<span class="fiscal-timeline__anchor" style="left:${pct.toFixed(
+        3
+      )}%" title="Company start · ${escapeHtml(fiscalState.companyStart)}"><span class="fiscal-timeline__anchor-flag">Company start</span></span>`;
+    }
+    return dividers + logged + segs + anchor;
+  }
+
+  function fiscalLegendHtml(data) {
+    const colorByCountry = new Map();
+    for (const s of data.loggedSegs || []) {
+      if (s.country) colorByCountry.set(s.country, fiscalCountryColor(s.country));
+    }
+    let hasGeneric = false;
+    for (const r of data.tripsResolved || []) {
+      if (r.effective <= 0) continue;
+      const c = String(r.country || '').trim();
+      if (c) colorByCountry.set(c, fiscalCountryColor(c));
+      else hasGeneric = true;
+    }
+    const hasLogged = (data.loggedSegs || []).length > 0;
+    const hasPlanned = (data.tripsResolved || []).some((r) => r.effective > 0 && String(r.country || '').trim());
+    if (!colorByCountry.size && !hasGeneric && !hasLogged) return '';
+    const items = [];
+    if (hasPlanned)
+      items.push(
+        `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--striped"></span>Planned (striped)</span>`
+      );
+    if (hasLogged)
+      items.push(
+        `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--solid"></span>Logged (solid)</span>`
+      );
+    for (const [c, col] of colorByCountry) {
+      items.push(
+        `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch" style="background:${col}"></span>${escapeHtml(
+          c
+        )}</span>`
+      );
+    }
+    if (hasGeneric)
+      items.push(
+        `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--planned"></span>Unassigned trip</span>`
+      );
+    return `<div class="fiscal-timeline__legend">${items.join('')}</div>`;
   }
 
   function renderFiscal() {
@@ -1912,16 +2093,33 @@
       : `${Math.abs(diff)} day${Math.abs(diff) === 1 ? '' : 's'} short`;
     const statusCls = !valid ? '' : ok ? 'fiscal-status--ok' : 'fiscal-status--bad';
     const home = homeCountry() || 'home country';
+    const mode = fiscalWrap ? fiscalWrap.mode : 'current';
+    const isPlanned = mode === 'planned';
+    const countryOpts = fiscalCountryOptions();
+    const countryOptionsHtml = (selected) => {
+      const sel = String(selected || '');
+      const opts = countryOpts
+        .map((c) => `<option value="${escapeHtml(c)}"${c === sel ? ' selected' : ''}>${escapeHtml(c)}</option>`)
+        .join('');
+      return `<option value=""${sel ? '' : ' selected'}>Select country…</option>${opts}`;
+    };
 
     const tripsHtml = fiscalState.trips
       .map((t) => {
         const r = tripsResolved.find((x) => x.id === t.id) || { lastDayYmd: '—', returnYmd: '—', effective: 0 };
+        const country = String(t.country || '').trim();
+        const swatchStyle = country ? ` style="--fiscal-c:${fiscalCountryColor(country)}"` : '';
         return `<div class="fiscal-trip" data-trip-id="${escapeHtml(t.id)}">
           <div class="fiscal-trip__head">
+            <span class="fiscal-trip__swatch${country ? '' : ' fiscal-trip__swatch--empty'}"${swatchStyle} data-role="swatch"></span>
             <input type="text" class="fiscal-trip__name" value="${escapeHtml(t.label)}" data-field="label" aria-label="Trip name" maxlength="60" />
             <button type="button" class="fiscal-trip__remove" data-action="remove" title="Remove trip" aria-label="Remove trip">×</button>
           </div>
           <div class="fiscal-trip__controls">
+            <label class="fiscal-trip__field fiscal-trip__field--country">
+              <span>Country</span>
+              <select class="fiscal-trip__select" data-field="country" aria-label="Trip country">${countryOptionsHtml(country)}</select>
+            </label>
             <label class="fiscal-trip__field">
               <span>Departure</span>
               <input type="date" value="${escapeHtml(t.start)}" data-field="start" />
@@ -1941,58 +2139,11 @@
       })
       .join('');
 
+    const legendHtml = fiscalLegendHtml(data);
+
     const span = valid ? endExMs - startMs : 0;
-
-    const loggedHtml = (loggedSegs || [])
-      .map((seg) => {
-        if (span <= 0) return '';
-        const leftPct = ((seg.start - startMs) / span) * 100;
-        const widthPct = ((seg.endEx - seg.start) / span) * 100;
-        const color = fiscalCountryColor(seg.country);
-        const title = `${seg.country}${seg.city ? ' · ' + seg.city : ''} · ${seg.days}d (travel log)`;
-        return `<span class="fiscal-timeline__logged" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(3)}%;--fiscal-c:${color}" title="${escapeHtml(title)}"></span>`;
-      })
-      .join('');
-
-    const legendCountries = Array.from(
-      new Map((loggedSegs || []).map((s) => [s.country, fiscalCountryColor(s.country)])).entries()
-    );
-    const legendHtml = legendCountries.length
-      ? `<div class="fiscal-timeline__legend">
-          <span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--planned"></span>Planned trips</span>
-          ${legendCountries
-            .map(
-              ([c, col]) =>
-                `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch" style="background:${col}"></span>${escapeHtml(c)}</span>`
-            )
-            .join('')}
-        </div>`
-      : '';
-
-    const segments = tripsResolved
-      .map((r) => {
-        if (!valid || !Number.isFinite(r.startMs) || !Number.isFinite(r.endExMs)) return '';
-        const cs = Math.max(r.startMs, startMs);
-        const ce = Math.min(r.endExMs, endExMs);
-        if (ce <= cs) return '';
-        const leftPct = ((cs - startMs) / span) * 100;
-        const widthPct = ((ce - cs) / span) * 100;
-        return `<span class="fiscal-timeline__seg" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(3)}%" title="${escapeHtml(r.label)} · ${r.effective}d"></span>`;
-      })
-      .join('');
-
-    let anchorHtml = '';
-    if (valid && companySet && data.companyMs >= startMs && data.companyMs <= endExMs) {
-      const pct = ((data.companyMs - startMs) / span) * 100;
-      anchorHtml = `<span class="fiscal-timeline__anchor" style="left:${pct.toFixed(3)}%" title="Company start · ${escapeHtml(fiscalState.companyStart)}"><span class="fiscal-timeline__anchor-flag">Company start</span></span>`;
-    }
-
     const months = buildFiscalMonthMarks(startMs, endExMs, span, valid);
-
-    const monthDividers = months
-      .filter((m) => m.leftPct > 0.01)
-      .map((m) => `<span class="fiscal-timeline__month-divider" style="left:${m.leftPct.toFixed(3)}%"></span>`)
-      .join('');
+    const barHtml = buildFiscalBarHtml(data);
     const monthLabels = months
       .map(
         (m) =>
@@ -2009,28 +2160,44 @@
     elFiscal.innerHTML = `
       <h1 id="fiscal-heading">Fiscal Year Residency</h1>
       <div class="fiscal-header">
-        <p>Plan trips abroad and see how many days you'd spend in ${escapeHtml(home)} this fiscal year. Tax residency typically requires more than half the year in country — drag the sliders to find a combination that keeps you above the line.</p>
-        <div class="fiscal-year-range">
-          <label class="fiscal-trip__field">
-            <span>Fiscal year start</span>
-            <input type="date" id="fiscal-year-start" value="${escapeHtml(fiscalState.yearStart)}" />
-          </label>
-          <label class="fiscal-trip__field">
-            <span>Fiscal year end</span>
-            <input type="date" id="fiscal-year-end" value="${escapeHtml(fiscalState.yearEnd)}" />
-          </label>
-          <label class="fiscal-trip__field">
-            <span>Company start <em class="fiscal-trip__field-hint">(optional)</em></span>
-            <input type="date" id="fiscal-company-start" value="${escapeHtml(fiscalState.companyStart || '')}" />
-          </label>
-          <label class="fiscal-trip__field fiscal-trip__field--toggle">
-            <span>Account for travel log</span>
-            <label class="fiscal-toggle">
-              <input type="checkbox" id="fiscal-use-log" ${fiscalState.useTravelLog ? 'checked' : ''} />
-              <span class="fiscal-toggle__track"><span class="fiscal-toggle__thumb"></span></span>
-              <span class="fiscal-toggle__label">${fiscalState.useTravelLog ? 'On' : 'Off'}</span>
+        <p>${
+          isPlanned
+            ? `Plan a future year from a clean slate. Add country segments — say 20 days in Spain, two weeks in the Philippines — and watch the totals and timeline build up. The travel log is ignored here so you're planning purely from scratch.`
+            : `Plan trips abroad and see how many days you'd spend in ${escapeHtml(
+                home
+              )} this fiscal year. Tax residency typically requires more than half the year in country — drag the sliders to find a combination that keeps you above the line.`
+        }</p>
+        <div class="fiscal-header__controls">
+          <div class="segmented fiscal-mode" role="group" aria-label="Year mode">
+            <button type="button" id="fiscal-mode-current" class="${isPlanned ? '' : 'is-active'}">Current year</button>
+            <button type="button" id="fiscal-mode-planned" class="${isPlanned ? 'is-active' : ''}">Planned future year</button>
+          </div>
+          <div class="fiscal-year-range">
+            <label class="fiscal-trip__field">
+              <span>Fiscal year start</span>
+              <input type="date" id="fiscal-year-start" value="${escapeHtml(fiscalState.yearStart)}" />
             </label>
-          </label>
+            <label class="fiscal-trip__field">
+              <span>Fiscal year end</span>
+              <input type="date" id="fiscal-year-end" value="${escapeHtml(fiscalState.yearEnd)}" />
+            </label>
+            <label class="fiscal-trip__field">
+              <span>Company start <em class="fiscal-trip__field-hint">(optional)</em></span>
+              <input type="date" id="fiscal-company-start" value="${escapeHtml(fiscalState.companyStart || '')}" />
+            </label>
+            ${
+              isPlanned
+                ? ''
+                : `<label class="fiscal-trip__field fiscal-trip__field--toggle">
+              <span>Account for travel log</span>
+              <label class="fiscal-toggle">
+                <input type="checkbox" id="fiscal-use-log" ${fiscalState.useTravelLog ? 'checked' : ''} />
+                <span class="fiscal-toggle__track"><span class="fiscal-toggle__thumb"></span></span>
+                <span class="fiscal-toggle__label">${fiscalState.useTravelLog ? 'On' : 'Off'}</span>
+              </label>
+            </label>`
+            }
+          </div>
         </div>
       </div>
       <div class="travel-summary">
@@ -2046,7 +2213,7 @@
             <p class="summary-card__metric" data-metric="away">${awayDays}</p>
             <h3 class="summary-card__title-line">Days abroad</h3>
             <p class="summary-card__subtitle-line" data-metric="trip-count">${escapeHtml(
-              fiscalState.useTravelLog
+              fiscalUsesLog()
                 ? `Travel log + ${fiscalState.trips.length} planned trip${fiscalState.trips.length === 1 ? '' : 's'}`
                 : `${fiscalState.trips.length} planned trip${fiscalState.trips.length === 1 ? '' : 's'}`
             )}</p>
@@ -2070,9 +2237,11 @@
       </div>
       <div class="card fiscal-timeline-card">
         <div class="panel-head"><h2>Fiscal timeline</h2></div>
-        <p class="fiscal-timeline__hint">Red segments show time abroad within the fiscal-year window. Drag a trip slider or move its departure date — the bar reacts live.</p>
+        <p class="fiscal-timeline__hint">Each segment shows time abroad within the fiscal-year window, colored by country.${
+          isPlanned ? '' : ' Logged stays are solid; planned trips are striped.'
+        } Pick a country per trip, drag its slider, or move its departure date — the bar reacts live.</p>
         <div class="fiscal-timeline">
-          <div class="fiscal-timeline__bar" id="fiscal-timeline-bar">${monthDividers}${loggedHtml}${segments}${anchorHtml}</div>
+          <div class="fiscal-timeline__bar" id="fiscal-timeline-bar">${barHtml}</div>
           <div class="fiscal-timeline__months">${monthLabels}</div>
           <div class="fiscal-timeline__years">${yearLabels}</div>
           <div id="fiscal-timeline-legend">${legendHtml}</div>
@@ -2134,7 +2303,7 @@
     setText('[data-metric="status"]', statusLabel);
     setText(
       '[data-metric="trip-count"]',
-      fiscalState.useTravelLog
+      fiscalUsesLog()
         ? `Travel log + ${fiscalState.trips.length} planned trip${fiscalState.trips.length === 1 ? '' : 's'}`
         : `${fiscalState.trips.length} planned trip${fiscalState.trips.length === 1 ? '' : 's'}`
     );
@@ -2170,41 +2339,7 @@
     });
 
     const bar = $('fiscal-timeline-bar');
-    const span = valid ? endExMs - startMs : 0;
-    if (bar) {
-      const months = buildFiscalMonthMarks(startMs, endExMs, span, valid);
-      const dividers = months
-        .filter((m) => m.leftPct > 0.01)
-        .map((m) => `<span class="fiscal-timeline__month-divider" style="left:${m.leftPct.toFixed(3)}%"></span>`)
-        .join('');
-      const logged = (data.loggedSegs || [])
-        .map((seg) => {
-          if (span <= 0) return '';
-          const leftPct = ((seg.start - startMs) / span) * 100;
-          const widthPct = ((seg.endEx - seg.start) / span) * 100;
-          const color = fiscalCountryColor(seg.country);
-          const title = `${seg.country}${seg.city ? ' · ' + seg.city : ''} · ${seg.days}d (travel log)`;
-          return `<span class="fiscal-timeline__logged" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(3)}%;--fiscal-c:${color}" title="${escapeHtml(title)}"></span>`;
-        })
-        .join('');
-      const segs = tripsResolved
-        .map((r) => {
-          if (!valid || !Number.isFinite(r.startMs) || !Number.isFinite(r.endExMs) || span <= 0) return '';
-          const cs = Math.max(r.startMs, startMs);
-          const ce = Math.min(r.endExMs, endExMs);
-          if (ce <= cs) return '';
-          const leftPct = ((cs - startMs) / span) * 100;
-          const widthPct = ((ce - cs) / span) * 100;
-          return `<span class="fiscal-timeline__seg" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(3)}%" title="${escapeHtml(r.label)} · ${r.effective}d"></span>`;
-        })
-        .join('');
-      let anchor = '';
-      if (valid && data.companySet && data.companyMs >= startMs && data.companyMs <= endExMs && span > 0) {
-        const pct = ((data.companyMs - startMs) / span) * 100;
-        anchor = `<span class="fiscal-timeline__anchor" style="left:${pct.toFixed(3)}%" title="Company start · ${escapeHtml(fiscalState.companyStart)}"><span class="fiscal-timeline__anchor-flag">Company start</span></span>`;
-      }
-      bar.innerHTML = dividers + logged + segs + anchor;
-    }
+    if (bar) bar.innerHTML = buildFiscalBarHtml(data);
   }
 
   function openDatePicker(input) {
@@ -2221,6 +2356,8 @@
   }
 
   function wireFiscalEvents() {
+    $('fiscal-mode-current')?.addEventListener('click', () => setFiscalMode('current'));
+    $('fiscal-mode-planned')?.addEventListener('click', () => setFiscalMode('planned'));
     $('fiscal-year-start')?.addEventListener('change', (e) => {
       fiscalState.yearStart = e.target.value;
       saveFiscalState();
@@ -2306,6 +2443,10 @@
       if (field === 'label') {
         trip.label = String(target.value || '').slice(0, 60);
         saveFiscalState();
+      } else if (field === 'country') {
+        trip.country = String(target.value || '');
+        saveFiscalState();
+        paintFiscal();
       } else if (field === 'start') {
         trip.start = target.value;
         saveFiscalState();
