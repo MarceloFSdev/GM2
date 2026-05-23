@@ -74,7 +74,7 @@ assert.deepEqual(
     ['B-Work renewal', '2026-05-22'],
     ['Bali rent renewal', '2026-06-04'],
     ['Mobile SIM renewal', '2026-06-04'],
-    ['Motorbike rental renewal', '2026-05-06'],
+    ['Motorbike rental renewal', '2026-06-06'],
     ['Wellness Gym Canggu renewal', '2026-05-26'],
   ].sort(),
   'rent, motorbike, and gym renewal dates feed alerts'

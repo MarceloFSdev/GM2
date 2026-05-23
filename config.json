@@ -398,12 +398,12 @@
       "status": "active",
       "country": "Indonesia",
       "city": "Bali",
-      "startDate": "2026-04-06",
-      "renewDate": "2026-05-06",
+      "startDate": "2026-05-06",
+      "renewDate": "2026-06-06",
       "billingCycle": "monthly",
       "termMonths": 1,
-      "notes": "Renewed on 6 Apr 2026 for one month.",
-      "severity": "high",
+      "notes": "Renewed on 6 May 2026 for one month.",
+      "severity": "medium",
       "isActive": true
     },
     {
