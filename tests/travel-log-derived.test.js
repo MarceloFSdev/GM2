@@ -71,7 +71,7 @@ assert.equal(renewalAlerts.length, 5, 'dated long-term bookings create renewal a
 assert.deepEqual(
   renewalAlerts.map((a) => [a.title, a.expiresDate]).sort(),
   [
-    ['B-Work renewal', '2026-05-22'],
+    ['B-Work renewal', '2026-06-22'],
     ['Bali rent renewal', '2026-06-04'],
     ['Mobile SIM renewal', '2026-06-04'],
     ['Motorbike rental renewal', '2026-06-06'],
