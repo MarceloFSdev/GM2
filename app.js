@@ -54,6 +54,10 @@
 
   let fiscalState = null;
   let fiscalWrap = null;
+  /** Fiscal planner cloud sync (mirrors the to-do list). */
+  let fiscalLoadedFromCloud = false;
+  let fiscalSyncState = 'idle';
+  let fiscalSaveTimer = null;
 
   /** To-Do list state — synced to the /api/todos backend (Workers KV). */
   let todoItems = [];
@@ -2051,6 +2055,7 @@
     } catch {
       /* ignore */
     }
+    scheduleFiscalCloudSave();
   }
 
   function setFiscalMode(mode) {
@@ -2061,6 +2066,85 @@
     fiscalState = fiscalWrap.views[mode];
     saveFiscalState();
     paintFiscal();
+  }
+
+  /* ── Fiscal planner cloud sync (via /api/fiscal → Workers KV) ──────────── */
+
+  async function loadFiscalFromCloud() {
+    const res = await fetch('/api/fiscal', { cache: 'no-store' });
+    if (!res.ok) throw new Error('fiscal fetch failed');
+    return res.json();
+  }
+
+  async function saveFiscalToCloud(wrap) {
+    const res = await fetch('/api/fiscal', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fiscal: wrap }),
+    });
+    if (!res.ok) throw new Error('fiscal save failed');
+    return res.json();
+  }
+
+  function setFiscalSyncStatus(state) {
+    fiscalSyncState = state;
+    if (!elFiscal) return;
+    const el = elFiscal.querySelector('[data-fiscal-status]');
+    if (!el) return;
+    el.textContent = TODOS_STATUS_LABEL[state] || '';
+    el.className = `todos-status todos-status--${state}`;
+  }
+
+  // localStorage already holds the change; debounce the cloud write so rapid
+  // slider/date edits collapse into one PUT.
+  function scheduleFiscalCloudSave() {
+    if (!fiscalWrap) return;
+    setFiscalSyncStatus('saving');
+    if (fiscalSaveTimer) clearTimeout(fiscalSaveTimer);
+    fiscalSaveTimer = setTimeout(() => {
+      const snapshot = fiscalWrap;
+      saveFiscalToCloud(snapshot)
+        .then(() => setFiscalSyncStatus('saved'))
+        .catch(() => setFiscalSyncStatus('error'));
+    }, 600);
+  }
+
+  // On first open of the planner this session, adopt the cloud copy (cross-device
+  // source of truth); if the cloud has nothing yet, seed it from local state.
+  async function syncFiscalFromCloud() {
+    setFiscalSyncStatus('loading');
+    let data;
+    try {
+      data = await loadFiscalFromCloud();
+    } catch {
+      setFiscalSyncStatus('error');
+      return;
+    }
+    const remote = data && data.fiscal;
+    if (remote && typeof remote === 'object' && remote.views) {
+      fiscalWrap = {
+        mode: remote.mode === 'planned' ? 'planned' : 'current',
+        views: {
+          current: sanitizeFiscalView(remote.views.current, defaultFiscalCurrentView()),
+          planned: sanitizeFiscalView(remote.views.planned, defaultFiscalPlannedView()),
+        },
+      };
+      fiscalState = fiscalWrap.views[fiscalWrap.mode];
+      try {
+        localStorage.setItem(STORAGE_FISCAL, JSON.stringify(fiscalWrap));
+      } catch {
+        /* ignore */
+      }
+      setFiscalSyncStatus('idle');
+      paintFiscal();
+    } else {
+      setFiscalSyncStatus('idle');
+      if (fiscalWrap) {
+        saveFiscalToCloud(fiscalWrap)
+          .then(() => setFiscalSyncStatus('saved'))
+          .catch(() => setFiscalSyncStatus('error'));
+      }
+    }
   }
 
   function buildFiscalMonthMarks(startMs, endExMs, span, valid) {
@@ -2331,6 +2415,10 @@
     if (!elFiscal) return;
     if (!fiscalState) fiscalState = loadFiscalState();
     paintFiscal();
+    if (!fiscalLoadedFromCloud) {
+      fiscalLoadedFromCloud = true;
+      syncFiscalFromCloud();
+    }
   }
 
   function paintFiscal() {
@@ -2445,6 +2533,7 @@
                 home
               )} this fiscal year. Tax residency typically requires more than half the year in country — drag the sliders to find a combination that keeps you above the line.`
         }</p>
+        <p class="todos-status todos-status--${fiscalSyncState}" data-fiscal-status>${escapeHtml(TODOS_STATUS_LABEL[fiscalSyncState] || '')}</p>
         <div class="fiscal-header__controls">
           <div class="segmented fiscal-mode" role="group" aria-label="Year mode">
             <button type="button" id="fiscal-mode-current" class="${isPlanned ? '' : 'is-active'}">Current year</button>
