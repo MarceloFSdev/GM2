@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "start": "serve . -l 8765",
-    "test": "node tests/travel-log-derived.test.js"
+    "test": "node tests/travel-log-derived.test.js",
+    "build:fitness": "node scripts/build-fitness.mjs"
   },
   "devDependencies": {
     "serve": "^14.2.4"

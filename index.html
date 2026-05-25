@@ -141,6 +141,20 @@
             </span>
             <span>To-Do</span>
           </button>
+          <button type="button" class="nav-item" data-view="fitness" id="nav-fitness">
+            <span class="nav-item__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6.5 6.5l11 11" />
+                <path d="M21 21l-1-1" />
+                <path d="M3 3l1 1" />
+                <path d="M18 22l4-4" />
+                <path d="M2 6l4-4" />
+                <path d="M3 10l7-7" />
+                <path d="M14 21l7-7" />
+              </svg>
+            </span>
+            <span>Fitness</span>
+          </button>
           <a class="nav-item nav-item--logout" href="/api/logout">
             <span class="nav-item__icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -254,6 +268,9 @@
           </section>
           <section id="view-todos" class="view" aria-hidden="true" aria-labelledby="todos-heading">
             <div id="todos-mount"></div>
+          </section>
+          <section id="view-fitness" class="view" aria-hidden="true" aria-labelledby="fitness-heading">
+            <div id="fitness-mount"></div>
           </section>
         </main>
       </div>

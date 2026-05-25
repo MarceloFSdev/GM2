@@ -1,0 +1,1071 @@
+{
+  "generatedAt": "2026-05-25T13:53:28.445Z",
+  "source": "Mars OS vault · 10-Personal/Fitness",
+  "goals": [
+    "Primary training goal: hypertrophy.",
+    "Nutrition phase: lean bulk / roughly maintenance.",
+    "Main behavior goal: train steadily and consistently.",
+    "Progression goal: apply progressive overload session to session where appropriate.",
+    "Pull-up goal: progress toward 20 clean consecutive pull-ups. Prioritize pull-ups early in relevant upper-body sessions while fresh."
+  ],
+  "pullUp": {
+    "best": 15,
+    "goal": 20,
+    "date": "2026-05-20"
+  },
+  "routine": {
+    "version": "Wellness Gym Canggu, Bali",
+    "days": [
+      {
+        "day": 1,
+        "name": "Upper A",
+        "focus": "Chest + Back",
+        "exercises": [
+          {
+            "name": "Flat Machine Press",
+            "scheme": "3 x 6–10"
+          },
+          {
+            "name": "Chest-Supported Row",
+            "scheme": "3 x 8–12"
+          },
+          {
+            "name": "Incline Dumbbell Press",
+            "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Neutral Grip Lat Pulldown",
+            "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Cable Lateral Raise",
+            "scheme": "3 x 12–20"
+          },
+          {
+            "name": "Reverse Pec Deck",
+            "scheme": "2 x 15–20"
+          },
+          {
+            "name": "Hammer Curl or preferred biceps curl alternative",
+            "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Overhead Rope Tricep Extension",
+            "scheme": "2 x 10–15"
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "name": "Lower A",
+        "focus": "Quad Bias",
+        "exercises": [
+          {
+            "name": "Leg Extension",
+            "scheme": "3 x 12–15"
+          },
+          {
+            "name": "Leg Press",
+            "scheme": "2 x 10–15"
+          },
+          {
+            "name": "Hack Squat",
+            "scheme": "3 x 6–10"
+          },
+          {
+            "name": "Lying Leg Curl if seated unavailable",
+            "scheme": "3 x 10–15"
+          },
+          {
+            "name": "Standing Calf Raise",
+            "scheme": "4 x 8–15"
+          },
+          {
+            "name": "Cable Crunch",
+            "scheme": "3 x 10–15"
+          }
+        ]
+      },
+      {
+        "day": 3,
+        "name": "Upper B",
+        "focus": "Delts + Arms Bias",
+        "exercises": [
+          {
+            "name": "Incline Smith Machine Press",
+            "scheme": "3 x 8–12"
+          },
+          {
+            "name": "Pull-Ups or Pulldown",
+            "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Seated Cable Row",
+            "scheme": "3 x 8–12"
+          },
+          {
+            "name": "Machine Shoulder Press",
+            "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Cable Lateral Raise",
+            "scheme": "4 x 12–20"
+          },
+          {
+            "name": "Rear Delt Cable Fly",
+            "scheme": "2 x 15–20"
+          },
+          {
+            "name": "Bayesian Cable Curl",
+            "scheme": "3 x 10–15"
+          },
+          {
+            "name": "Overhead Cable Tricep Extension",
+            "scheme": "3 x 10–15"
+          }
+        ]
+      },
+      {
+        "day": 4,
+        "name": "Lower B",
+        "focus": "Hamstring Bias",
+        "exercises": [
+          {
+            "name": "Romanian Deadlift",
+            "scheme": "3 x 6–10"
+          },
+          {
+            "name": "Seated Leg Curl",
+            "scheme": "3 x 10–15"
+          },
+          {
+            "name": "Leg Extension",
+            "scheme": "4 x 15–20"
+          },
+          {
+            "name": "Bulgarian Split Squat",
+            "scheme": "2 x 10–12"
+          },
+          {
+            "name": "Seated Calf Raise",
+            "scheme": "4 x 10–20"
+          },
+          {
+            "name": "Hanging Leg Raise",
+            "scheme": "3 x 10–15"
+          }
+        ]
+      },
+      {
+        "day": 5,
+        "name": "Upper C",
+        "focus": "Pump / Stretch / Lower Fatigue",
+        "exercises": [
+          {
+            "name": "Incline Dumbbell Press",
+            "scheme": "2 x 10–15"
+          },
+          {
+            "name": "Weighted Pull-Ups or Pulldown",
+            "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Cable Fly",
+            "scheme": "2 x 12–15"
+          },
+          {
+            "name": "Chest-Supported Machine Row",
+            "scheme": "2 x 10–15"
+          },
+          {
+            "name": "Cable Lateral Raise",
+            "scheme": "3 x 15–25"
+          },
+          {
+            "name": "Rear Delt Fly",
+            "scheme": "2 x 15–20"
+          },
+          {
+            "name": "Preacher Curl Machine or Cable Curl",
+            "scheme": "2 x 10–15"
+          },
+          {
+            "name": "Rope Pushdown",
+            "scheme": "2 x 10–15"
+          },
+          {
+            "name": "Chest: ~11",
+            "scheme": "13 hard sets"
+          },
+          {
+            "name": "Back: ~14",
+            "scheme": "15 hard sets"
+          },
+          {
+            "name": "Delts: ~14",
+            "scheme": "16 hard sets"
+          },
+          {
+            "name": "Quads: ~12",
+            "scheme": "14 hard sets"
+          },
+          {
+            "name": "Hamstrings: ~9",
+            "scheme": "10 hard sets"
+          },
+          {
+            "name": "Biceps: ~7",
+            "scheme": "8 direct sets"
+          },
+          {
+            "name": "Triceps: ~7",
+            "scheme": "8 direct sets"
+          }
+        ]
+      }
+    ],
+    "volumeTargets": {
+      "Chest": {
+        "min": 11,
+        "max": 13
+      },
+      "Back": {
+        "min": 14,
+        "max": 15
+      },
+      "Delts": {
+        "min": 14,
+        "max": 16
+      },
+      "Quads": {
+        "min": 12,
+        "max": 14
+      },
+      "Hamstrings": {
+        "min": 9,
+        "max": 10
+      },
+      "Biceps": {
+        "min": 7,
+        "max": 8
+      },
+      "Triceps": {
+        "min": 7,
+        "max": 8
+      }
+    }
+  },
+  "state": {
+    "weekStart": "2026-05-18",
+    "completedRaw": "Day 1 — Upper A on Monday 2026-05-18; Day 2 — Lower A on Tuesday 2026-05-19; Day 3 — Upper B on Wednesday 2026-05-20",
+    "next": "Day 4 — Lower B",
+    "location": "Wellness Gym Canggu, Bali",
+    "sessionsPerWeek": 5
+  },
+  "weekStart": "2026-05-18",
+  "sessions": [
+    {
+      "date": "2026-05-18",
+      "session": "Day 1 — Upper A",
+      "day": 1,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [
+        {
+          "name": "Flat Machine Press",
+          "sets": [
+            {
+              "weight": 100,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 100,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 100,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 100,
+          "totalReps": 30,
+          "pr": false,
+          "perSide": false,
+          "note": "Effort: first set felt ~2–4 RIR; last set felt ~0–1 RIR. Note: machine is maxed out at 100 kg, so load cannot be increased on this machine.",
+          "raw": "3 x 10 reps at 100 kg. Effort: first set felt ~2–4 RIR; last set felt ~0–1 RIR. Note: machine is maxed out at 100 kg, so load cannot be increased on this machine.",
+          "muscle": "Chest"
+        },
+        {
+          "name": "Chest-Supported Row (bottom hinge machine)",
+          "sets": [
+            {
+              "weight": 40,
+              "reps": 10,
+              "perSide": true
+            },
+            {
+              "weight": 40,
+              "reps": 10,
+              "perSide": true
+            },
+            {
+              "weight": 40,
+              "reps": 10,
+              "perSide": true
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 40,
+          "totalReps": 30,
+          "pr": false,
+          "perSide": true,
+          "note": "Effort: intense, but may be able to push slightly more.",
+          "raw": "3 x 10 reps at 40 kg each side. Effort: intense, but may be able to push slightly more.",
+          "muscle": "Back"
+        },
+        {
+          "name": "Incline Dumbbell Press",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 25,
+          "totalReps": 20,
+          "pr": false,
+          "perSide": false,
+          "note": "Note: felt modest/not much, but Marz had not done this exercise in a while.",
+          "raw": "20 kg x 10 reps, then 25 kg x 10 reps. Note: felt modest/not much, but Marz had not done this exercise in a while.",
+          "muscle": "Chest"
+        },
+        {
+          "name": "Neutral Grip Lat Pulldown",
+          "sets": [
+            {
+              "weight": 60,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 70,
+          "totalReps": 17,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "60 kg x 10 reps, then 70 kg x 7 reps.",
+          "muscle": "Back"
+        },
+        {
+          "name": "Cable Lateral Raise",
+          "sets": [
+            {
+              "weight": 15,
+              "reps": 6,
+              "perSide": true
+            },
+            {
+              "weight": 10,
+              "reps": 10,
+              "perSide": true
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 15,
+          "totalReps": 16,
+          "pr": false,
+          "perSide": true,
+          "note": "Note: weight increments are tricky on this cable setup.",
+          "raw": "3 total sets each side. Set 1: 15 kg x 6 reps each side; felt heavy. Sets 2–3: 10 kg x 10 reps each side. Note: weight increments are tricky on this cable setup.",
+          "muscle": "Delts"
+        },
+        {
+          "name": "Overhead Rope Tricep Extension",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 45,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 45,
+          "totalReps": 20,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "35 kg x 10 reps; too light. Then 45 kg x 10 reps; decent but can still add some load.",
+          "muscle": "Triceps"
+        },
+        {
+          "name": "Hammer Curl",
+          "sets": [
+            {
+              "weight": 17.5,
+              "reps": 6,
+              "perSide": false
+            },
+            {
+              "weight": 17.5,
+              "reps": 6,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 17.5,
+          "totalReps": 12,
+          "pr": false,
+          "perSide": false,
+          "note": "Preference: Marz does not like EZ-Bar Curl for biceps; use hammer curls / alternative curl instead.",
+          "raw": "17.5 kg x 6 reps x 2 sets. Preference: Marz does not like EZ-Bar Curl for biceps; use hammer curls / alternative curl instead.",
+          "muscle": "Biceps"
+        }
+      ],
+      "setCount": 17,
+      "repCount": 145,
+      "volumeLoad": 8330,
+      "highlights": []
+    },
+    {
+      "date": "2026-05-19",
+      "session": "Day 2 — Lower A",
+      "day": 2,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [
+        {
+          "name": "Leg Extension",
+          "sets": [
+            {
+              "weight": 50,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 70,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 70,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 70,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 4,
+          "topWeight": 70,
+          "totalReps": 40,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "50 kg x 10; 70 kg x 10; 70 kg x 10; 70 kg x 10. Total 4 sets logged vs routine 3 sets.",
+          "muscle": "Quads"
+        },
+        {
+          "name": "Hack Squat",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 10,
+              "perSide": true
+            }
+          ],
+          "setCount": 1,
+          "topWeight": 20,
+          "totalReps": 10,
+          "pr": false,
+          "perSide": true,
+          "note": "",
+          "raw": "new machine for Marz. Foot platform at ~45°, weight on shoulders, back supported. Bodyweight/no added load for 10 reps felt hard when going deep. With 20 kg each side, Marz felt scared to go past ~45° knee flexion; too much load for now. Needs slow progression and clear depth guidance.",
+          "muscle": "Quads"
+        },
+        {
+          "name": "Leg Press",
+          "sets": [
+            {
+              "weight": 80,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 80,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 80,
+          "totalReps": 20,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "80 kg x 10; 80 kg x 10.",
+          "muscle": "Quads"
+        },
+        {
+          "name": "Lying Leg Curl",
+          "sets": [
+            {
+              "weight": 40,
+              "reps": 6,
+              "perSide": false
+            },
+            {
+              "weight": 30,
+              "reps": 8,
+              "perSide": false
+            },
+            {
+              "weight": 30,
+              "reps": 8,
+              "perSide": false
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 40,
+          "totalReps": 22,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "no seated leg curl available. 40 kg x 6; 30 kg x 8; 30 kg x 8.",
+          "muscle": "Hamstrings"
+        }
+      ],
+      "setCount": 10,
+      "repCount": 92,
+      "volumeLoad": 5320,
+      "highlights": []
+    },
+    {
+      "date": "2026-05-20",
+      "session": "Day 3 — Upper B",
+      "day": 3,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [
+        {
+          "name": "Smith Press",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 10,
+              "perSide": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "perSide": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "perSide": true
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 30,
+          "totalReps": 30,
+          "pr": false,
+          "perSide": true,
+          "note": "Notes: good; mostly feeling out the Smith machine. Could go harder next time.",
+          "raw": "20 kg each side x 10; 30 kg each side x 10; 30 kg each side x 10",
+          "muscle": "Chest"
+        },
+        {
+          "name": "Pull-Ups",
+          "sets": [
+            {
+              "reps": 15,
+              "bodyweight": true,
+              "perSide": false
+            },
+            {
+              "reps": 11,
+              "bodyweight": true,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": null,
+          "totalReps": 26,
+          "pr": true,
+          "perSide": false,
+          "note": "Order note: Marz wants pull-ups early in the workout because he wants to progress to 20 clean reps.",
+          "raw": "Set 1: 15 clean reps — personal record.; Set 2: 11 reps.",
+          "muscle": "Back"
+        },
+        {
+          "name": "Seated Cable Row",
+          "sets": [
+            {
+              "weight": 60,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 65,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 65,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 65,
+          "totalReps": 30,
+          "pr": false,
+          "perSide": false,
+          "note": "Notes: good.",
+          "raw": "60 kg x 10; 65 kg x 10; 65 kg x 10",
+          "muscle": "Back"
+        },
+        {
+          "name": "Seated Machine Shoulder Press",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 10,
+              "perSide": true
+            },
+            {
+              "weight": 20,
+              "reps": 10,
+              "perSide": true
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 20,
+          "totalReps": 20,
+          "pr": false,
+          "perSide": true,
+          "note": "Notes: several RIR; not too hard.",
+          "raw": "20 kg each side x 10; 20 kg each side x 10",
+          "muscle": "Delts"
+        },
+        {
+          "name": "Cable Lateral Raise",
+          "sets": [
+            {
+              "weight": 10,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 10,
+              "reps": 5,
+              "perSide": false
+            }
+          ],
+          "setCount": 4,
+          "topWeight": 10,
+          "totalReps": 15,
+          "pr": false,
+          "perSide": false,
+          "note": "Notes: no higher than 10 kg because shoulders were already tired.",
+          "raw": "10 kg.; 4 sets total.; Reps: 10 reps each except final set 5 reps.",
+          "muscle": "Delts"
+        },
+        {
+          "name": "Rear Delt Cable Fly",
+          "sets": [
+            {
+              "weight": 15,
+              "reps": 6,
+              "perSide": false
+            },
+            {
+              "weight": 15,
+              "reps": 4,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 15,
+          "totalReps": 10,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "15 kg x 6; 15 kg x 4",
+          "muscle": "Delts"
+        },
+        {
+          "name": "Bayesian Bicep Curl",
+          "sets": [
+            {
+              "weight": 15,
+              "reps": 12,
+              "perSide": false
+            },
+            {
+              "weight": 15,
+              "reps": 12,
+              "perSide": false
+            },
+            {
+              "weight": 15,
+              "reps": 12,
+              "perSide": false
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 15,
+          "totalReps": 36,
+          "pr": false,
+          "perSide": false,
+          "note": "Notes: felt good. Done both sides at the same time. Good biceps stretch. First time doing this variation and Marz really liked it.",
+          "raw": "15 kg x 12 x 3 sets",
+          "muscle": "Biceps"
+        },
+        {
+          "name": "Overhead Cable Tricep Extension / Pull",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 45,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 45,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 3,
+          "topWeight": 45,
+          "totalReps": 30,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "35 kg x 10 — weak/light; 45 kg x 10 — mid; 45 kg x 10 — better burn",
+          "muscle": "Triceps"
+        }
+      ],
+      "setCount": 22,
+      "repCount": 197,
+      "volumeLoad": 6390,
+      "highlights": [
+        "Pull-ups: 15 clean reps for set 1 — personal record.",
+        "Bayesian curl felt very good and should stay in routine."
+      ]
+    }
+  ],
+  "weekSessions": [
+    "2026-05-18",
+    "2026-05-19",
+    "2026-05-20"
+  ],
+  "muscleVolume": [
+    {
+      "muscle": "Chest",
+      "sets": 8,
+      "target": {
+        "min": 11,
+        "max": 13
+      }
+    },
+    {
+      "muscle": "Back",
+      "sets": 10,
+      "target": {
+        "min": 14,
+        "max": 15
+      }
+    },
+    {
+      "muscle": "Delts",
+      "sets": 11,
+      "target": {
+        "min": 14,
+        "max": 16
+      }
+    },
+    {
+      "muscle": "Quads",
+      "sets": 7,
+      "target": {
+        "min": 12,
+        "max": 14
+      }
+    },
+    {
+      "muscle": "Hamstrings",
+      "sets": 3,
+      "target": {
+        "min": 9,
+        "max": 10
+      }
+    },
+    {
+      "muscle": "Biceps",
+      "sets": 5,
+      "target": {
+        "min": 7,
+        "max": 8
+      }
+    },
+    {
+      "muscle": "Triceps",
+      "sets": 5,
+      "target": {
+        "min": 7,
+        "max": 8
+      }
+    }
+  ],
+  "keyLifts": [
+    {
+      "name": "Flat Machine Press",
+      "muscle": "Chest",
+      "weight": 100,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-18",
+      "note": "Effort: first set felt ~2–4 RIR; last set felt ~0–1 RIR. Note: machine is maxed out at 100 kg, so load cannot be increased on this machine."
+    },
+    {
+      "name": "Leg Press",
+      "muscle": "Quads",
+      "weight": 80,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-19",
+      "note": ""
+    },
+    {
+      "name": "Neutral Grip Lat Pulldown",
+      "muscle": "Back",
+      "weight": 70,
+      "reps": 7,
+      "perSide": false,
+      "date": "2026-05-18",
+      "note": ""
+    },
+    {
+      "name": "Leg Extension",
+      "muscle": "Quads",
+      "weight": 70,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-19",
+      "note": ""
+    },
+    {
+      "name": "Seated Cable Row",
+      "muscle": "Back",
+      "weight": 65,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-20",
+      "note": "Notes: good."
+    },
+    {
+      "name": "Overhead Rope Tricep Extension",
+      "muscle": "Triceps",
+      "weight": 45,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-18",
+      "note": ""
+    },
+    {
+      "name": "Overhead Cable Tricep Extension / Pull",
+      "muscle": "Triceps",
+      "weight": 45,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-20",
+      "note": ""
+    },
+    {
+      "name": "Chest-Supported Row (bottom hinge machine)",
+      "muscle": "Back",
+      "weight": 40,
+      "reps": 10,
+      "perSide": true,
+      "date": "2026-05-18",
+      "note": "Effort: intense, but may be able to push slightly more."
+    },
+    {
+      "name": "Lying Leg Curl",
+      "muscle": "Hamstrings",
+      "weight": 40,
+      "reps": 6,
+      "perSide": false,
+      "date": "2026-05-19",
+      "note": ""
+    },
+    {
+      "name": "Smith Press",
+      "muscle": "Chest",
+      "weight": 30,
+      "reps": 10,
+      "perSide": true,
+      "date": "2026-05-20",
+      "note": "Notes: good; mostly feeling out the Smith machine. Could go harder next time."
+    },
+    {
+      "name": "Incline Dumbbell Press",
+      "muscle": "Chest",
+      "weight": 25,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-18",
+      "note": "Note: felt modest/not much, but Marz had not done this exercise in a while."
+    },
+    {
+      "name": "Hack Squat",
+      "muscle": "Quads",
+      "weight": 20,
+      "reps": 10,
+      "perSide": true,
+      "date": "2026-05-19",
+      "note": ""
+    },
+    {
+      "name": "Seated Machine Shoulder Press",
+      "muscle": "Delts",
+      "weight": 20,
+      "reps": 10,
+      "perSide": true,
+      "date": "2026-05-20",
+      "note": "Notes: several RIR; not too hard."
+    },
+    {
+      "name": "Hammer Curl",
+      "muscle": "Biceps",
+      "weight": 17.5,
+      "reps": 6,
+      "perSide": false,
+      "date": "2026-05-18",
+      "note": "Preference: Marz does not like EZ-Bar Curl for biceps; use hammer curls / alternative curl instead."
+    },
+    {
+      "name": "Cable Lateral Raise",
+      "muscle": "Delts",
+      "weight": 15,
+      "reps": 6,
+      "perSide": true,
+      "date": "2026-05-18",
+      "note": "Note: weight increments are tricky on this cable setup."
+    },
+    {
+      "name": "Rear Delt Cable Fly",
+      "muscle": "Delts",
+      "weight": 15,
+      "reps": 6,
+      "perSide": false,
+      "date": "2026-05-20",
+      "note": ""
+    },
+    {
+      "name": "Bayesian Bicep Curl",
+      "muscle": "Biceps",
+      "weight": 15,
+      "reps": 12,
+      "perSide": false,
+      "date": "2026-05-20",
+      "note": "Notes: felt good. Done both sides at the same time. Good biceps stretch. First time doing this variation and Marz really liked it."
+    }
+  ],
+  "prs": [
+    {
+      "date": "2026-05-20",
+      "text": "Pull-ups: 15 clean reps for set 1 — personal record."
+    },
+    {
+      "date": "2026-05-20",
+      "text": "Bayesian curl felt very good and should stay in routine."
+    }
+  ],
+  "totals": {
+    "sessionsLogged": 3,
+    "setsLogged": 49,
+    "repsLogged": 434,
+    "volumeLoad": 20040,
+    "weekSessions": 3,
+    "weekSets": 49,
+    "weekReps": 434,
+    "weekVolumeLoad": 20040
+  },
+  "quotes": [
+    {
+      "quote": "Re-rack your weights. We live in a society.",
+      "author": ""
+    },
+    {
+      "quote": "One more rep fixes most life problems.",
+      "author": ""
+    },
+    {
+      "quote": "PRs are cheaper than therapy.",
+      "author": ""
+    },
+    {
+      "quote": "The pump is temporary. The screenshots are forever.",
+      "author": ""
+    },
+    {
+      "quote": "Sleep, protein, progressive overload. The ancient texts.",
+      "author": ""
+    },
+    {
+      "quote": "If the bar ain’t bending, you’re just pretending.",
+      "author": "gym classic"
+    },
+    {
+      "quote": "There is no secret. It is just hard work.",
+      "author": "Kai Greene"
+    },
+    {
+      "quote": "Ain’t nothin’ but a peanut.",
+      "author": "Ronnie Coleman"
+    },
+    {
+      "quote": "Yeah buddy.",
+      "author": "Ronnie Coleman"
+    },
+    {
+      "quote": "Light weight baby.",
+      "author": "Ronnie Coleman"
+    },
+    {
+      "quote": "Everybody wants to be a bodybuilder, but nobody wanna lift no heavy ass weights.",
+      "author": "Ronnie Coleman"
+    }
+  ]
+}

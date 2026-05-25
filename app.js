@@ -21,6 +21,7 @@
     fiscal: 'Fiscal Year',
     schedule: 'Schedule',
     todos: 'To-Do',
+    fitness: 'Fitness',
   };
 
   const TODOS_STATUS_LABEL = {
@@ -52,6 +53,12 @@
   let elFiscal;
   let elSchedule;
   let elTodos;
+  let elFitness;
+
+  /** Fitness dashboard data (fitness.json, generated from the Mars OS vault). */
+  let fitnessData = null;
+  let fitnessLoading = false;
+  let fitnessError = false;
 
   let fiscalState = null;
   let fiscalWrap = null;
@@ -3249,8 +3256,405 @@
     await ChronosWorldMap.mount(elWorld, config);
   }
 
+  /* ── Fitness dashboard (data from fitness.json, built from the Mars OS vault) ─ */
+
+  const FIT_MUSCLE_COLORS = {
+    Chest: '#7eb8d4',
+    Back: '#8ad4a0',
+    Delts: '#d4b07e',
+    Quads: '#c98ad4',
+    Hamstrings: '#d4877e',
+    Biceps: '#7ec7d4',
+    Triceps: '#b0d47e',
+    Calves: '#9aa0d4',
+    Core: '#d4d07e',
+    Other: '#9aa3ad',
+  };
+
+  function fitMuscleColor(m) {
+    return FIT_MUSCLE_COLORS[m] || FIT_MUSCLE_COLORS.Other;
+  }
+
+  function fitCapitalize(s) {
+    s = (s || '').trim();
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  }
+
+  /** "2026-05-20" → "May 20". */
+  function fitShortDate(ymd) {
+    if (!ymd) return '';
+    const [y, m, d] = ymd.split('-').map(Number);
+    if (!y || !m || !d) return ymd;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[m - 1]} ${d}`;
+  }
+
+  /** "Day 1 — Upper A" → "Upper A"; falls back to the short date. */
+  function fitSessionShort(s) {
+    const m = (s.session || '').match(/[—–-]\s*(.+)$/);
+    return m ? m[1].trim() : fitShortDate(s.date);
+  }
+
+  async function loadFitness() {
+    if (fitnessLoading) return;
+    fitnessLoading = true;
+    try {
+      const res = await fetch('fitness.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      fitnessData = await res.json();
+      fitnessError = false;
+    } catch {
+      fitnessError = true;
+    } finally {
+      fitnessLoading = false;
+    }
+  }
+
+  function fitPoint(cx, cy, R, ratio, angleDeg) {
+    const a = ((angleDeg - 90) * Math.PI) / 180;
+    return [cx + R * ratio * Math.cos(a), cy + R * ratio * Math.sin(a)];
+  }
+
+  /** Week-completion ring. */
+  function svgWeekRing(done, total) {
+    const r = 52;
+    const c = 2 * Math.PI * r;
+    const pct = total ? Math.min(done / total, 1) : 0;
+    const dash = (c * pct).toFixed(1);
+    return `<svg viewBox="0 0 130 130" class="fit-ring" role="img" aria-label="${done} of ${total} weekly sessions complete">
+      <circle class="fit-ring__track" cx="65" cy="65" r="${r}" />
+      <circle class="fit-ring__bar" cx="65" cy="65" r="${r}" stroke-dasharray="${dash} ${c.toFixed(1)}" transform="rotate(-90 65 65)" />
+      <text class="fit-ring__num" x="65" y="62" text-anchor="middle">${done}</text>
+      <text class="fit-ring__den" x="65" y="84" text-anchor="middle">of ${total}</text>
+    </svg>`;
+  }
+
+  /** Radar: outer heptagon = weekly target max, inner dashed = target min,
+   *  filled polygon = this week's actual sets (normalized to target max). */
+  function svgMuscleRadar(items) {
+    const size = 300;
+    const cx = size / 2;
+    const cy = size / 2;
+    const R = size / 2 - 50;
+    const n = items.length;
+    const step = 360 / n;
+    const ratioActual = (it) => (it.target && it.target.max ? Math.min(it.sets / it.target.max, 1.12) : 0);
+    const ratioMin = (it) => (it.target && it.target.max ? it.target.min / it.target.max : 0);
+    const ptsAt = (ratioFn) =>
+      items.map((it, i) => fitPoint(cx, cy, R, typeof ratioFn === 'function' ? ratioFn(it) : ratioFn, i * step).map((v) => v.toFixed(1)).join(',')).join(' ');
+
+    let grid = '';
+    for (const g of [0.25, 0.5, 0.75, 1]) {
+      grid += `<polygon class="fit-radar__grid" points="${ptsAt(g)}" />`;
+    }
+    let spokes = '';
+    let labels = '';
+    items.forEach((it, i) => {
+      const [x, y] = fitPoint(cx, cy, R, 1, i * step);
+      spokes += `<line class="fit-radar__spoke" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" />`;
+      const [lx, ly] = fitPoint(cx, cy, R + 24, 1, i * step);
+      const anchor = Math.abs(lx - cx) < 6 ? 'middle' : lx > cx ? 'start' : 'end';
+      labels += `<text class="fit-radar__label" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle">${escapeHtml(it.muscle)}</text>`;
+    });
+    const dots = items
+      .map((it, i) => {
+        const [x, y] = fitPoint(cx, cy, R, ratioActual(it), i * step);
+        return `<circle class="fit-radar__dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" />`;
+      })
+      .join('');
+    return `<svg viewBox="0 0 ${size} ${size}" class="fit-radar" role="img" aria-label="Weekly muscle volume versus target">
+      ${grid}${spokes}
+      <polygon class="fit-radar__min" points="${ptsAt(ratioMin)}" />
+      <polygon class="fit-radar__actual" points="${ptsAt(ratioActual)}" />
+      ${dots}${labels}
+    </svg>`;
+  }
+
+  /** Vertical bars of estimated volume load per session. */
+  function svgSessionBars(sessions) {
+    const w = 340;
+    const h = 190;
+    const padB = 38;
+    const padT = 18;
+    const inner = w - 16;
+    const max = Math.max(...sessions.map((s) => s.volumeLoad), 1);
+    const gap = inner / sessions.length;
+    const bw = Math.min(gap * 0.46, 54);
+    let bars = '';
+    sessions.forEach((s, i) => {
+      const x = 8 + gap * i + gap / 2;
+      const bh = (h - padB - padT) * (s.volumeLoad / max);
+      const y = h - padB - bh;
+      bars += `<rect class="fit-bar" x="${(x - bw / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(bh, 2).toFixed(1)}" rx="6" />
+        <text class="fit-bar__val" x="${x.toFixed(1)}" y="${(y - 7).toFixed(1)}" text-anchor="middle">${(s.volumeLoad / 1000).toFixed(1)}t</text>
+        <text class="fit-bar__lbl" x="${x.toFixed(1)}" y="${(h - padB + 17).toFixed(1)}" text-anchor="middle">${escapeHtml(fitSessionShort(s))}</text>
+        <text class="fit-bar__sub" x="${x.toFixed(1)}" y="${(h - padB + 31).toFixed(1)}" text-anchor="middle">${s.setCount} sets · ${s.repCount} reps</text>`;
+    });
+    return `<svg viewBox="0 0 ${w} ${h}" class="fit-bars" role="img" aria-label="Estimated volume load per session">${bars}</svg>`;
+  }
+
+  /** Best logged set label for an exercise, e.g. "100kg×10" or "15, 11 reps". */
+  function fitExerciseTopLabel(ex) {
+    if (ex.topWeight != null) {
+      const top = ex.sets.filter((x) => x.weight === ex.topWeight);
+      const reps = top.length ? Math.max(...top.map((x) => x.reps || 0)) : 0;
+      return `${ex.topWeight}kg${ex.perSide ? '/s' : ''}${reps ? `×${reps}` : ''}`;
+    }
+    const reps = ex.sets.filter((x) => x.reps).map((x) => x.reps);
+    if (reps.length) return `${reps.join(', ')} reps`;
+    return `${ex.setCount} sets`;
+  }
+
+  function renderFitnessLoading() {
+    if (elFitness) elFitness.innerHTML = '<h1 id="fitness-heading">Fitness</h1><div class="fit-skeleton" aria-busy="true">Syncing training data…</div>';
+  }
+
+  async function renderFitness() {
+    if (!elFitness) return;
+    if (!fitnessData && !fitnessError) {
+      renderFitnessLoading();
+      await loadFitness();
+    }
+    if (fitnessError || !fitnessData) {
+      elFitness.innerHTML = `<h1 id="fitness-heading">Fitness</h1>
+        <div class="card fit-empty">
+          <p>Couldn't load <code>fitness.json</code>.</p>
+          <p class="fit-empty__hint">Generate it from the Mars OS vault with <code>npm run build:fitness</code>, then reload.</p>
+        </div>`;
+      return;
+    }
+
+    const d = fitnessData;
+    const state = d.state || {};
+    const totals = d.totals || {};
+    const routineDays = [...((d.routine && d.routine.days) || [])].sort((a, b) => a.day - b.day);
+
+    // Goal extraction for the hero.
+    const goalVal = (prefix) => {
+      const g = (d.goals || []).find((x) => x.toLowerCase().startsWith(prefix));
+      return g ? g.split(':').slice(1).join(':').trim().replace(/\.$/, '') : '';
+    };
+    const primaryGoal = fitCapitalize(goalVal('primary training goal') || 'Hypertrophy');
+    const phase = fitCapitalize(goalVal('nutrition phase'));
+
+    // Quote of the day (deterministic per day).
+    const quotes = d.quotes || [];
+    const quote = quotes.length ? quotes[Math.floor(Date.now() / 86400000) % quotes.length] : null;
+
+    // Week status.
+    const perWeek = state.sessionsPerWeek || 5;
+    const weekDone = totals.weekSessions || 0;
+    const byDate = new Map((d.sessions || []).map((s) => [s.date, s]));
+    const completedDays = new Set(
+      (d.weekSessions || []).map((dt) => byDate.get(dt)).filter(Boolean).map((s) => s.day).filter(Boolean)
+    );
+    const nextDay = parseInt(((state.next || '').match(/Day\s*(\d)/i) || [])[1] || '0', 10);
+
+    const dayChips = routineDays
+      .map((day) => {
+        const done = completedDays.has(day.day);
+        const isNext = !done && day.day === nextDay;
+        const cls = done ? 'is-done' : isNext ? 'is-next' : 'is-pending';
+        const mark = done ? '✓' : isNext ? '→' : '';
+        return `<div class="fit-day ${cls}">
+          <div class="fit-day__mark">${mark}</div>
+          <div class="fit-day__body">
+            <p class="fit-day__title">Day ${day.day} · ${escapeHtml(day.name)}</p>
+            <p class="fit-day__focus">${escapeHtml(day.focus || '')}</p>
+          </div>
+        </div>`;
+      })
+      .join('');
+
+    // KPI cards.
+    const kpis = [
+      { v: `${weekDone}/${perWeek}`, l: 'Sessions this week' },
+      { v: totals.weekSets || 0, l: 'Sets logged' },
+      { v: totals.weekReps || 0, l: 'Reps logged' },
+      { v: `${((totals.weekVolumeLoad || 0) / 1000).toFixed(1)}t`, l: 'Est. volume load' },
+    ]
+      .map(
+        (k) => `<div class="card fit-kpi"><p class="fit-kpi__value">${escapeHtml(String(k.v))}</p><p class="fit-kpi__label">${escapeHtml(k.l)}</p></div>`
+      )
+      .join('');
+
+    // Muscle volume legend list.
+    const muscleList = (d.muscleVolume || [])
+      .map((m) => {
+        const tgt = m.target ? `${m.target.min}–${m.target.max}` : '—';
+        const pct = m.target && m.target.max ? Math.min(Math.round((m.sets / m.target.max) * 100), 130) : 0;
+        return `<li class="fit-mlist__row">
+          <span class="fit-mlist__dot" style="background:${fitMuscleColor(m.muscle)}"></span>
+          <span class="fit-mlist__name">${escapeHtml(m.muscle)}</span>
+          <span class="fit-mlist__bar"><span class="fit-mlist__fill" style="width:${Math.min(pct, 100)}%;background:${fitMuscleColor(m.muscle)}"></span></span>
+          <span class="fit-mlist__num">${m.sets}<small>/${tgt}</small></span>
+        </li>`;
+      })
+      .join('');
+
+    // Pull-up tracker.
+    const pu = d.pullUp || { best: 0, goal: 20 };
+    const puPct = pu.goal ? Math.min((pu.best / pu.goal) * 100, 100) : 0;
+    const puTicks = [5, 10, 15, 20]
+      .map((t) => `<span class="fit-pullup__tick" style="left:${(t / (pu.goal || 20)) * 100}%"><i></i><b>${t}</b></span>`)
+      .join('');
+
+    // Key lifts.
+    const liftRows = (d.keyLifts || [])
+      .slice(0, 12)
+      .map((l) => {
+        const note = l.note ? escapeHtml(l.note.replace(/^note:\s*/i, '').slice(0, 80)) : '';
+        return `<li class="fit-lift">
+          <span class="fit-lift__wt">${l.weight}<small>kg${l.perSide ? '/s' : ''}</small></span>
+          <span class="fit-lift__main">
+            <span class="fit-lift__name">${escapeHtml(l.name)}</span>
+            <span class="fit-lift__meta"><span class="fit-tag" style="--c:${fitMuscleColor(l.muscle)}">${escapeHtml(l.muscle)}</span>${l.reps ? `<span class="fit-lift__reps">×${l.reps}</span>` : ''}${note ? `<span class="fit-lift__note">${note}</span>` : ''}</span>
+          </span>
+        </li>`;
+      })
+      .join('');
+
+    // PR feed.
+    const prRows = (d.prs || []).length
+      ? (d.prs || [])
+          .map(
+            (p) => `<li class="fit-pr"><span class="fit-pr__date">${escapeHtml(fitShortDate(p.date))}</span><span class="fit-pr__text">${escapeHtml(p.text)}</span></li>`
+          )
+          .join('')
+      : '<li class="fit-pr fit-pr--empty">No PRs logged yet — go set one.</li>';
+
+    // Session log (most recent first).
+    const sessionCards = [...(d.sessions || [])]
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .map((s) => {
+        const chips = (s.exercises || [])
+          .map(
+            (ex) => `<span class="fit-exchip"><span class="fit-exchip__dot" style="background:${fitMuscleColor(ex.muscle)}"></span>${escapeHtml(ex.name)}<b>${escapeHtml(fitExerciseTopLabel(ex))}</b></span>`
+          )
+          .join('');
+        return `<article class="fit-session">
+          <header class="fit-session__head">
+            <div>
+              <p class="fit-session__title">${escapeHtml(s.session || fitShortDate(s.date))}</p>
+              <p class="fit-session__date">${escapeHtml(fitShortDate(s.date))}${s.location ? ` · ${escapeHtml(s.location)}` : ''}</p>
+            </div>
+            <div class="fit-session__stats">
+              <span><b>${s.setCount}</b> sets</span>
+              <span><b>${s.repCount}</b> reps</span>
+              <span><b>${(s.volumeLoad / 1000).toFixed(1)}t</b> load</span>
+            </div>
+          </header>
+          <div class="fit-session__chips">${chips}</div>
+        </article>`;
+      })
+      .join('');
+
+    // Routine reference.
+    const routineCols = routineDays
+      .map((day) => {
+        const exs = (day.exercises || [])
+          .map((e) => `<li><span>${escapeHtml(e.name)}</span><small>${escapeHtml(e.scheme || '')}</small></li>`)
+          .join('');
+        return `<div class="fit-routine__col">
+          <p class="fit-routine__day">Day ${day.day}</p>
+          <p class="fit-routine__name">${escapeHtml(day.name)}</p>
+          <p class="fit-routine__focus">${escapeHtml(day.focus || '')}</p>
+          <ul class="fit-routine__list">${exs}</ul>
+        </div>`;
+      })
+      .join('');
+
+    const subBits = [primaryGoal, phase, state.location, d.weekStart ? `Week of ${fitShortDate(d.weekStart)}` : '']
+      .filter(Boolean)
+      .map((b) => escapeHtml(b))
+      .join(' &nbsp;·&nbsp; ');
+
+    elFitness.innerHTML = `
+      <h1 id="fitness-heading">Fitness</h1>
+      <p class="fit-sub">${subBits}</p>
+
+      <div class="fit-hero">
+        <div class="card fit-hero__main">
+          <div class="fit-hero__pills">
+            <span class="pill pill--accent">${escapeHtml(primaryGoal)}</span>
+            ${phase ? `<span class="pill">${escapeHtml(phase)}</span>` : ''}
+            <span class="pill">${escapeHtml((d.routine && d.routine.version) || state.location || 'Gym')}</span>
+          </div>
+          ${
+            quote
+              ? `<blockquote class="fit-quote">“${escapeHtml(quote.quote)}”${quote.author ? `<cite>— ${escapeHtml(quote.author)}</cite>` : ''}</blockquote>`
+              : ''
+          }
+          <ul class="fit-goals">${(d.goals || []).map((g) => `<li>${escapeHtml(g)}</li>`).join('')}</ul>
+        </div>
+
+        <div class="card fit-week">
+          <div class="panel-head"><h2>This week</h2></div>
+          <div class="fit-week__top">
+            ${svgWeekRing(weekDone, perWeek)}
+            <div class="fit-week__meta">
+              <p class="fit-week__next-label">Next session</p>
+              <p class="fit-week__next">${escapeHtml(state.next || '—')}</p>
+              <p class="fit-week__rule">${escapeHtml(`${perWeek} sessions / week · Monday resets to Day 1`)}</p>
+            </div>
+          </div>
+          <div class="fit-days">${dayChips}</div>
+        </div>
+      </div>
+
+      <div class="fit-kpis">${kpis}</div>
+
+      <div class="fit-grid2">
+        <div class="card fit-panel">
+          <div class="panel-head"><h2>Weekly muscle volume</h2></div>
+          <p class="fit-panel__hint">Hard sets so far this week vs. weekly target (outer ring = target max, dashed = target min).</p>
+          <div class="fit-radar-wrap">${svgMuscleRadar(d.muscleVolume || [])}</div>
+          <ul class="fit-mlist">${muscleList}</ul>
+        </div>
+
+        <div class="fit-col">
+          <div class="card fit-panel">
+            <div class="panel-head"><h2>Pull-up goal</h2></div>
+            <div class="fit-pullup">
+              <div class="fit-pullup__nums"><span class="fit-pullup__big">${pu.best}</span><span class="fit-pullup__goal">/ ${pu.goal} clean reps</span></div>
+              <div class="fit-pullup__track"><div class="fit-pullup__fill" style="width:${puPct}%"></div>${puTicks}</div>
+              <p class="fit-pullup__cap">${pu.best >= pu.goal ? 'Goal smashed 🏆' : `${pu.goal - pu.best} reps to go · best on ${escapeHtml(fitShortDate(pu.date))}`}</p>
+            </div>
+          </div>
+          <div class="card fit-panel">
+            <div class="panel-head"><h2>Volume per session</h2></div>
+            <div class="fit-bars-wrap">${svgSessionBars(d.sessions || [])}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fit-grid2">
+        <div class="card fit-panel">
+          <div class="panel-head"><h2>Working weights</h2></div>
+          <ul class="fit-lifts">${liftRows}</ul>
+        </div>
+        <div class="card fit-panel">
+          <div class="panel-head"><h2>PRs & highlights</h2></div>
+          <ul class="fit-prs">${prRows}</ul>
+        </div>
+      </div>
+
+      <div class="card fit-panel">
+        <div class="panel-head"><h2>Session log</h2></div>
+        <div class="fit-sessions">${sessionCards}</div>
+      </div>
+
+      <div class="card fit-panel">
+        <div class="panel-head"><h2>Routine · ${escapeHtml((d.routine && d.routine.version) || '')}</h2></div>
+        <div class="fit-routine">${routineCols}</div>
+      </div>
+
+      <p class="fit-foot">Synced from ${escapeHtml(d.source || 'Mars OS vault')}${d.generatedAt ? ` · generated ${escapeHtml(fitShortDate(d.generatedAt.slice(0, 10)))}` : ''}. Run <code>npm run build:fitness</code> to refresh.</p>
+    `;
+  }
+
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule', 'todos'];
+    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule', 'todos', 'fitness'];
     if (!allowed.includes(view)) view = 'dashboard';
 
     try {
@@ -3269,6 +3673,7 @@
       fiscal: $('view-fiscal'),
       schedule: $('view-schedule'),
       todos: $('view-todos'),
+      fitness: $('view-fitness'),
     };
 
     for (const k of Object.keys(views)) {
@@ -3299,6 +3704,7 @@
     if (view === 'fiscal') renderFiscal();
     if (view === 'schedule') renderSchedule();
     if (view === 'todos') renderTodos();
+    if (view === 'fitness') renderFitness();
     refreshAlertsChrome();
     updateAllClocks();
   }
@@ -3395,6 +3801,7 @@
     elFiscal = $('fiscal-mount');
     elSchedule = $('schedule-mount');
     elTodos = $('todos-mount');
+    elFitness = $('fitness-mount');
 
     try {
       const raw = await loadConfig();
@@ -3421,7 +3828,7 @@
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'renewals' || saved === 'fiscal' || saved === 'schedule' || saved === 'todos') initial = saved;
+      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'renewals' || saved === 'fiscal' || saved === 'schedule' || saved === 'todos' || saved === 'fitness') initial = saved;
     } catch {
       /* ignore */
     }
