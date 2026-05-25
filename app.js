@@ -1609,12 +1609,13 @@
         ${hasSubs ? `<button type="button" class="todos-collapse" data-todo-collapse aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Expand subtasks' : 'Collapse subtasks'}" title="${collapsed ? 'Expand' : 'Collapse'}">${collapsed ? '▸' : '▾'}</button>` : ''}
         ${hasSubs ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
         ${todoDueBadge(item.deadline)}
+        <button type="button" class="todos-subadd-toggle${subaddOpen ? ' is-open' : ''}" data-subadd-toggle data-parent="${escapeHtml(item.id)}" aria-expanded="${subaddOpen ? 'true' : 'false'}" aria-label="Add subtask" title="Add subtask">+</button>
         <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit task" title="Edit">✎</button>
         <button type="button" class="todos-item__del" data-todo-del aria-label="Delete task">×</button>
       </div>
-      <div class="todos-task__body"${collapsed ? ' hidden' : ''}>
+      ${hasSubs || subaddOpen
+        ? `<div class="todos-task__body"${collapsed ? ' hidden' : ''}>
         ${hasSubs ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
-        <button type="button" class="todos-subadd-toggle${subaddOpen ? ' is-open' : ''}" data-subadd-toggle data-parent="${escapeHtml(item.id)}" aria-expanded="${subaddOpen ? 'true' : 'false'}" aria-label="Add subtask" title="Add subtask">+</button>
         ${subaddOpen
           ? `<form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
               <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
@@ -1622,7 +1623,8 @@
               <button type="submit" class="todos-subadd__btn" aria-label="Add subtask">＋</button>
             </form>`
           : ''}
-      </div>
+      </div>`
+        : ''}
     </li>`;
   }
 
@@ -1818,11 +1820,19 @@
       if (subaddToggle) {
         const id = subaddToggle.getAttribute('data-parent');
         if (!id) return;
-        if (todosSubaddOpen.has(id)) todosSubaddOpen.delete(id);
-        else todosSubaddOpen.add(id);
+        const opening = !todosSubaddOpen.has(id);
+        if (opening) {
+          todosSubaddOpen.add(id);
+          // The field lives in the collapsible body, so make sure it's expanded.
+          if (getTodosCollapsed().delete(id)) saveTodosCollapsed();
+        } else {
+          todosSubaddOpen.delete(id);
+        }
         paintTodos();
-        const input = elTodos.querySelector(`[data-subtask-add][data-parent="${id}"] input[name="text"]`);
-        if (input) input.focus();
+        if (opening) {
+          const input = elTodos.querySelector(`[data-subtask-add][data-parent="${id}"] input[name="text"]`);
+          if (input) input.focus();
+        }
         return;
       }
       const editBtn = e.target.closest('[data-todo-edit]');
@@ -3453,49 +3463,15 @@
     { key: 'blue', name: 'blue whale', emoji: '🐳', kg: 150000 },
   ];
 
-  // Single-path silhouettes (viewBox 0 0 240 132, facing left, on a baseline).
-  const FIT_SILHOUETTES = {
-    whale:
-      'M30,80 C24,56 48,38 88,36 C140,33 178,44 194,72 C208,60 220,40 234,16 C232,30 226,45 216,51 C227,53 234,55 238,59 C223,66 206,71 194,74 C198,86 196,102 186,108 C150,119 66,119 44,102 C32,92 30,88 30,80 Z',
-    elephant:
-      'M40,116 L40,78 C26,74 22,58 30,46 C40,30 66,26 92,30 C104,22 120,20 134,24 C150,16 172,18 184,30 C200,44 200,66 188,82 L188,116 L172,116 L172,90 C150,98 120,100 96,94 L96,116 L80,116 L80,90 C70,88 62,84 56,78 L56,116 Z M30,52 C18,52 12,62 16,74 C20,82 30,82 34,74 Z',
-    bus:
-      'M20,104 C16,104 14,100 14,94 L14,52 C14,42 22,36 34,36 L206,36 C218,36 226,44 226,56 L226,94 C226,100 224,104 218,104 L200,104 A16,16 0 0,0 168,104 L72,104 A16,16 0 0,0 40,104 Z',
-    rhino:
-      'M44,114 L44,80 C30,76 24,62 30,50 C38,34 64,28 92,32 C108,26 130,26 150,32 C160,22 168,18 178,20 C172,26 172,34 176,40 C188,48 192,64 184,78 L184,114 L168,114 L168,86 C144,94 112,94 92,88 L92,114 L76,114 L76,84 C66,82 58,78 52,72 L52,114 Z',
-    car:
-      'M14,98 C10,98 8,94 8,88 L8,74 C8,68 12,64 20,62 L52,42 C58,38 66,36 76,36 L150,36 C160,36 170,40 178,48 L196,64 C214,66 226,70 230,78 L230,88 C230,94 228,98 222,98 L204,98 A14,14 0 0,0 176,98 L80,98 A14,14 0 0,0 52,98 Z',
-  };
-
-  // Decorative face details drawn on top of the fill (eye/mouth/spout).
-  const FIT_SIL_FEATURES = {
-    whale:
-      '<path class="fit-sil__mouth" d="M31,80 C46,93 70,97 96,90" /><circle class="fit-sil__eye" cx="62" cy="64" r="3.6" /><path class="fit-sil__spout" d="M70,34 C66,22 74,16 70,6 M70,34 C78,24 86,22 88,12 M70,34 C62,24 54,24 52,14" />',
-  };
-
-  /** Silhouette that fills bottom-up to `fill` (0..1) like a vessel. */
-  function svgSilhouette(key, fill) {
-    const path = FIT_SILHOUETTES[key] || FIT_SILHOUETTES.whale;
-    const H = 132;
-    const f = Math.max(0, Math.min(fill, 1));
-    const y = (H * (1 - f)).toFixed(1);
-    const cid = `sil-clip-${key}`;
-    return `<svg class="fit-sil" viewBox="0 0 240 ${H}" role="img" aria-label="Progress toward next milestone">
-      <defs>
-        <clipPath id="${cid}"><path d="${path}" /></clipPath>
-        <linearGradient id="fit-sil-grad" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stop-color="rgba(126,184,212,0.45)" />
-          <stop offset="1" stop-color="rgba(126,184,212,0.95)" />
-        </linearGradient>
-      </defs>
-      <path d="${path}" class="fit-sil__ghost" />
-      <g clip-path="url(#${cid})">
-        <rect class="fit-sil__fill" x="0" y="${y}" width="240" height="${H}" fill="url(#fit-sil-grad)" />
-        <path class="fit-sil__wave" d="M-48,${y} q12,-6 24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 V${H} H-48 Z" />
-      </g>
-      <path d="${path}" class="fit-sil__outline" />
-      ${FIT_SILHOUETTES[key] ? FIT_SIL_FEATURES[key] || '' : FIT_SIL_FEATURES.whale}
-    </svg>`;
+  /** Big emoji that "fills" bottom-up to `fill` (0..1): a dimmed ghost glyph
+   *  with a full-colour copy clipped to the fill level, plus a waterline. */
+  function fitEmojiFill(emoji, fill) {
+    const pct = (Math.max(0, Math.min(fill, 1)) * 100).toFixed(1);
+    return `<div class="fit-emoji-fill" style="--fill:${pct}%" role="img" aria-label="Progress toward next milestone: ${pct}%">
+      <span class="fit-emoji-fill__ghost" aria-hidden="true">${emoji}</span>
+      <span class="fit-emoji-fill__full" aria-hidden="true">${emoji}</span>
+      <span class="fit-emoji-fill__line" aria-hidden="true"></span>
+    </div>`;
   }
 
   function fitMass(kg) {
@@ -3779,7 +3755,7 @@
           <div class="panel-head"><h2>Mass moved</h2></div>
           <div class="fit-mass__body">
             <div class="fit-mass__sil">
-              ${next ? svgSilhouette(next.key, fillAbs) : svgSilhouette('blue', 1)}
+              ${fitEmojiFill(next ? next.emoji : '🐳', next ? fillAbs : 1)}
             </div>
             <div class="fit-mass__copy">
               <p class="fit-mass__total">${fitMass(totalKg)}<span>lifted all-time</span></p>
