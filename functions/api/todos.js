@@ -55,6 +55,7 @@ function sanitizeTask(raw, idx, allowSub) {
     id: typeof raw.id === 'string' && raw.id ? raw.id : genId(allowSub ? 'todo' : 'sub', idx),
     text: text.slice(0, 2000),
     done,
+    urgent: raw.urgent === true,
     deadline: sanitizeDeadline(raw.deadline),
     createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
     doneAt: done ? (typeof raw.doneAt === 'string' ? raw.doneAt : new Date().toISOString()) : null,
