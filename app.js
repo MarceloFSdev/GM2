@@ -76,6 +76,8 @@
   let todosEditingId = null;
   /** Per-device set of collapsed task ids (subtasks hidden). */
   let todosCollapsed = null;
+  /** Transient set of task ids whose add-subtask field is open. */
+  const todosSubaddOpen = new Set();
 
   const clockHandlers = new Map();
 
@@ -1539,6 +1541,7 @@
       id: typeof o.id === 'string' && o.id ? o.id : `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       text: typeof o.text === 'string' ? o.text : '',
       done: o.done === true,
+      urgent: o.urgent === true,
       deadline: typeof o.deadline === 'string' && o.deadline ? o.deadline : null,
       createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date().toISOString(),
       doneAt: typeof o.doneAt === 'string' ? o.doneAt : null,
@@ -1597,10 +1600,12 @@
     const subs = [...all].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
     const hasSubs = subs.length > 0;
     const collapsed = hasSubs && getTodosCollapsed().has(item.id);
-    return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}${collapsed ? ' todos-task--collapsed' : ''}" data-id="${escapeHtml(item.id)}">
+    const subaddOpen = todosSubaddOpen.has(item.id);
+    return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}${item.urgent ? ' todos-task--urgent' : ''}${collapsed ? ' todos-task--collapsed' : ''}" data-id="${escapeHtml(item.id)}">
       <div class="todos-task__head">
         ${draggable ? '<span class="todos-drag" data-todos-handle aria-hidden="true" title="Drag to reorder">⠿</span>' : ''}
         ${todoMainHtml(item, 'Toggle complete')}
+        <button type="button" class="todos-light${item.urgent ? ' todos-light--on' : ''}" data-todo-urgent aria-pressed="${item.urgent ? 'true' : 'false'}" aria-label="Mark urgent" title="${item.urgent ? 'Urgent — click to clear' : 'Mark urgent'}"></button>
         ${hasSubs ? `<button type="button" class="todos-collapse" data-todo-collapse aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Expand subtasks' : 'Collapse subtasks'}" title="${collapsed ? 'Expand' : 'Collapse'}">${collapsed ? '▸' : '▾'}</button>` : ''}
         ${hasSubs ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
         ${todoDueBadge(item.deadline)}
@@ -1609,11 +1614,14 @@
       </div>
       <div class="todos-task__body"${collapsed ? ' hidden' : ''}>
         ${hasSubs ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
-        <form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
-          <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
-          <input type="date" class="todos-subadd__date" name="deadline" aria-label="Subtask deadline (optional)" />
-          <button type="submit" class="todos-subadd__btn" aria-label="Add subtask">＋</button>
-        </form>
+        <button type="button" class="todos-subadd-toggle${subaddOpen ? ' is-open' : ''}" data-subadd-toggle data-parent="${escapeHtml(item.id)}" aria-expanded="${subaddOpen ? 'true' : 'false'}" aria-label="Add subtask" title="Add subtask">+</button>
+        ${subaddOpen
+          ? `<form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
+              <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
+              <input type="date" class="todos-subadd__date" name="deadline" aria-label="Subtask deadline (optional)" />
+              <button type="submit" class="todos-subadd__btn" aria-label="Add subtask">＋</button>
+            </form>`
+          : ''}
       </div>
     </li>`;
   }
@@ -1796,6 +1804,27 @@
         paintTodos();
         return;
       }
+      const urgentBtn = e.target.closest('[data-todo-urgent]');
+      if (urgentBtn) {
+        const li = urgentBtn.closest('[data-id]');
+        const task = findTask(li && li.getAttribute('data-id'));
+        if (!task) return;
+        task.urgent = !task.urgent;
+        paintTodos();
+        persistTodos();
+        return;
+      }
+      const subaddToggle = e.target.closest('[data-subadd-toggle]');
+      if (subaddToggle) {
+        const id = subaddToggle.getAttribute('data-parent');
+        if (!id) return;
+        if (todosSubaddOpen.has(id)) todosSubaddOpen.delete(id);
+        else todosSubaddOpen.add(id);
+        paintTodos();
+        const input = elTodos.querySelector(`[data-subtask-add][data-parent="${id}"] input[name="text"]`);
+        if (input) input.focus();
+        return;
+      }
       const editBtn = e.target.closest('[data-todo-edit]');
       if (editBtn) {
         const subLi = editBtn.closest('[data-sub-id]');
@@ -1828,6 +1857,14 @@
     });
 
     elTodos.addEventListener('keydown', (e) => {
+      // Escape closes an open add-subtask field.
+      const subAdd = e.target.closest('[data-subtask-add]');
+      if (subAdd && e.key === 'Escape') {
+        e.preventDefault();
+        todosSubaddOpen.delete(subAdd.getAttribute('data-parent'));
+        paintTodos();
+        return;
+      }
       if (!e.target.closest('[data-todo-edit-input]')) return;
       if (e.key === 'Enter') {
         e.preventDefault();

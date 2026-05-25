@@ -3004,6 +3004,54 @@ body {
   display: none;
 }
 
+/* urgent "light" toggle */
+.todos-light {
+  flex: none;
+  width: 0.85rem;
+  height: 0.85rem;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border);
+  transition: background var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.todos-light:hover {
+  border-color: rgba(224, 135, 154, 0.6);
+}
+.todos-light--on {
+  background: #ef4d63;
+  border-color: #ef4d63;
+  box-shadow: 0 0 6px 1px rgba(239, 77, 99, 0.85);
+}
+.todos-task--urgent {
+  border-color: rgba(239, 77, 99, 0.45);
+}
+
+/* add-subtask toggle (+) — the field stays hidden until clicked */
+.todos-subadd-toggle {
+  align-self: flex-start;
+  width: 1.8rem;
+  height: 1.8rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), transform var(--transition);
+}
+.todos-subadd-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.todos-subadd-toggle.is-open {
+  transform: rotate(45deg);
+  color: var(--text-muted);
+  border-style: solid;
+}
+
 /* deadlines + subtasks */
 .todos-add {
   flex-wrap: wrap;
