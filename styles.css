@@ -2847,7 +2847,6 @@ body {
   gap: 0.7rem;
   flex: 1;
   min-width: 0;
-  cursor: pointer;
 }
 .todos-item__check {
   flex: none;
@@ -2974,6 +2973,30 @@ body {
 .todos-edit-input:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(126, 184, 212, 0.25);
+}
+
+/* collapsible task groups */
+.todos-collapse {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.todos-collapse:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+.todos-task__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 /* deadlines + subtasks */

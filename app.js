@@ -8,6 +8,7 @@
   const STORAGE_VIEW = 'chronos-gmt-view';
   const STORAGE_DASH_STAY_PERIOD = 'chronos-gmt-dashboard-stay-period';
   const STORAGE_FISCAL = 'chronos-gmt-fiscal-planner';
+  const STORAGE_TODOS_COLLAPSED = 'chronos-gmt-todos-collapsed';
   const ABROAD_ANCHOR_COUNTRY = 'Spain';
 
   const VIEW_TITLES = {
@@ -66,6 +67,8 @@
   let todosSyncState = 'idle';
   let todosSortable = null;
   let todosEditingId = null;
+  /** Per-device set of collapsed task ids (subtasks hidden). */
+  let todosCollapsed = null;
 
   const clockHandlers = new Map();
 
@@ -1537,15 +1540,38 @@
     return item;
   }
 
-  // The editable label, or an inline text input when this item is being edited.
+  function getTodosCollapsed() {
+    if (todosCollapsed) return todosCollapsed;
+    todosCollapsed = new Set();
+    try {
+      const raw = localStorage.getItem(STORAGE_TODOS_COLLAPSED);
+      const arr = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(arr)) arr.forEach((id) => todosCollapsed.add(id));
+    } catch {
+      /* ignore */
+    }
+    return todosCollapsed;
+  }
+
+  function saveTodosCollapsed() {
+    try {
+      localStorage.setItem(STORAGE_TODOS_COLLAPSED, JSON.stringify([...getTodosCollapsed()]));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // The text + checkbox, or an inline input when this item is being edited.
+  // Note: a plain div (not a <label>) so clicking the title does NOT toggle
+  // done — only the checkbox itself does.
   function todoMainHtml(item, toggleLabel) {
     if (item.id === todosEditingId) {
       return `<input type="text" class="todos-edit-input" data-todo-edit-input value="${escapeHtml(item.text)}" maxlength="2000" aria-label="Edit text" />`;
     }
-    return `<label class="todos-item__main">
+    return `<div class="todos-item__main">
         <input type="checkbox" class="todos-item__check" data-todo-toggle ${item.done ? 'checked' : ''} aria-label="${toggleLabel}" />
         <span class="todos-item__text">${escapeHtml(item.text)}</span>
-      </label>`;
+      </div>`;
   }
 
   function renderSubtaskRow(sub) {
@@ -1562,21 +1588,26 @@
     const doneCount = all.filter((s) => s.done).length;
     // Done subtasks sink to the bottom of the group (display order only).
     const subs = [...all].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
-    return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}" data-id="${escapeHtml(item.id)}">
+    const hasSubs = subs.length > 0;
+    const collapsed = hasSubs && getTodosCollapsed().has(item.id);
+    return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}${collapsed ? ' todos-task--collapsed' : ''}" data-id="${escapeHtml(item.id)}">
       <div class="todos-task__head">
         ${draggable ? '<span class="todos-drag" data-todos-handle aria-hidden="true" title="Drag to reorder">⠿</span>' : ''}
         ${todoMainHtml(item, 'Toggle complete')}
-        ${subs.length ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
+        ${hasSubs ? `<button type="button" class="todos-collapse" data-todo-collapse aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Expand subtasks' : 'Collapse subtasks'}" title="${collapsed ? 'Expand' : 'Collapse'}">${collapsed ? '▸' : '▾'}</button>` : ''}
+        ${hasSubs ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
         ${todoDueBadge(item.deadline)}
         <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit task" title="Edit">✎</button>
         <button type="button" class="todos-item__del" data-todo-del aria-label="Delete task">×</button>
       </div>
-      ${subs.length ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
-      <form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
-        <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
-        <input type="date" class="todos-subadd__date" name="deadline" aria-label="Subtask deadline (optional)" />
-        <button type="submit" class="todos-subadd__btn" aria-label="Add subtask">＋</button>
-      </form>
+      <div class="todos-task__body"${collapsed ? ' hidden' : ''}>
+        ${hasSubs ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
+        <form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
+          <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
+          <input type="date" class="todos-subadd__date" name="deadline" aria-label="Subtask deadline (optional)" />
+          <button type="submit" class="todos-subadd__btn" aria-label="Add subtask">＋</button>
+        </form>
+      </div>
     </li>`;
   }
 
@@ -1744,6 +1775,18 @@
           });
         paintTodos();
         persistTodos();
+        return;
+      }
+      const collapseBtn = e.target.closest('[data-todo-collapse]');
+      if (collapseBtn) {
+        const li = collapseBtn.closest('[data-id]');
+        const id = li && li.getAttribute('data-id');
+        if (!id) return;
+        const set = getTodosCollapsed();
+        if (set.has(id)) set.delete(id);
+        else set.add(id);
+        saveTodosCollapsed();
+        paintTodos();
         return;
       }
       const editBtn = e.target.closest('[data-todo-edit]');
