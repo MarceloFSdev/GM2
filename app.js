@@ -19,6 +19,15 @@
     renewals: 'Renewals',
     fiscal: 'Fiscal Year',
     schedule: 'Schedule',
+    todos: 'To-Do',
+  };
+
+  const TODOS_STATUS_LABEL = {
+    idle: '',
+    loading: 'Loading…',
+    saving: 'Saving…',
+    saved: 'All changes synced',
+    error: 'Offline — changes not saved to the cloud',
   };
 
   let config = null;
@@ -41,9 +50,16 @@
   let elRenewals;
   let elFiscal;
   let elSchedule;
+  let elTodos;
 
   let fiscalState = null;
   let fiscalWrap = null;
+
+  /** To-Do list state — synced to the /api/todos backend (Workers KV). */
+  let todoItems = [];
+  let todosLoaded = false;
+  let todosLoading = false;
+  let todosSyncState = 'idle';
 
   const clockHandlers = new Map();
 
@@ -1444,6 +1460,234 @@
     `;
   }
 
+  /* ── To-Do list (synced via /api/todos → Workers KV) ───────────────────── */
+
+  async function loadTodos() {
+    const res = await fetch('/api/todos', { cache: 'no-store' });
+    if (!res.ok) throw new Error('todos fetch failed');
+    return res.json();
+  }
+
+  async function saveTodos(items) {
+    const res = await fetch('/api/todos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ todos: items }),
+    });
+    if (!res.ok) throw new Error('todos save failed');
+    return res.json();
+  }
+
+  function setTodosStatus(state) {
+    todosSyncState = state;
+    if (!elTodos) return;
+    const el = elTodos.querySelector('[data-todos-status]');
+    if (!el) return;
+    el.textContent = TODOS_STATUS_LABEL[state] || '';
+    el.className = `todos-status todos-status--${state}`;
+  }
+
+  // Persist optimistically: the UI already reflects the change; this syncs it.
+  async function persistTodos() {
+    setTodosStatus('saving');
+    try {
+      await saveTodos(todoItems);
+      setTodosStatus('saved');
+    } catch {
+      setTodosStatus('error');
+    }
+  }
+
+  function todoDeadlineMeta(deadline) {
+    if (!deadline) return null;
+    const ms = parseYmdToUtcMs(deadline);
+    if (ms == null || Number.isNaN(ms)) return null;
+    const days = Math.round((ms - parseYmdToUtcMs(todayUtcYmd())) / 86400000);
+    let cls = 'todos-due';
+    if (days < 0) cls += ' todos-due--overdue';
+    else if (days <= 3) cls += ' todos-due--soon';
+    const suffix = days < 0 ? ' · overdue' : days === 0 ? ' · today' : '';
+    return { cls, text: `${formatBookingDate(deadline)}${suffix}` };
+  }
+
+  function todoDueBadge(deadline) {
+    const meta = todoDeadlineMeta(deadline);
+    return meta ? `<span class="${meta.cls}">${escapeHtml(meta.text)}</span>` : '';
+  }
+
+  // Ensure loaded/created items carry every field the UI expects.
+  function normalizeTask(t, isTop) {
+    const o = t && typeof t === 'object' ? t : {};
+    const prefix = isTop ? 'todo' : 'sub';
+    const item = {
+      id: typeof o.id === 'string' && o.id ? o.id : `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      text: typeof o.text === 'string' ? o.text : '',
+      done: o.done === true,
+      deadline: typeof o.deadline === 'string' && o.deadline ? o.deadline : null,
+      createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date().toISOString(),
+      doneAt: typeof o.doneAt === 'string' ? o.doneAt : null,
+    };
+    if (isTop) item.subtasks = Array.isArray(o.subtasks) ? o.subtasks.map((s) => normalizeTask(s, false)) : [];
+    return item;
+  }
+
+  function renderSubtaskRow(sub) {
+    return `<li class="todos-item todos-subitem${sub.done ? ' todos-item--done' : ''}" data-sub-id="${escapeHtml(sub.id)}">
+      <label class="todos-item__main">
+        <input type="checkbox" class="todos-item__check" data-todo-toggle ${sub.done ? 'checked' : ''} aria-label="Toggle subtask" />
+        <span class="todos-item__text">${escapeHtml(sub.text)}</span>
+      </label>
+      ${todoDueBadge(sub.deadline)}
+      <button type="button" class="todos-item__del" data-todo-del aria-label="Delete subtask">×</button>
+    </li>`;
+  }
+
+  function renderTaskGroup(item) {
+    const subs = Array.isArray(item.subtasks) ? item.subtasks : [];
+    const doneCount = subs.filter((s) => s.done).length;
+    return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}" data-id="${escapeHtml(item.id)}">
+      <div class="todos-task__head">
+        <label class="todos-item__main">
+          <input type="checkbox" class="todos-item__check" data-todo-toggle ${item.done ? 'checked' : ''} aria-label="Toggle complete" />
+          <span class="todos-item__text">${escapeHtml(item.text)}</span>
+        </label>
+        ${subs.length ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
+        ${todoDueBadge(item.deadline)}
+        <button type="button" class="todos-item__del" data-todo-del aria-label="Delete task">×</button>
+      </div>
+      ${subs.length ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
+      <form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
+        <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
+        <input type="date" class="todos-subadd__date" name="deadline" aria-label="Subtask deadline (optional)" />
+        <button type="submit" class="todos-subadd__btn" aria-label="Add subtask">＋</button>
+      </form>
+    </li>`;
+  }
+
+  function paintTodos() {
+    if (!elTodos) return;
+    const active = todoItems.filter((t) => !t.done);
+    const done = todoItems.filter((t) => t.done);
+
+    elTodos.innerHTML = `
+      <h1 id="todos-heading">To-Do</h1>
+      <div class="travel-header">
+        <div>
+          <p>A simple checklist synced to the cloud, so it stays in step across every device. Give a task a deadline, and group related steps as subtasks.</p>
+        </div>
+      </div>
+      <section class="card todos-card">
+        <form class="todos-add" data-todos-add>
+          <input type="text" class="todos-add__input" name="text" placeholder="Add a task…" autocomplete="off" maxlength="2000" aria-label="New to-do" />
+          <input type="date" class="todos-add__date" name="deadline" aria-label="Deadline (optional)" />
+          <button type="submit" class="todos-add__btn">Add</button>
+        </form>
+        <p class="todos-status todos-status--${todosSyncState}" data-todos-status>${escapeHtml(TODOS_STATUS_LABEL[todosSyncState] || '')}</p>
+        ${todosLoading && !todosLoaded ? '<p class="todos-empty">Loading…</p>' : ''}
+        ${active.length ? `<ul class="todos-list">${active.map(renderTaskGroup).join('')}</ul>` : ''}
+        ${todosLoaded && !todoItems.length ? '<p class="todos-empty">No tasks yet. Add your first one above.</p>' : ''}
+        ${done.length ? `<details class="todos-done"><summary>Completed (${done.length})</summary><ul class="todos-list todos-list--done">${done.map(renderTaskGroup).join('')}</ul></details>` : ''}
+      </section>
+    `;
+  }
+
+  async function renderTodos() {
+    if (!elTodos) return;
+    if (todosLoaded) {
+      paintTodos();
+      return;
+    }
+    todosLoading = true;
+    todosSyncState = 'loading';
+    paintTodos();
+    try {
+      const data = await loadTodos();
+      const raw = Array.isArray(data && data.todos) ? data.todos : [];
+      todoItems = raw.map((t) => normalizeTask(t, true));
+      todosLoaded = true;
+      todosSyncState = 'idle';
+    } catch {
+      todosSyncState = 'error';
+    } finally {
+      todosLoading = false;
+      paintTodos();
+    }
+  }
+
+  function findTask(id) {
+    return todoItems.find((t) => t.id === id);
+  }
+
+  // Event delegation wired once; survives the innerHTML repaints in paintTodos().
+  function wireTodos() {
+    if (!elTodos) return;
+
+    elTodos.addEventListener('submit', (e) => {
+      const subForm = e.target.closest('[data-subtask-add]');
+      if (subForm) {
+        e.preventDefault();
+        const task = findTask(subForm.getAttribute('data-parent'));
+        if (!task) return;
+        const input = subForm.querySelector('input[name="text"]');
+        const text = (input && input.value ? input.value : '').trim();
+        if (!text) return;
+        const deadline = (subForm.querySelector('input[name="deadline"]') || {}).value || null;
+        task.subtasks = task.subtasks || [];
+        task.subtasks.push(normalizeTask({ text, deadline }, false));
+        paintTodos();
+        const refocus = elTodos.querySelector(`[data-subtask-add][data-parent="${task.id}"] input[name="text"]`);
+        if (refocus) refocus.focus();
+        persistTodos();
+        return;
+      }
+      const topForm = e.target.closest('[data-todos-add]');
+      if (!topForm) return;
+      e.preventDefault();
+      const input = topForm.querySelector('input[name="text"]');
+      const text = (input && input.value ? input.value : '').trim();
+      if (!text) return;
+      const deadline = (topForm.querySelector('input[name="deadline"]') || {}).value || null;
+      todoItems.unshift(normalizeTask({ text, deadline }, true));
+      paintTodos();
+      const next = elTodos.querySelector('[data-todos-add] input[name="text"]');
+      if (next) next.focus();
+      persistTodos();
+    });
+
+    elTodos.addEventListener('change', (e) => {
+      const cb = e.target.closest('[data-todo-toggle]');
+      if (!cb) return;
+      const parentLi = cb.closest('[data-id]');
+      const task = findTask(parentLi && parentLi.getAttribute('data-id'));
+      if (!task) return;
+      const subLi = cb.closest('[data-sub-id]');
+      const target = subLi ? (task.subtasks || []).find((s) => s.id === subLi.getAttribute('data-sub-id')) : task;
+      if (!target) return;
+      target.done = cb.checked;
+      target.doneAt = cb.checked ? new Date().toISOString() : null;
+      paintTodos();
+      persistTodos();
+    });
+
+    elTodos.addEventListener('click', (e) => {
+      const del = e.target.closest('[data-todo-del]');
+      if (!del) return;
+      const parentLi = del.closest('[data-id]');
+      const parentId = parentLi && parentLi.getAttribute('data-id');
+      const subLi = del.closest('[data-sub-id]');
+      if (subLi) {
+        const task = findTask(parentId);
+        if (task) task.subtasks = (task.subtasks || []).filter((s) => s.id !== subLi.getAttribute('data-sub-id'));
+      } else if (parentId) {
+        todoItems = todoItems.filter((t) => t.id !== parentId);
+      } else {
+        return;
+      }
+      paintTodos();
+      persistTodos();
+    });
+  }
+
   function paintWcRail() {
     const track = $('wc-rail-track');
     if (!track || !config) return;
@@ -2742,7 +2986,7 @@
   }
 
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule'];
+    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule', 'todos'];
     if (!allowed.includes(view)) view = 'dashboard';
 
     try {
@@ -2760,6 +3004,7 @@
       renewals: $('view-renewals'),
       fiscal: $('view-fiscal'),
       schedule: $('view-schedule'),
+      todos: $('view-todos'),
     };
 
     for (const k of Object.keys(views)) {
@@ -2789,6 +3034,7 @@
     if (view === 'renewals') renderRenewals();
     if (view === 'fiscal') renderFiscal();
     if (view === 'schedule') renderSchedule();
+    if (view === 'todos') renderTodos();
     refreshAlertsChrome();
     updateAllClocks();
   }
@@ -2884,6 +3130,7 @@
     elRenewals = $('renewals-mount');
     elFiscal = $('fiscal-mount');
     elSchedule = $('schedule-mount');
+    elTodos = $('todos-mount');
 
     try {
       const raw = await loadConfig();
@@ -2904,12 +3151,13 @@
     wireMobileMenu();
     wireSidebarCollapse();
     wireAlertsPopover();
+    wireTodos();
     refreshAlertsChrome();
 
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'renewals' || saved === 'fiscal' || saved === 'schedule') initial = saved;
+      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'renewals' || saved === 'fiscal' || saved === 'schedule' || saved === 'todos') initial = saved;
     } catch {
       /* ignore */
     }

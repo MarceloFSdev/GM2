@@ -132,6 +132,25 @@
             </span>
             <span>Schedule</span>
           </button>
+          <button type="button" class="nav-item" data-view="todos" id="nav-todos">
+            <span class="nav-item__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </span>
+            <span>To-Do</span>
+          </button>
+          <a class="nav-item nav-item--logout" href="/api/logout">
+            <span class="nav-item__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M15 17l5-5-5-5" />
+                <path d="M20 12H9" />
+                <path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+              </svg>
+            </span>
+            <span>Sign out</span>
+          </a>
         </nav>
       </aside>
 
@@ -232,6 +251,9 @@
           </section>
           <section id="view-schedule" class="view" aria-hidden="true" aria-labelledby="schedule-heading">
             <div id="schedule-mount"></div>
+          </section>
+          <section id="view-todos" class="view" aria-hidden="true" aria-labelledby="todos-heading">
+            <div id="todos-mount"></div>
           </section>
         </main>
       </div>

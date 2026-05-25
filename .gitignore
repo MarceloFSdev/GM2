@@ -1,0 +1,4 @@
+# Local dev state from `wrangler pages dev` (local KV, caches) — never commit
+.wrangler/
+node_modules/.mf/
+.dev.vars
