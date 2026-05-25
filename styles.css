@@ -2926,6 +2926,56 @@ body {
   border-color: rgba(224, 135, 154, 0.45);
 }
 
+/* drag-to-reorder + inline edit */
+.todos-drag {
+  flex: none;
+  cursor: grab;
+  color: var(--text-dim);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+  user-select: none;
+  touch-action: none;
+}
+.todos-drag:active {
+  cursor: grabbing;
+}
+.todos-item--ghost {
+  opacity: 0.4;
+}
+.todos-item__edit {
+  flex: none;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.todos-item__edit:hover {
+  color: var(--accent);
+  border-color: var(--border);
+}
+.todos-edit-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: rgba(12, 16, 26, 0.6);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+}
+.todos-edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(126, 184, 212, 0.25);
+}
+
 /* deadlines + subtasks */
 .todos-add {
   flex-wrap: wrap;

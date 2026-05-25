@@ -64,6 +64,8 @@
   let todosLoaded = false;
   let todosLoading = false;
   let todosSyncState = 'idle';
+  let todosSortable = null;
+  let todosEditingId = null;
 
   const clockHandlers = new Map();
 
@@ -1535,30 +1537,38 @@
     return item;
   }
 
+  // The editable label, or an inline text input when this item is being edited.
+  function todoMainHtml(item, toggleLabel) {
+    if (item.id === todosEditingId) {
+      return `<input type="text" class="todos-edit-input" data-todo-edit-input value="${escapeHtml(item.text)}" maxlength="2000" aria-label="Edit text" />`;
+    }
+    return `<label class="todos-item__main">
+        <input type="checkbox" class="todos-item__check" data-todo-toggle ${item.done ? 'checked' : ''} aria-label="${toggleLabel}" />
+        <span class="todos-item__text">${escapeHtml(item.text)}</span>
+      </label>`;
+  }
+
   function renderSubtaskRow(sub) {
     return `<li class="todos-item todos-subitem${sub.done ? ' todos-item--done' : ''}" data-sub-id="${escapeHtml(sub.id)}">
-      <label class="todos-item__main">
-        <input type="checkbox" class="todos-item__check" data-todo-toggle ${sub.done ? 'checked' : ''} aria-label="Toggle subtask" />
-        <span class="todos-item__text">${escapeHtml(sub.text)}</span>
-      </label>
+      ${todoMainHtml(sub, 'Toggle subtask')}
       ${todoDueBadge(sub.deadline)}
+      <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit subtask" title="Edit">✎</button>
       <button type="button" class="todos-item__del" data-todo-del aria-label="Delete subtask">×</button>
     </li>`;
   }
 
-  function renderTaskGroup(item) {
+  function renderTaskGroup(item, draggable) {
     const all = Array.isArray(item.subtasks) ? item.subtasks : [];
     const doneCount = all.filter((s) => s.done).length;
     // Done subtasks sink to the bottom of the group (display order only).
     const subs = [...all].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
     return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}" data-id="${escapeHtml(item.id)}">
       <div class="todos-task__head">
-        <label class="todos-item__main">
-          <input type="checkbox" class="todos-item__check" data-todo-toggle ${item.done ? 'checked' : ''} aria-label="Toggle complete" />
-          <span class="todos-item__text">${escapeHtml(item.text)}</span>
-        </label>
+        ${draggable ? '<span class="todos-drag" data-todos-handle aria-hidden="true" title="Drag to reorder">⠿</span>' : ''}
+        ${todoMainHtml(item, 'Toggle complete')}
         ${subs.length ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
         ${todoDueBadge(item.deadline)}
+        <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit task" title="Edit">✎</button>
         <button type="button" class="todos-item__del" data-todo-del aria-label="Delete task">×</button>
       </div>
       ${subs.length ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
@@ -1590,12 +1600,45 @@
         </form>
         <p class="todos-status todos-status--${todosSyncState}" data-todos-status>${escapeHtml(TODOS_STATUS_LABEL[todosSyncState] || '')}</p>
         ${todosLoading && !todosLoaded ? '<p class="todos-empty">Loading…</p>' : ''}
-        ${active.length ? `<ul class="todos-list">${active.map(renderTaskGroup).join('')}</ul>` : ''}
+        ${active.length ? `<ul class="todos-list" data-todos-sortable>${active.map((t) => renderTaskGroup(t, true)).join('')}</ul>` : ''}
         ${todosLoaded && !todoItems.length ? '<p class="todos-empty">No tasks yet. Add your first one above.</p>' : ''}
-        ${done.length ? `<p class="todos-done-label">Done · ${done.length}</p><ul class="todos-list todos-list--done">${done.map(renderTaskGroup).join('')}</ul>` : ''}
+        ${done.length ? `<p class="todos-done-label">Done · ${done.length}</p><ul class="todos-list todos-list--done">${done.map((t) => renderTaskGroup(t, false)).join('')}</ul>` : ''}
         ${hasDoneTasks() ? `<div class="todos-actions"><button type="button" class="todos-clear" data-todos-clear-done>Clear ‘done’ tasks</button></div>` : ''}
       </section>
     `;
+    initTodosSortable();
+  }
+
+  // (Re)create the SortableJS instance for the active list. innerHTML rebuilds
+  // destroy the old DOM each paint, so destroy the stale instance first.
+  function initTodosSortable() {
+    if (todosSortable) {
+      try {
+        todosSortable.destroy();
+      } catch {
+        /* ignore */
+      }
+      todosSortable = null;
+    }
+    const list = elTodos && elTodos.querySelector('[data-todos-sortable]');
+    if (!list || !window.Sortable) return;
+    todosSortable = window.Sortable.create(list, {
+      handle: '.todos-drag',
+      animation: 150,
+      // Pointer-based dragging (not native HTML5 DnD): consistent on touch + desktop.
+      forceFallback: true,
+      fallbackTolerance: 3,
+      ghostClass: 'todos-item--ghost',
+      onEnd: (evt) => {
+        if (evt.oldIndex === evt.newIndex) return;
+        const active = todoItems.filter((t) => !t.done);
+        const done = todoItems.filter((t) => t.done);
+        const [moved] = active.splice(evt.oldIndex, 1);
+        active.splice(evt.newIndex, 0, moved);
+        todoItems = [...active, ...done];
+        persistTodos();
+      },
+    });
   }
 
   // Any completed task or completed subtask anywhere.
@@ -1703,6 +1746,20 @@
         persistTodos();
         return;
       }
+      const editBtn = e.target.closest('[data-todo-edit]');
+      if (editBtn) {
+        const subLi = editBtn.closest('[data-sub-id]');
+        todosEditingId = subLi
+          ? subLi.getAttribute('data-sub-id')
+          : (editBtn.closest('[data-id]') || {}).getAttribute?.('data-id') || null;
+        paintTodos();
+        const input = elTodos.querySelector('[data-todo-edit-input]');
+        if (input) {
+          input.focus();
+          input.select();
+        }
+        return;
+      }
       const del = e.target.closest('[data-todo-del]');
       if (!del) return;
       const parentLi = del.closest('[data-id]');
@@ -1719,6 +1776,52 @@
       paintTodos();
       persistTodos();
     });
+
+    elTodos.addEventListener('keydown', (e) => {
+      if (!e.target.closest('[data-todo-edit-input]')) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitTodoEdit(e.target.value);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        todosEditingId = null;
+        paintTodos();
+      }
+    });
+
+    // Commit on blur (e.g. tapping elsewhere). Guarded so the blur fired by the
+    // post-commit repaint doesn't double-process.
+    elTodos.addEventListener('focusout', (e) => {
+      if (!e.target.closest('[data-todo-edit-input]')) return;
+      commitTodoEdit(e.target.value);
+    });
+  }
+
+  function findAnyTask(id) {
+    const top = todoItems.find((t) => t.id === id);
+    if (top) return top;
+    for (const t of todoItems) {
+      const sub = (t.subtasks || []).find((s) => s.id === id);
+      if (sub) return sub;
+    }
+    return null;
+  }
+
+  function commitTodoEdit(value) {
+    if (todosEditingId == null) return;
+    const id = todosEditingId;
+    todosEditingId = null;
+    const text = (value || '').trim();
+    let changed = false;
+    if (text) {
+      const item = findAnyTask(id);
+      if (item && item.text !== text.slice(0, 2000)) {
+        item.text = text.slice(0, 2000);
+        changed = true;
+      }
+    }
+    paintTodos();
+    if (changed) persistTodos();
   }
 
   function paintWcRail() {
