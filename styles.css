@@ -2998,6 +2998,11 @@ body {
   flex-direction: column;
   gap: 0.6rem;
 }
+/* The author `display: flex` above outranks the UA `[hidden]` rule, so restore
+   it explicitly — otherwise collapsing (the hidden attribute) has no effect. */
+.todos-task__body[hidden] {
+  display: none;
+}
 
 /* deadlines + subtasks */
 .todos-add {
