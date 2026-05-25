@@ -269,6 +269,7 @@ function parseDiary(text, fileName) {
     repCount,
     volumeLoad: Math.round(volumeLoad),
     highlights,
+    weight: diaryBodyWeight(fm, body),
   };
 }
 
@@ -336,6 +337,27 @@ function parseState(text) {
   return { weekStart, completedRaw: completedRaw.trim(), next, location, sessionsPerWeek: perWeek };
 }
 
+/* ── parse body-weight log ──────────────────────────────────────────────── */
+/** Pull "YYYY-MM-DD … NN kg" weigh-ins from the dedicated Body Weight note. */
+function parseBodyWeightLog(text) {
+  const { body } = parseFrontmatter(text);
+  const out = [];
+  const re = /(\d{4}-\d{2}-\d{2})\D*?(\d{2,3}(?:\.\d+)?)\s*kg/gi;
+  let m;
+  while ((m = re.exec(body))) out.push({ date: m[1], kg: parseFloat(m[2]) });
+  return out;
+}
+
+/** Body weight stated inside a diary (frontmatter `weight:` or a body line). */
+function diaryBodyWeight(fm, body) {
+  if (fm.weight) {
+    const w = parseFloat(fm.weight);
+    if (!Number.isNaN(w)) return w;
+  }
+  const m = body.match(/(?:body ?weight|weight\/body metrics|weight)\s*:?\s*(\d{2,3}(?:\.\d+)?)\s*kg/i);
+  return m ? parseFloat(m[1]) : null;
+}
+
 /* ── parse quotes ───────────────────────────────────────────────────────── */
 function parseQuotes(text) {
   const { body } = parseFrontmatter(text);
@@ -392,6 +414,21 @@ async function main() {
   const quotes = await readIf(path.join(FITNESS_DIR, 'Motivation Quote Bank.md')).then((t) =>
     t ? parseQuotes(t) : []
   );
+
+  /* ── body weight: dedicated log + any weights logged inside diaries ───── */
+  const weightByDate = new Map();
+  for (const s of sessions) {
+    if (s.date && typeof s.weight === 'number' && !Number.isNaN(s.weight)) weightByDate.set(s.date, s.weight);
+  }
+  const weightLogText =
+    (await readIf(path.join(FITNESS_DIR, 'Body Weight.md'))) ||
+    (await readIf(path.join(FITNESS_DIR, 'Weight Log.md')));
+  if (weightLogText) {
+    for (const e of parseBodyWeightLog(weightLogText)) weightByDate.set(e.date, e.kg); // log wins over diary
+  }
+  const bodyweight = [...weightByDate.entries()]
+    .map(([date, kg]) => ({ date, kg }))
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
 
   /* ── derived: current-week sessions ─────────────────────────────────── */
   const weekStart = state.weekStart || (sessions[0] && sessions[0].date) || null;
@@ -500,6 +537,7 @@ async function main() {
     keyLifts,
     prs,
     totals,
+    bodyweight,
     quotes,
   };
 

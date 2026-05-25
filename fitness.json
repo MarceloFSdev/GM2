@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-25T13:53:28.445Z",
+  "generatedAt": "2026-05-25T15:29:22.814Z",
   "source": "Mars OS vault · 10-Personal/Fitness",
   "goals": [
     "Primary training goal: hypertrophy.",
@@ -446,7 +446,8 @@
       "setCount": 17,
       "repCount": 145,
       "volumeLoad": 8330,
-      "highlights": []
+      "highlights": [],
+      "weight": null
     },
     {
       "date": "2026-05-19",
@@ -561,7 +562,8 @@
       "setCount": 10,
       "repCount": 92,
       "volumeLoad": 5320,
-      "highlights": []
+      "highlights": [],
+      "weight": null
     },
     {
       "date": "2026-05-20",
@@ -781,7 +783,8 @@
       "highlights": [
         "Pull-ups: 15 clean reps for set 1 — personal record.",
         "Bayesian curl felt very good and should stay in routine."
-      ]
+      ],
+      "weight": null
     }
   ],
   "weekSessions": [
@@ -1022,6 +1025,12 @@
     "weekReps": 434,
     "weekVolumeLoad": 20040
   },
+  "bodyweight": [
+    {
+      "date": "2026-05-25",
+      "kg": 80
+    }
+  ],
   "quotes": [
     {
       "quote": "Re-rack your weights. We live in a society.",

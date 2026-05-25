@@ -3861,3 +3861,309 @@ body {
     text-align: center;
   }
 }
+
+/* ── Mass moved (heavy-object milestone) ─────────────────────────────────── */
+.fit-grid2--mass {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+.fit-mass {
+  position: relative;
+  overflow: hidden;
+}
+.fit-mass__body {
+  display: flex;
+  align-items: center;
+  gap: 1.3rem;
+  margin: 0.4rem 0 1.1rem;
+}
+.fit-mass__sil {
+  position: relative;
+  flex: none;
+  width: 232px;
+  max-width: 44%;
+}
+.fit-sil {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.fit-sil__ghost {
+  fill: rgba(255, 255, 255, 0.045);
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1;
+}
+.fit-sil__fill {
+  transition: y 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fit-sil__wave {
+  fill: rgba(126, 184, 212, 0.85);
+  animation: fit-wave 5s linear infinite;
+}
+@keyframes fit-wave {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(48px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fit-sil__wave {
+    animation: none;
+  }
+}
+.fit-sil__outline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+  opacity: 0.85;
+}
+.fit-sil__eye {
+  fill: var(--bg-deep);
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+.fit-sil__mouth {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+.fit-sil__spout {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.5;
+}
+.fit-mass__sil-emoji {
+  position: absolute;
+  top: -2px;
+  right: 2px;
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+.fit-mass__copy {
+  min-width: 0;
+  flex: 1;
+}
+.fit-mass__total {
+  margin: 0;
+  font-size: clamp(1.9rem, 5vw, 2.7rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.fit-mass__total span {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.fit-mass__done {
+  margin: 0.55rem 0 0;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.fit-mass__done b {
+  color: var(--accent);
+}
+.fit-mass__next {
+  margin-top: 0.9rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+.fit-mass__next-label {
+  margin: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.fit-mass__next-name {
+  margin: 0.12rem 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.fit-mass__bar {
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.fit-mass__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(126, 184, 212, 0.45), var(--accent));
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fit-mass__next-sub {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.fit-mass__next-sub b {
+  color: var(--text);
+}
+
+/* Ladder strip */
+.fit-ladder {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.9rem 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+.fit-ladder__node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  flex: 1;
+  text-align: center;
+  opacity: 0.4;
+  filter: grayscale(0.8);
+  transition: opacity var(--transition), filter var(--transition);
+}
+.fit-ladder__node.is-done {
+  opacity: 1;
+  filter: none;
+}
+.fit-ladder__node.is-next {
+  opacity: 1;
+  filter: none;
+}
+.fit-ladder__node.is-next .fit-ladder__emoji {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.fit-ladder__emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.fit-ladder__kg {
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+.fit-ladder__node.is-done .fit-ladder__kg {
+  color: var(--text-muted);
+}
+
+/* ── Body weight ─────────────────────────────────────────────────────────── */
+.fit-weight__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.3rem 0 0.4rem;
+}
+.fit-weight__now {
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.fit-weight__now small {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-left: 0.2rem;
+}
+.fit-weight__delta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fit-weight__delta.is-up {
+  color: #8ad4a0;
+}
+.fit-weight__delta.is-down {
+  color: var(--alert);
+}
+.fit-weight__chart {
+  margin: 0.2rem 0;
+}
+.fit-wtrend {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.fit-wtrend__area {
+  fill: var(--accent-soft);
+  stroke: none;
+}
+.fit-wtrend__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.fit-wtrend__base {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.fit-wtrend__dot {
+  fill: var(--accent);
+  stroke: var(--bg-deep);
+  stroke-width: 1.5;
+}
+.fit-wtrend__val {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.fit-weight__hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+.fit-weight__hint code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  color: var(--accent);
+  font-size: 0.85em;
+}
+
+@media (max-width: 1000px) {
+  .fit-grid2--mass {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .fit-mass__body {
+    flex-direction: column;
+    text-align: center;
+  }
+  .fit-mass__sil {
+    max-width: 70%;
+    width: 200px;
+  }
+}

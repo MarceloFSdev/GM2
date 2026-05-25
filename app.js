@@ -3442,6 +3442,111 @@
     return `${ex.setCount} sets`;
   }
 
+  /* Heavy-object ladder for the cumulative "mass moved" goal. kg = total
+     volume load you must surpass to unlock that creature. Ascending. */
+  const FIT_HEAVY_LADDER = [
+    { key: 'car', name: 'compact car', emoji: '🚗', kg: 1500 },
+    { key: 'rhino', name: 'white rhino', emoji: '🦏', kg: 2300 },
+    { key: 'elephant', name: 'elephant', emoji: '🐘', kg: 6000 },
+    { key: 'bus', name: 'city bus', emoji: '🚌', kg: 12000 },
+    { key: 'humpback', name: 'humpback whale', emoji: '🐋', kg: 30000 },
+    { key: 'blue', name: 'blue whale', emoji: '🐳', kg: 150000 },
+  ];
+
+  // Single-path silhouettes (viewBox 0 0 240 132, facing left, on a baseline).
+  const FIT_SILHOUETTES = {
+    whale:
+      'M30,80 C24,56 48,38 88,36 C140,33 178,44 194,72 C208,60 220,40 234,16 C232,30 226,45 216,51 C227,53 234,55 238,59 C223,66 206,71 194,74 C198,86 196,102 186,108 C150,119 66,119 44,102 C32,92 30,88 30,80 Z',
+    elephant:
+      'M40,116 L40,78 C26,74 22,58 30,46 C40,30 66,26 92,30 C104,22 120,20 134,24 C150,16 172,18 184,30 C200,44 200,66 188,82 L188,116 L172,116 L172,90 C150,98 120,100 96,94 L96,116 L80,116 L80,90 C70,88 62,84 56,78 L56,116 Z M30,52 C18,52 12,62 16,74 C20,82 30,82 34,74 Z',
+    bus:
+      'M20,104 C16,104 14,100 14,94 L14,52 C14,42 22,36 34,36 L206,36 C218,36 226,44 226,56 L226,94 C226,100 224,104 218,104 L200,104 A16,16 0 0,0 168,104 L72,104 A16,16 0 0,0 40,104 Z',
+    rhino:
+      'M44,114 L44,80 C30,76 24,62 30,50 C38,34 64,28 92,32 C108,26 130,26 150,32 C160,22 168,18 178,20 C172,26 172,34 176,40 C188,48 192,64 184,78 L184,114 L168,114 L168,86 C144,94 112,94 92,88 L92,114 L76,114 L76,84 C66,82 58,78 52,72 L52,114 Z',
+    car:
+      'M14,98 C10,98 8,94 8,88 L8,74 C8,68 12,64 20,62 L52,42 C58,38 66,36 76,36 L150,36 C160,36 170,40 178,48 L196,64 C214,66 226,70 230,78 L230,88 C230,94 228,98 222,98 L204,98 A14,14 0 0,0 176,98 L80,98 A14,14 0 0,0 52,98 Z',
+  };
+
+  // Decorative face details drawn on top of the fill (eye/mouth/spout).
+  const FIT_SIL_FEATURES = {
+    whale:
+      '<path class="fit-sil__mouth" d="M31,80 C46,93 70,97 96,90" /><circle class="fit-sil__eye" cx="62" cy="64" r="3.6" /><path class="fit-sil__spout" d="M70,34 C66,22 74,16 70,6 M70,34 C78,24 86,22 88,12 M70,34 C62,24 54,24 52,14" />',
+  };
+
+  /** Silhouette that fills bottom-up to `fill` (0..1) like a vessel. */
+  function svgSilhouette(key, fill) {
+    const path = FIT_SILHOUETTES[key] || FIT_SILHOUETTES.whale;
+    const H = 132;
+    const f = Math.max(0, Math.min(fill, 1));
+    const y = (H * (1 - f)).toFixed(1);
+    const cid = `sil-clip-${key}`;
+    return `<svg class="fit-sil" viewBox="0 0 240 ${H}" role="img" aria-label="Progress toward next milestone">
+      <defs>
+        <clipPath id="${cid}"><path d="${path}" /></clipPath>
+        <linearGradient id="fit-sil-grad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="rgba(126,184,212,0.45)" />
+          <stop offset="1" stop-color="rgba(126,184,212,0.95)" />
+        </linearGradient>
+      </defs>
+      <path d="${path}" class="fit-sil__ghost" />
+      <g clip-path="url(#${cid})">
+        <rect class="fit-sil__fill" x="0" y="${y}" width="240" height="${H}" fill="url(#fit-sil-grad)" />
+        <path class="fit-sil__wave" d="M-48,${y} q12,-6 24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 t24,0 V${H} H-48 Z" />
+      </g>
+      <path d="${path}" class="fit-sil__outline" />
+      ${FIT_SILHOUETTES[key] ? FIT_SIL_FEATURES[key] || '' : FIT_SIL_FEATURES.whale}
+    </svg>`;
+  }
+
+  function fitMass(kg) {
+    kg = Math.round(kg);
+    return kg < 1000 ? `${kg.toLocaleString()} kg` : `${(kg / 1000).toFixed(1)} t`;
+  }
+
+  /** Body-weight trend: area + line for ≥2 points, single marker for 1. */
+  function svgWeightTrend(series) {
+    const w = 320;
+    const h = 130;
+    const padX = 14;
+    const padT = 18;
+    const padB = 14;
+    if (!series.length) return '';
+    const kgs = series.map((p) => p.kg);
+    let min = Math.min(...kgs);
+    let max = Math.max(...kgs);
+    if (max - min < 4) {
+      const mid = (max + min) / 2;
+      min = mid - 2;
+      max = mid + 2;
+    }
+    const span = max - min;
+    const n = series.length;
+    const x = (i) => (n === 1 ? w / 2 : padX + ((w - padX * 2) * i) / (n - 1));
+    const y = (kg) => padT + (h - padT - padB) * (1 - (kg - min) / span);
+
+    if (n === 1) {
+      const cy = y(series[0].kg);
+      return `<svg class="fit-wtrend" viewBox="0 0 ${w} ${h}" role="img" aria-label="Body weight">
+        <line class="fit-wtrend__base" x1="${padX}" y1="${cy.toFixed(1)}" x2="${w - padX}" y2="${cy.toFixed(1)}" />
+        <circle class="fit-wtrend__dot" cx="${(w / 2).toFixed(1)}" cy="${cy.toFixed(1)}" r="5" />
+        <text class="fit-wtrend__val" x="${(w / 2).toFixed(1)}" y="${(cy - 12).toFixed(1)}" text-anchor="middle">${series[0].kg} kg</text>
+      </svg>`;
+    }
+
+    const linePts = series.map((p, i) => `${x(i).toFixed(1)},${y(p.kg).toFixed(1)}`);
+    const area = `M${x(0).toFixed(1)},${(h - padB).toFixed(1)} L${linePts.join(' L')} L${x(n - 1).toFixed(1)},${(h - padB).toFixed(1)} Z`;
+    const dots = series
+      .map((p, i) => `<circle class="fit-wtrend__dot" cx="${x(i).toFixed(1)}" cy="${y(p.kg).toFixed(1)}" r="${i === n - 1 ? 4.5 : 3}" />`)
+      .join('');
+    const lastY = y(series[n - 1].kg);
+    return `<svg class="fit-wtrend" viewBox="0 0 ${w} ${h}" role="img" aria-label="Body weight trend">
+      <path class="fit-wtrend__area" d="${area}" />
+      <polyline class="fit-wtrend__line" points="${linePts.join(' ')}" />
+      ${dots}
+      <text class="fit-wtrend__val" x="${(w - padX).toFixed(1)}" y="${(lastY - 10).toFixed(1)}" text-anchor="end">${series[n - 1].kg} kg</text>
+    </svg>`;
+  }
+
   function renderFitnessLoading() {
     if (elFitness) elFitness.innerHTML = '<h1 id="fitness-heading">Fitness</h1><div class="fit-skeleton" aria-busy="true">Syncing training data…</div>';
   }
@@ -3535,6 +3640,34 @@
     const puTicks = [5, 10, 15, 20]
       .map((t) => `<span class="fit-pullup__tick" style="left:${(t / (pu.goal || 20)) * 100}%"><i></i><b>${t}</b></span>`)
       .join('');
+
+    // Mass-moved milestone (cumulative volume load vs the heavy-object ladder).
+    const totalKg = totals.volumeLoad || 0;
+    const ladder = FIT_HEAVY_LADDER;
+    const achievedIdx = ladder.reduce((acc, m, i) => (totalKg >= m.kg ? i : acc), -1);
+    const achieved = achievedIdx >= 0 ? ladder[achievedIdx] : null;
+    const next = ladder[achievedIdx + 1] || null;
+    const prevKg = achieved ? achieved.kg : 0;
+    const fillNext = next ? Math.max(0, Math.min((totalKg - prevKg) / (next.kg - prevKg), 1)) : 1;
+    const fillAbs = next ? Math.min(totalKg / next.kg, 1) : 1;
+    const multiple = achieved ? (totalKg / achieved.kg).toFixed(1) : '0';
+    const remaining = next ? next.kg - totalKg : 0;
+    const massLadder = ladder
+      .map((m, i) => {
+        const cls = i <= achievedIdx ? 'is-done' : i === achievedIdx + 1 ? 'is-next' : 'is-locked';
+        return `<li class="fit-ladder__node ${cls}" title="${escapeHtml(fitCapitalize(m.name))} · ${fitMass(m.kg)}">
+          <span class="fit-ladder__emoji">${m.emoji}</span>
+          <span class="fit-ladder__kg">${fitMass(m.kg)}</span>
+        </li>`;
+      })
+      .join('');
+
+    // Body weight.
+    const weights = d.bodyweight || [];
+    const wCurrent = weights.length ? weights[weights.length - 1] : null;
+    const wStart = weights.length ? weights[0] : null;
+    const wDelta = wCurrent && wStart ? +(wCurrent.kg - wStart.kg).toFixed(1) : 0;
+    const wDeltaLabel = weights.length < 2 ? '' : `${wDelta > 0 ? '+' : ''}${wDelta} kg since ${escapeHtml(fitShortDate(wStart.date))}`;
 
     // Key lifts.
     const liftRows = (d.keyLifts || [])
@@ -3640,6 +3773,50 @@
       </div>
 
       <div class="fit-kpis">${kpis}</div>
+
+      <div class="fit-grid2 fit-grid2--mass">
+        <div class="card fit-mass">
+          <div class="panel-head"><h2>Mass moved</h2></div>
+          <div class="fit-mass__body">
+            <div class="fit-mass__sil">
+              ${next ? svgSilhouette(next.key, fillAbs) : svgSilhouette('blue', 1)}
+            </div>
+            <div class="fit-mass__copy">
+              <p class="fit-mass__total">${fitMass(totalKg)}<span>lifted all-time</span></p>
+              ${
+                achieved
+                  ? `<p class="fit-mass__done">That's <b>${multiple}×</b> a ${escapeHtml(achieved.name)} ${achieved.emoji}</p>`
+                  : `<p class="fit-mass__done">Every rep counts — keep stacking plates.</p>`
+              }
+              ${
+                next
+                  ? `<div class="fit-mass__next">
+                       <p class="fit-mass__next-label">Next target</p>
+                       <p class="fit-mass__next-name">${escapeHtml(fitCapitalize(next.name))} ${next.emoji}</p>
+                       <div class="fit-mass__bar"><span style="width:${(fillAbs * 100).toFixed(1)}%"></span></div>
+                       <p class="fit-mass__next-sub">${(fillAbs * 100).toFixed(0)}% of a ${escapeHtml(next.name)} · <b>${fitMass(remaining)}</b> to go</p>
+                     </div>`
+                  : `<p class="fit-mass__next-name">🏆 Top of the food chain — you've out-lifted the blue whale.</p>`
+              }
+            </div>
+          </div>
+          <ul class="fit-ladder">${massLadder}</ul>
+        </div>
+
+        <div class="card fit-panel fit-weight">
+          <div class="panel-head"><h2>Body weight</h2></div>
+          ${
+            wCurrent
+              ? `<div class="fit-weight__head">
+                   <p class="fit-weight__now">${wCurrent.kg}<small>kg</small></p>
+                   ${wDeltaLabel ? `<p class="fit-weight__delta ${wDelta > 0 ? 'is-up' : wDelta < 0 ? 'is-down' : ''}">${escapeHtml(wDeltaLabel)}</p>` : `<p class="fit-weight__delta">Logged ${escapeHtml(fitShortDate(wCurrent.date))}</p>`}
+                 </div>
+                 <div class="fit-weight__chart">${svgWeightTrend(weights)}</div>
+                 <p class="fit-weight__hint">${weights.length < 2 ? 'Add weigh-ins to the vault’s <code>Body Weight.md</code> to grow this trend.' : 'Lean bulk — a slow, steady climb is the goal.'}</p>`
+              : `<p class="fit-panel__hint">No weigh-ins yet. Log them in the vault’s <code>Body Weight.md</code> as <code>- YYYY-MM-DD: NN kg</code>.</p>`
+          }
+        </div>
+      </div>
 
       <div class="fit-grid2">
         <div class="card fit-panel">
