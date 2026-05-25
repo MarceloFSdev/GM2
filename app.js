@@ -1547,8 +1547,10 @@
   }
 
   function renderTaskGroup(item) {
-    const subs = Array.isArray(item.subtasks) ? item.subtasks : [];
-    const doneCount = subs.filter((s) => s.done).length;
+    const all = Array.isArray(item.subtasks) ? item.subtasks : [];
+    const doneCount = all.filter((s) => s.done).length;
+    // Done subtasks sink to the bottom of the group (display order only).
+    const subs = [...all].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
     return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}" data-id="${escapeHtml(item.id)}">
       <div class="todos-task__head">
         <label class="todos-item__main">
@@ -1590,9 +1592,22 @@
         ${todosLoading && !todosLoaded ? '<p class="todos-empty">Loading…</p>' : ''}
         ${active.length ? `<ul class="todos-list">${active.map(renderTaskGroup).join('')}</ul>` : ''}
         ${todosLoaded && !todoItems.length ? '<p class="todos-empty">No tasks yet. Add your first one above.</p>' : ''}
-        ${done.length ? `<details class="todos-done"><summary>Completed (${done.length})</summary><ul class="todos-list todos-list--done">${done.map(renderTaskGroup).join('')}</ul></details>` : ''}
+        ${done.length ? `<p class="todos-done-label">Done · ${done.length}</p><ul class="todos-list todos-list--done">${done.map(renderTaskGroup).join('')}</ul>` : ''}
+        ${hasDoneTasks() ? `<div class="todos-actions"><button type="button" class="todos-clear" data-todos-clear-done>Clear ‘done’ tasks</button></div>` : ''}
       </section>
     `;
+  }
+
+  // Any completed task or completed subtask anywhere.
+  function hasDoneTasks() {
+    return todoItems.some((t) => t.done || (Array.isArray(t.subtasks) && t.subtasks.some((s) => s.done)));
+  }
+
+  function countDoneTasks() {
+    return todoItems.reduce(
+      (n, t) => n + (t.done ? 1 : 0) + (Array.isArray(t.subtasks) ? t.subtasks.filter((s) => s.done).length : 0),
+      0,
+    );
   }
 
   async function renderTodos() {
@@ -1674,6 +1689,20 @@
     });
 
     elTodos.addEventListener('click', (e) => {
+      if (e.target.closest('[data-todos-clear-done]')) {
+        const n = countDoneTasks();
+        if (!n) return;
+        if (!window.confirm(`Clear ${n} done task${n === 1 ? '' : 's'}? This can't be undone.`)) return;
+        todoItems = todoItems
+          .filter((t) => !t.done)
+          .map((t) => {
+            t.subtasks = (t.subtasks || []).filter((s) => !s.done);
+            return t;
+          });
+        paintTodos();
+        persistTodos();
+        return;
+      }
       const del = e.target.closest('[data-todo-del]');
       if (!del) return;
       const parentLi = del.closest('[data-id]');
