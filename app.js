@@ -3788,8 +3788,8 @@
                    ${wDeltaLabel ? `<p class="fit-weight__delta ${wDelta > 0 ? 'is-up' : wDelta < 0 ? 'is-down' : ''}">${escapeHtml(wDeltaLabel)}</p>` : `<p class="fit-weight__delta">Logged ${escapeHtml(fitShortDate(wCurrent.date))}</p>`}
                  </div>
                  <div class="fit-weight__chart">${svgWeightTrend(weights)}</div>
-                 <p class="fit-weight__hint">${weights.length < 2 ? 'Add weigh-ins to the vault’s <code>Body Weight.md</code> to grow this trend.' : 'Lean bulk — a slow, steady climb is the goal.'}</p>`
-              : `<p class="fit-panel__hint">No weigh-ins yet. Log them in the vault’s <code>Body Weight.md</code> as <code>- YYYY-MM-DD: NN kg</code>.</p>`
+                 <p class="fit-weight__hint">${weights.length < 2 ? 'Add weigh-ins to the vault’s <code>Fitness Weight Log.md</code> to grow this trend.' : 'Lean bulk — a slow, steady climb is the goal.'}</p>`
+              : `<p class="fit-panel__hint">No weigh-ins yet. Log them in the vault’s <code>Fitness Weight Log.md</code> as <code>- YYYY-MM-DD: NN kg</code>.</p>`
           }
         </div>
       </div>

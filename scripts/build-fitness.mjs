@@ -421,6 +421,7 @@ async function main() {
     if (s.date && typeof s.weight === 'number' && !Number.isNaN(s.weight)) weightByDate.set(s.date, s.weight);
   }
   const weightLogText =
+    (await readIf(path.join(FITNESS_DIR, 'Fitness Weight Log.md'))) ||
     (await readIf(path.join(FITNESS_DIR, 'Body Weight.md'))) ||
     (await readIf(path.join(FITNESS_DIR, 'Weight Log.md')));
   if (weightLogText) {

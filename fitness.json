@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-05-25T15:29:22.814Z",
+  "generatedAt": "2026-05-27T19:14:47.140Z",
   "source": "Mars OS vault · 10-Personal/Fitness",
   "goals": [
     "Primary training goal: hypertrophy.",
     "Nutrition phase: lean bulk / roughly maintenance.",
     "Main behavior goal: train steadily and consistently.",
     "Progression goal: apply progressive overload session to session where appropriate.",
-    "Pull-up goal: progress toward 20 clean consecutive pull-ups. Prioritize pull-ups early in relevant upper-body sessions while fresh."
+    "Pull-up goal: progress toward 20 clean consecutive pull-ups. Prioritize pull-ups first in relevant upper-body sessions while fresh; for PR attempts, prefer a fully rested day/Monday when practical."
   ],
   "pullUp": {
     "best": 15,
@@ -65,11 +65,7 @@
             "scheme": "3 x 12–15"
           },
           {
-            "name": "Leg Press",
-            "scheme": "2 x 10–15"
-          },
-          {
-            "name": "Hack Squat",
+            "name": "Pendulum Squat",
             "scheme": "3 x 6–10"
           },
           {
@@ -77,8 +73,8 @@
             "scheme": "3 x 10–15"
           },
           {
-            "name": "Standing Calf Raise",
-            "scheme": "4 x 8–15"
+            "name": "Standing Calf Raise + optional Seated Calf Raise",
+            "scheme": "4 x 8–15 standing, then optional 2–3 seated sets"
           },
           {
             "name": "Cable Crunch",
@@ -92,12 +88,12 @@
         "focus": "Delts + Arms Bias",
         "exercises": [
           {
-            "name": "Incline Smith Machine Press",
-            "scheme": "3 x 8–12"
-          },
-          {
             "name": "Pull-Ups or Pulldown",
             "scheme": "2 x 8–12"
+          },
+          {
+            "name": "Incline Smith Machine Press",
+            "scheme": "3 x 8–12"
           },
           {
             "name": "Seated Cable Row",
@@ -256,13 +252,13 @@
     }
   },
   "state": {
-    "weekStart": "2026-05-18",
-    "completedRaw": "Day 1 — Upper A on Monday 2026-05-18; Day 2 — Lower A on Tuesday 2026-05-19; Day 3 — Upper B on Wednesday 2026-05-20",
+    "weekStart": "2026-05-25",
+    "completedRaw": "Day 1 — Upper A on Monday 2026-05-25; Day 2 — Lower A on Tuesday 2026-05-26; Day 3 — Upper B on Wednesday 2026-05-27",
     "next": "Day 4 — Lower B",
     "location": "Wellness Gym Canggu, Bali",
     "sessionsPerWeek": 5
   },
-  "weekStart": "2026-05-18",
+  "weekStart": "2026-05-25",
   "sessions": [
     {
       "date": "2026-05-18",
@@ -785,17 +781,196 @@
         "Bayesian curl felt very good and should stay in routine."
       ],
       "weight": null
+    },
+    {
+      "date": "2026-05-23",
+      "session": "Day 4 — Lower B",
+      "day": 4,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [],
+      "setCount": 0,
+      "repCount": 0,
+      "volumeLoad": 0,
+      "highlights": [],
+      "weight": null
+    },
+    {
+      "date": "2026-05-24",
+      "session": "Day 5 — Upper C",
+      "day": 5,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [],
+      "setCount": 0,
+      "repCount": 0,
+      "volumeLoad": 0,
+      "highlights": [],
+      "weight": null
+    },
+    {
+      "date": "2026-05-25",
+      "session": "Day 1 — Upper A",
+      "day": 1,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [],
+      "setCount": 0,
+      "repCount": 0,
+      "volumeLoad": 0,
+      "highlights": [],
+      "weight": null
+    },
+    {
+      "date": "2026-05-26",
+      "session": "Day 2 — Lower A",
+      "day": 2,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [],
+      "setCount": 0,
+      "repCount": 0,
+      "volumeLoad": 0,
+      "highlights": [],
+      "weight": null
+    },
+    {
+      "date": "2026-05-27",
+      "session": "Day 3 — Upper B",
+      "day": 3,
+      "status": "completed",
+      "location": "Wellness Gym Canggu, Bali",
+      "exercises": [
+        {
+          "name": "🟦 Smith Press",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 7,
+              "perSide": true
+            }
+          ],
+          "setCount": 1,
+          "topWeight": 30,
+          "totalReps": 7,
+          "pr": false,
+          "perSide": true,
+          "note": "",
+          "raw": "30 kg/side x 10, 10, 7 reps.",
+          "muscle": "Chest"
+        },
+        {
+          "name": "🟩 Pull-Ups",
+          "sets": [
+            {
+              "reps": 9,
+              "bodyweight": true,
+              "perSide": false
+            }
+          ],
+          "setCount": 1,
+          "topWeight": null,
+          "totalReps": 9,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "bodyweight x 9, 9 reps.",
+          "muscle": "Back"
+        },
+        {
+          "name": "🟩 Seated Cable Row",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 10,
+              "perSide": false
+            },
+            {
+              "weight": 70,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 2,
+          "topWeight": 70,
+          "totalReps": 20,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "65 kg x 10; 70 kg x 10.",
+          "muscle": "Back"
+        },
+        {
+          "name": "🟨 Lateral Raises",
+          "sets": [
+            {
+              "weight": 10,
+              "reps": 10,
+              "perSide": false
+            }
+          ],
+          "setCount": 1,
+          "topWeight": 10,
+          "totalReps": 10,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "10 kg x 10, 10, 10 reps.",
+          "muscle": "Delts"
+        },
+        {
+          "name": "🟥 Bayesian Bicep Curl",
+          "sets": [
+            {
+              "weight": 15,
+              "reps": 12,
+              "perSide": false
+            }
+          ],
+          "setCount": 1,
+          "topWeight": 15,
+          "totalReps": 12,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "15 kg x 12, 12 reps.",
+          "muscle": "Biceps"
+        },
+        {
+          "name": "🟪 Overhead Cable Tricep Extension",
+          "sets": [
+            {
+              "weight": 45,
+              "reps": 15,
+              "perSide": false
+            }
+          ],
+          "setCount": 1,
+          "topWeight": 45,
+          "totalReps": 15,
+          "pr": false,
+          "perSide": false,
+          "note": "",
+          "raw": "45 kg x 15, 15 reps.",
+          "muscle": "Triceps"
+        }
+      ],
+      "setCount": 7,
+      "repCount": 73,
+      "volumeLoad": 2725,
+      "highlights": [],
+      "weight": 78.8
     }
   ],
   "weekSessions": [
-    "2026-05-18",
-    "2026-05-19",
-    "2026-05-20"
+    "2026-05-25",
+    "2026-05-26",
+    "2026-05-27"
   ],
   "muscleVolume": [
     {
       "muscle": "Chest",
-      "sets": 8,
+      "sets": 1,
       "target": {
         "min": 11,
         "max": 13
@@ -803,7 +978,7 @@
     },
     {
       "muscle": "Back",
-      "sets": 10,
+      "sets": 3,
       "target": {
         "min": 14,
         "max": 15
@@ -811,7 +986,7 @@
     },
     {
       "muscle": "Delts",
-      "sets": 11,
+      "sets": 1,
       "target": {
         "min": 14,
         "max": 16
@@ -819,7 +994,7 @@
     },
     {
       "muscle": "Quads",
-      "sets": 7,
+      "sets": 0,
       "target": {
         "min": 12,
         "max": 14
@@ -827,7 +1002,7 @@
     },
     {
       "muscle": "Hamstrings",
-      "sets": 3,
+      "sets": 0,
       "target": {
         "min": 9,
         "max": 10
@@ -835,7 +1010,7 @@
     },
     {
       "muscle": "Biceps",
-      "sets": 5,
+      "sets": 1,
       "target": {
         "min": 7,
         "max": 8
@@ -843,7 +1018,7 @@
     },
     {
       "muscle": "Triceps",
-      "sets": 5,
+      "sets": 1,
       "target": {
         "min": 7,
         "max": 8
@@ -888,6 +1063,15 @@
       "note": ""
     },
     {
+      "name": "🟩 Seated Cable Row",
+      "muscle": "Back",
+      "weight": 70,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-27",
+      "note": ""
+    },
+    {
       "name": "Seated Cable Row",
       "muscle": "Back",
       "weight": 65,
@@ -912,6 +1096,15 @@
       "reps": 10,
       "perSide": false,
       "date": "2026-05-20",
+      "note": ""
+    },
+    {
+      "name": "🟪 Overhead Cable Tricep Extension",
+      "muscle": "Triceps",
+      "weight": 45,
+      "reps": 15,
+      "perSide": false,
+      "date": "2026-05-27",
       "note": ""
     },
     {
@@ -940,6 +1133,15 @@
       "perSide": true,
       "date": "2026-05-20",
       "note": "Notes: good; mostly feeling out the Smith machine. Could go harder next time."
+    },
+    {
+      "name": "🟦 Smith Press",
+      "muscle": "Chest",
+      "weight": 30,
+      "reps": 7,
+      "perSide": true,
+      "date": "2026-05-27",
+      "note": ""
     },
     {
       "name": "Incline Dumbbell Press",
@@ -1003,6 +1205,24 @@
       "perSide": false,
       "date": "2026-05-20",
       "note": "Notes: felt good. Done both sides at the same time. Good biceps stretch. First time doing this variation and Marz really liked it."
+    },
+    {
+      "name": "🟥 Bayesian Bicep Curl",
+      "muscle": "Biceps",
+      "weight": 15,
+      "reps": 12,
+      "perSide": false,
+      "date": "2026-05-27",
+      "note": ""
+    },
+    {
+      "name": "🟨 Lateral Raises",
+      "muscle": "Delts",
+      "weight": 10,
+      "reps": 10,
+      "perSide": false,
+      "date": "2026-05-27",
+      "note": ""
     }
   ],
   "prs": [
@@ -1016,28 +1236,28 @@
     }
   ],
   "totals": {
-    "sessionsLogged": 3,
-    "setsLogged": 49,
-    "repsLogged": 434,
-    "volumeLoad": 20040,
+    "sessionsLogged": 8,
+    "setsLogged": 56,
+    "repsLogged": 507,
+    "volumeLoad": 22765,
     "weekSessions": 3,
-    "weekSets": 49,
-    "weekReps": 434,
-    "weekVolumeLoad": 20040
+    "weekSets": 7,
+    "weekReps": 73,
+    "weekVolumeLoad": 2725
   },
   "bodyweight": [
     {
-      "date": "2026-05-25",
-      "kg": 80
+      "date": "2026-05-27",
+      "kg": 78.8
     }
   ],
   "quotes": [
     {
-      "quote": "Re-rack your weights. We live in a society.",
+      "quote": "The pump is temporary. The screenshots are forever.",
       "author": ""
     },
     {
-      "quote": "One more rep fixes most life problems.",
+      "quote": "Sleep, protein, progressive overload. The ancient texts.",
       "author": ""
     },
     {
@@ -1045,11 +1265,11 @@
       "author": ""
     },
     {
-      "quote": "The pump is temporary. The screenshots are forever.",
+      "quote": "One more rep fixes most life problems.",
       "author": ""
     },
     {
-      "quote": "Sleep, protein, progressive overload. The ancient texts.",
+      "quote": "Re-rack your weights. We live in a society.",
       "author": ""
     },
     {
