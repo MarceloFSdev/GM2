@@ -38,6 +38,13 @@ assert.ok(api, 'app exposes test API');
 assert.equal(typeof api.getLanguageAudioPacks, 'function', 'language audio pack normalizer is exposed');
 assert.equal(typeof api.renderLanguageAudioPackCard, 'function', 'language audio card renderer is exposed');
 
+const indexHtml = fs.readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
+const fitnessNavIndex = indexHtml.indexOf('id="nav-fitness"');
+const languageAudioNavIndex = indexHtml.indexOf('id="nav-language-audio"');
+const logoutNavIndex = indexHtml.indexOf('nav-item--logout');
+assert.ok(languageAudioNavIndex > fitnessNavIndex, 'Language Audio nav item is listed after Fitness');
+assert.ok(languageAudioNavIndex < logoutNavIndex, 'Language Audio nav item is listed before Sign out');
+
 const config = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config.json'), 'utf8'));
 const merged = api.mergeDefaults(config);
 const packs = api.getLanguageAudioPacks(merged);
