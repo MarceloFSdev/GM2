@@ -324,6 +324,52 @@
       "attachments": [
         "docs/bookings/2026-05-04_SIN-DPS_Scoot-TR282_kiwi-776015405.pdf"
       ]
+    },
+    {
+      "id": "trip-003",
+      "departureDate": "2026-05-30",
+      "departureTime": "11:15",
+      "departureCity": "Denpasar",
+      "departureCountry": "Indonesia",
+      "departureAirport": "DPS",
+      "departureAirportName": "Ngurah Rai International",
+      "arrivalDate": "2026-05-30",
+      "arrivalTime": "14:25",
+      "arrivalCity": "Kuala Lumpur",
+      "arrivalCountry": "Malaysia",
+      "arrivalAirport": "KUL",
+      "arrivalAirportName": "Kuala Lumpur International",
+      "airline": "Batik Air Malaysia",
+      "flightNumber": "OD309",
+      "duration": "3h 10m",
+      "notes": "Flight to Kuala Lumpur",
+      "bookingRef": "792505571",
+      "attachments": [
+        "docs/bookings/2026-05-30_DPS-KUL_BatikAir-OD309_kiwi-792505571.pdf"
+      ]
+    },
+    {
+      "id": "trip-004",
+      "departureDate": "2026-06-14",
+      "departureTime": "12:50",
+      "departureCity": "Kuala Lumpur",
+      "departureCountry": "Malaysia",
+      "departureAirport": "KUL",
+      "departureAirportName": "Kuala Lumpur International",
+      "arrivalDate": "2026-06-14",
+      "arrivalTime": "16:00",
+      "arrivalCity": "Denpasar",
+      "arrivalCountry": "Indonesia",
+      "arrivalAirport": "DPS",
+      "arrivalAirportName": "Ngurah Rai International",
+      "airline": "AirAsia",
+      "flightNumber": "AK368",
+      "duration": "3h 10m",
+      "notes": "Return flight from Kuala Lumpur",
+      "bookingRef": "792505571",
+      "attachments": [
+        "docs/bookings/2026-05-30_DPS-KUL_BatikAir-OD309_kiwi-792505571.pdf"
+      ]
     }
   ],
   "bookings": [
@@ -388,6 +434,52 @@
       "country": "Singapore",
       "notes": "4-star · postal 209922 · 5-night stay.",
       "attachments": []
+    },
+    {
+      "id": "booking-004",
+      "type": "flight",
+      "title": "Denpasar → Kuala Lumpur",
+      "startDate": "2026-05-30",
+      "airline": "Batik Air Malaysia",
+      "flightNumber": "OD309",
+      "departureAirport": "DPS",
+      "departureCity": "Denpasar",
+      "departureTime": "11:15",
+      "arrivalAirport": "KUL",
+      "arrivalCity": "Kuala Lumpur",
+      "arrivalTime": "14:25",
+      "duration": "3h 10m",
+      "notes": "Imported from upcoming trips.",
+      "bookingRef": "792505571",
+      "attachments": [
+        "docs/bookings/2026-05-30_DPS-KUL_BatikAir-OD309_kiwi-792505571.pdf"
+      ],
+      "departureCountry": "Indonesia",
+      "arrivalCountry": "Malaysia",
+      "arrivalDate": "2026-05-30"
+    },
+    {
+      "id": "booking-005",
+      "type": "flight",
+      "title": "Kuala Lumpur → Denpasar",
+      "startDate": "2026-06-14",
+      "airline": "AirAsia",
+      "flightNumber": "AK368",
+      "departureAirport": "KUL",
+      "departureCity": "Kuala Lumpur",
+      "departureTime": "12:50",
+      "arrivalAirport": "DPS",
+      "arrivalCity": "Denpasar",
+      "arrivalTime": "16:00",
+      "duration": "3h 10m",
+      "notes": "Imported from upcoming trips.",
+      "bookingRef": "792505571",
+      "attachments": [
+        "docs/bookings/2026-05-30_DPS-KUL_BatikAir-OD309_kiwi-792505571.pdf"
+      ],
+      "departureCountry": "Malaysia",
+      "arrivalCountry": "Indonesia",
+      "arrivalDate": "2026-06-14"
     }
   ],
   "longTermBookings": [
