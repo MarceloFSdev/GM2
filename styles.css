@@ -277,6 +277,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(126, 184, 212, 0.35) transparent;
 }
 .nav-item {
   display: flex;
@@ -1598,9 +1603,11 @@ body {
     left: 0;
     bottom: 0;
     width: min(82vw, 320px);
-    padding: 1.5rem 1.15rem;
+    padding: 1rem 1.15rem;
+    gap: 1rem;
     transform: translateX(-100%);
     box-shadow: 24px 0 48px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
   }
   .sidebar.is-open {
     transform: translateX(0);
