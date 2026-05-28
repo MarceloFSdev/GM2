@@ -22,6 +22,7 @@
     schedule: 'Schedule',
     todos: 'To-Do',
     fitness: 'Fitness',
+    'language-audio': 'Language Audio',
   };
 
   const TODOS_STATUS_LABEL = {
@@ -54,6 +55,7 @@
   let elSchedule;
   let elTodos;
   let elFitness;
+  let elLanguageAudio;
 
   /** Fitness dashboard data (fitness.json, generated from the Mars OS vault). */
   let fitnessData = null;
@@ -631,6 +633,7 @@
       countriesWantToVisit: Array.isArray(o.countriesWantToVisit) ? o.countriesWantToVisit : [],
       upcomingTrips: Array.isArray(o.upcomingTrips) ? o.upcomingTrips : [],
       bookings: Array.isArray(o.bookings) ? o.bookings : [],
+      languageAudio: o.languageAudio && typeof o.languageAudio === 'object' ? o.languageAudio : { packs: [] },
     };
     base.travelLog = deriveTravelLogFromFlights(base);
     return base;
@@ -3843,9 +3846,109 @@
     `;
   }
 
+  function getLanguageAudioPacks(c = config) {
+    const packs = c?.languageAudio?.packs;
+    if (!Array.isArray(packs)) return [];
+    return packs
+      .filter((pack) => pack && (pack.title || pack.id))
+      .map((pack, packIndex) => ({
+        id: String(pack.id || `language-pack-${packIndex + 1}`),
+        title: String(pack.title || `Language pack ${packIndex + 1}`),
+        language: String(pack.language || 'Indonesian'),
+        sourceLanguage: String(pack.sourceLanguage || 'English'),
+        description: String(pack.description || ''),
+        audio: Array.isArray(pack.audio)
+          ? pack.audio
+              .filter((a) => a && a.src)
+              .map((a, audioIndex) => ({
+                label: String(a.label || `Audio ${audioIndex + 1}`),
+                src: String(a.src),
+                durationLabel: String(a.durationLabel || ''),
+              }))
+          : [],
+        phrases: Array.isArray(pack.phrases)
+          ? pack.phrases
+              .filter((p) => p && (p.english || p.indonesian))
+              .map((p, phraseIndex) => ({
+                idx: Number.isFinite(Number(p.idx)) ? Number(p.idx) : phraseIndex + 1,
+                english: String(p.english || ''),
+                indonesian: String(p.indonesian || ''),
+                note: String(p.note || ''),
+                tags: Array.isArray(p.tags) ? p.tags.map((tag) => String(tag)).filter(Boolean) : [],
+              }))
+          : [],
+      }));
+  }
+
+  function renderLanguageAudioPackCard(pack) {
+    const audioRows = pack.audio.length
+      ? pack.audio.map((audio) => `
+        <div class="lang-audio-player">
+          <div class="lang-audio-player__meta">
+            <strong>${escapeHtml(audio.label)}</strong>
+            ${audio.durationLabel ? `<span>${escapeHtml(audio.durationLabel)}</span>` : ''}
+          </div>
+          <audio controls preload="metadata" src="${escapeHtml(audio.src)}"></audio>
+        </div>
+      `).join('')
+      : '<p class="lang-audio-empty">No audio file configured yet.</p>';
+
+    const phraseRows = pack.phrases.length
+      ? pack.phrases.map((phrase) => `
+        <li class="lang-phrase">
+          <span class="lang-phrase__idx">${escapeHtml(phrase.idx)}</span>
+          <span class="lang-phrase__text lang-phrase__text--id">${escapeHtml(phrase.indonesian)}</span>
+          <span class="lang-phrase__text lang-phrase__text--en">${escapeHtml(phrase.english)}</span>
+          ${phrase.note ? `<span class="lang-phrase__note">${escapeHtml(phrase.note)}</span>` : ''}
+        </li>
+      `).join('')
+      : '<li class="lang-phrase lang-phrase--empty">No phrases configured.</li>';
+
+    return `
+      <article class="card lang-audio-card">
+        <div class="lang-audio-card__head">
+          <div>
+            <p class="eyebrow">${escapeHtml(pack.language)} ⇄ ${escapeHtml(pack.sourceLanguage)}</p>
+            <h2>${escapeHtml(pack.title)}</h2>
+            ${pack.description ? `<p>${escapeHtml(pack.description)}</p>` : ''}
+          </div>
+          <span class="lang-audio-count">${pack.phrases.length} phrases</span>
+        </div>
+        <div class="lang-audio-players">${audioRows}</div>
+        <details class="lang-audio-accordion">
+          <summary>
+            <span>Phrase spelling</span>
+            <span>${pack.phrases.length} rows</span>
+          </summary>
+          <ol class="lang-phrase-list">${phraseRows}</ol>
+        </details>
+      </article>
+    `;
+  }
+
+  function renderLanguageAudio() {
+    if (!elLanguageAudio) return;
+    const packs = getLanguageAudioPacks(config);
+    const cards = packs.length
+      ? packs.map(renderLanguageAudioPackCard).join('')
+      : '<div class="booking-empty">No language audio packs configured yet.</div>';
+
+    elLanguageAudio.innerHTML = `
+      <header class="view-heading">
+        <p class="eyebrow">Listen + verify spelling</p>
+        <h1 id="language-audio-heading">Language Audio</h1>
+        <p>Play each audio pack and open the phrase accordion to check Indonesian and English spelling on the site.</p>
+      </header>
+      <div class="lang-audio-grid">${cards}</div>
+    `;
+  }
+
+  function allowedView(view) {
+    return ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule', 'todos', 'fitness', 'language-audio'].includes(view);
+  }
+
   function setView(view) {
-    const allowed = ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule', 'todos', 'fitness'];
-    if (!allowed.includes(view)) view = 'dashboard';
+    if (!allowedView(view)) view = 'dashboard';
 
     try {
       localStorage.setItem(STORAGE_VIEW, view);
@@ -3864,6 +3967,7 @@
       schedule: $('view-schedule'),
       todos: $('view-todos'),
       fitness: $('view-fitness'),
+      'language-audio': $('view-language-audio'),
     };
 
     for (const k of Object.keys(views)) {
@@ -3895,6 +3999,7 @@
     if (view === 'schedule') renderSchedule();
     if (view === 'todos') renderTodos();
     if (view === 'fitness') renderFitness();
+    if (view === 'language-audio') renderLanguageAudio();
     refreshAlertsChrome();
     updateAllClocks();
   }
@@ -3992,6 +4097,7 @@
     elSchedule = $('schedule-mount');
     elTodos = $('todos-mount');
     elFitness = $('fitness-mount');
+    elLanguageAudio = $('language-audio-mount');
 
     try {
       const raw = await loadConfig();
@@ -4018,7 +4124,7 @@
     let initial = (config.app && config.app.defaultView) || 'dashboard';
     try {
       const saved = localStorage.getItem(STORAGE_VIEW);
-      if (saved === 'dashboard' || saved === 'travel' || saved === 'clocks' || saved === 'world' || saved === 'bookings' || saved === 'renewals' || saved === 'fiscal' || saved === 'schedule' || saved === 'todos' || saved === 'fitness') initial = saved;
+      if (allowedView(saved)) initial = saved;
     } catch {
       /* ignore */
     }
@@ -4049,6 +4155,8 @@
       longTermRenewalAlerts,
       mergeDefaults,
       parseYmdToUtcMs,
+      getLanguageAudioPacks,
+      renderLanguageAudioPackCard,
     };
   }
 

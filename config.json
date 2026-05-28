@@ -481,5 +481,2013 @@
       "isActive": true,
       "showOnDashboard": true
     }
-  ]
+  ],
+  "languageAudio": {
+    "packs": [
+      {
+        "id": "indonesian-basic-daily-pack-001",
+        "title": "Indonesian Basic Daily Phrases · Pack 001",
+        "language": "Indonesian",
+        "sourceLanguage": "English",
+        "description": "Daily spoken Indonesian phrases with English meaning for spelling checks while listening.",
+        "audio": [
+          {
+            "label": "Balanced full pack",
+            "src": "docs/language-audio/indonesian/basic-daily-pack-001/indonesian_basic_daily_phrases_pack_001_balanced.mp3",
+            "durationLabel": "Full sequence"
+          },
+          {
+            "label": "Balanced approx. 30 min",
+            "src": "docs/language-audio/indonesian/basic-daily-pack-001/indonesian_basic_daily_phrases_pack_001_balanced_approx_30min.mp3",
+            "durationLabel": "Approx. 30 min"
+          }
+        ],
+        "phrases": [
+          {
+            "idx": 1,
+            "english": "Good morning.",
+            "indonesian": "Selamat pagi.",
+            "note": "",
+            "tags": [
+              "greetings",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 2,
+            "english": "Good afternoon.",
+            "indonesian": "Selamat siang.",
+            "note": "",
+            "tags": [
+              "greetings",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 3,
+            "english": "Good evening.",
+            "indonesian": "Selamat malam.",
+            "note": "",
+            "tags": [
+              "greetings",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 4,
+            "english": "Hi, how are you?",
+            "indonesian": "Hai, apa kabar?",
+            "note": "",
+            "tags": [
+              "greetings",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 5,
+            "english": "I am good.",
+            "indonesian": "Aku baik.",
+            "note": "",
+            "tags": [
+              "greetings",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 6,
+            "english": "I am a little tired.",
+            "indonesian": "Aku agak capek.",
+            "note": "capek = tired",
+            "tags": [
+              "daily",
+              "feelings"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 7,
+            "english": "I am hungry.",
+            "indonesian": "Aku lapar.",
+            "note": "",
+            "tags": [
+              "daily",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 8,
+            "english": "I am thirsty.",
+            "indonesian": "Aku haus.",
+            "note": "",
+            "tags": [
+              "daily",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 9,
+            "english": "Thank you.",
+            "indonesian": "Terima kasih.",
+            "note": "",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 10,
+            "english": "Thank you so much.",
+            "indonesian": "Makasih banyak.",
+            "note": "casual thanks",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 11,
+            "english": "You are welcome.",
+            "indonesian": "Sama-sama.",
+            "note": "",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 12,
+            "english": "Sorry.",
+            "indonesian": "Maaf.",
+            "note": "",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 13,
+            "english": "Excuse me.",
+            "indonesian": "Permisi.",
+            "note": "",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 14,
+            "english": "No problem.",
+            "indonesian": "Nggak apa-apa.",
+            "note": "nggak = no/not",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 15,
+            "english": "Yes.",
+            "indonesian": "Iya.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 16,
+            "english": "No.",
+            "indonesian": "Tidak.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 17,
+            "english": "Not yet.",
+            "indonesian": "Belum.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 18,
+            "english": "Already.",
+            "indonesian": "Sudah.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 19,
+            "english": "Maybe.",
+            "indonesian": "Mungkin.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 20,
+            "english": "I do not know.",
+            "indonesian": "Aku nggak tahu.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 21,
+            "english": "I understand.",
+            "indonesian": "Aku mengerti.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 22,
+            "english": "I do not understand.",
+            "indonesian": "Aku nggak mengerti.",
+            "note": "",
+            "tags": [
+              "daily",
+              "basics"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 23,
+            "english": "Can you repeat?",
+            "indonesian": "Bisa ulangi?",
+            "note": "",
+            "tags": [
+              "daily",
+              "learning"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 24,
+            "english": "Please speak slowly.",
+            "indonesian": "Tolong bicara pelan-pelan.",
+            "note": "",
+            "tags": [
+              "daily",
+              "learning"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 25,
+            "english": "What does this mean?",
+            "indonesian": "Ini artinya apa?",
+            "note": "",
+            "tags": [
+              "learning",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 26,
+            "english": "How do you say this in Indonesian?",
+            "indonesian": "Ini bahasa Indonesianya apa?",
+            "note": "",
+            "tags": [
+              "learning",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 27,
+            "english": "My Indonesian is still basic.",
+            "indonesian": "Bahasa Indonesiaku masih dasar.",
+            "note": "",
+            "tags": [
+              "learning",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 28,
+            "english": "I am learning Indonesian.",
+            "indonesian": "Aku lagi belajar bahasa Indonesia.",
+            "note": "",
+            "tags": [
+              "learning",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 29,
+            "english": "I live in Bali.",
+            "indonesian": "Aku tinggal di Bali.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 30,
+            "english": "I am from Spain.",
+            "indonesian": "Aku dari Spanyol.",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 31,
+            "english": "My name is Marz.",
+            "indonesian": "Namaku Marz.",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 32,
+            "english": "Nice to meet you.",
+            "indonesian": "Senang kenal kamu.",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 33,
+            "english": "What is your name?",
+            "indonesian": "Nama kamu siapa?",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 34,
+            "english": "Where are you from?",
+            "indonesian": "Kamu dari mana?",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 35,
+            "english": "Do you live here?",
+            "indonesian": "Kamu tinggal di sini?",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 36,
+            "english": "I work online.",
+            "indonesian": "Aku kerja online.",
+            "note": "",
+            "tags": [
+              "business",
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 37,
+            "english": "I have a small business.",
+            "indonesian": "Aku punya bisnis kecil.",
+            "note": "",
+            "tags": [
+              "business",
+              "social"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 38,
+            "english": "I am working now.",
+            "indonesian": "Aku lagi kerja sekarang.",
+            "note": "",
+            "tags": [
+              "work",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 39,
+            "english": "I have a meeting.",
+            "indonesian": "Aku ada meeting.",
+            "note": "",
+            "tags": [
+              "work",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 40,
+            "english": "I need good internet.",
+            "indonesian": "Aku butuh internet yang bagus.",
+            "note": "",
+            "tags": [
+              "work",
+              "travel"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 41,
+            "english": "Is the Wi-Fi good?",
+            "indonesian": "Wi-Finya bagus?",
+            "note": "",
+            "tags": [
+              "work",
+              "cafe"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 42,
+            "english": "What is the Wi-Fi password?",
+            "indonesian": "Password Wi-Finya apa?",
+            "note": "",
+            "tags": [
+              "work",
+              "cafe"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 43,
+            "english": "Can I sit here?",
+            "indonesian": "Boleh duduk di sini?",
+            "note": "",
+            "tags": [
+              "cafe",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 44,
+            "english": "Is this seat free?",
+            "indonesian": "Kursi ini kosong?",
+            "note": "",
+            "tags": [
+              "cafe",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 45,
+            "english": "I want to order coffee.",
+            "indonesian": "Saya mau pesan kopi.",
+            "note": "",
+            "tags": [
+              "cafe",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 46,
+            "english": "I want iced coffee.",
+            "indonesian": "Saya mau kopi es.",
+            "note": "",
+            "tags": [
+              "cafe",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 47,
+            "english": "No sugar, please.",
+            "indonesian": "Tanpa gula, ya.",
+            "note": "",
+            "tags": [
+              "cafe",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 48,
+            "english": "Less sugar, please.",
+            "indonesian": "Gulanya sedikit aja.",
+            "note": "aja = just/only",
+            "tags": [
+              "cafe",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 49,
+            "english": "With milk, please.",
+            "indonesian": "Pakai susu, ya.",
+            "note": "",
+            "tags": [
+              "cafe",
+              "food"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 50,
+            "english": "No milk, please.",
+            "indonesian": "Tanpa susu, ya.",
+            "note": "",
+            "tags": [
+              "cafe",
+              "food"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 51,
+            "english": "I want water.",
+            "indonesian": "Saya mau air putih.",
+            "note": "air putih = drinking water",
+            "tags": [
+              "food",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 52,
+            "english": "Cold water, please.",
+            "indonesian": "Air dingin, ya.",
+            "note": "",
+            "tags": [
+              "food",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 53,
+            "english": "Just one, please.",
+            "indonesian": "Satu aja, ya.",
+            "note": "",
+            "tags": [
+              "food",
+              "shopping"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 54,
+            "english": "Two, please.",
+            "indonesian": "Dua, ya.",
+            "note": "",
+            "tags": [
+              "food",
+              "shopping"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 55,
+            "english": "For here.",
+            "indonesian": "Makan di sini.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 56,
+            "english": "Takeaway.",
+            "indonesian": "Bungkus, ya.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 57,
+            "english": "Can I see the menu?",
+            "indonesian": "Boleh lihat menunya?",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 58,
+            "english": "What do you recommend?",
+            "indonesian": "Rekomendasinya apa?",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 59,
+            "english": "Is this spicy?",
+            "indonesian": "Ini pedas?",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 60,
+            "english": "Not too spicy.",
+            "indonesian": "Jangan terlalu pedas.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 61,
+            "english": "I do not eat pork.",
+            "indonesian": "Aku nggak makan babi.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 62,
+            "english": "I do not eat meat.",
+            "indonesian": "Aku nggak makan daging.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 63,
+            "english": "I am allergic to peanuts.",
+            "indonesian": "Aku alergi kacang.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 64,
+            "english": "The food is delicious.",
+            "indonesian": "Makanannya enak.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 65,
+            "english": "This is very good.",
+            "indonesian": "Ini enak banget.",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 66,
+            "english": "Can I have the bill?",
+            "indonesian": "Boleh minta bill?",
+            "note": "bill is commonly used",
+            "tags": [
+              "restaurant",
+              "food"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 67,
+            "english": "Can I pay by card?",
+            "indonesian": "Bisa bayar pakai kartu?",
+            "note": "",
+            "tags": [
+              "restaurant",
+              "shopping"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 68,
+            "english": "Can I pay with QRIS?",
+            "indonesian": "Bisa bayar pakai QRIS?",
+            "note": "QRIS = Indonesian QR payment",
+            "tags": [
+              "restaurant",
+              "shopping"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 69,
+            "english": "How much is it?",
+            "indonesian": "Berapa harganya?",
+            "note": "",
+            "tags": [
+              "shopping",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 70,
+            "english": "Is there a discount?",
+            "indonesian": "Ada diskon?",
+            "note": "",
+            "tags": [
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 71,
+            "english": "Can it be cheaper?",
+            "indonesian": "Bisa lebih murah?",
+            "note": "",
+            "tags": [
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 72,
+            "english": "That is too expensive.",
+            "indonesian": "Itu terlalu mahal.",
+            "note": "",
+            "tags": [
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 73,
+            "english": "I will think first.",
+            "indonesian": "Aku pikir dulu.",
+            "note": "",
+            "tags": [
+              "shopping",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 74,
+            "english": "I want this one.",
+            "indonesian": "Aku mau yang ini.",
+            "note": "",
+            "tags": [
+              "shopping",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 75,
+            "english": "I do not want it.",
+            "indonesian": "Aku nggak mau.",
+            "note": "",
+            "tags": [
+              "shopping",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 76,
+            "english": "Do you have a bigger size?",
+            "indonesian": "Ada ukuran lebih besar?",
+            "note": "",
+            "tags": [
+              "shopping"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 77,
+            "english": "Do you have a smaller size?",
+            "indonesian": "Ada ukuran lebih kecil?",
+            "note": "",
+            "tags": [
+              "shopping"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 78,
+            "english": "Where is the toilet?",
+            "indonesian": "Toiletnya di mana?",
+            "note": "",
+            "tags": [
+              "daily",
+              "travel"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 79,
+            "english": "Where is the exit?",
+            "indonesian": "Pintu keluarnya di mana?",
+            "note": "",
+            "tags": [
+              "daily",
+              "travel"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 80,
+            "english": "Where is the beach?",
+            "indonesian": "Pantainya di mana?",
+            "note": "",
+            "tags": [
+              "travel",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 81,
+            "english": "I want to go to Canggu.",
+            "indonesian": "Aku mau ke Canggu.",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 82,
+            "english": "I want to go home.",
+            "indonesian": "Aku mau pulang.",
+            "note": "",
+            "tags": [
+              "transport",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 83,
+            "english": "Please go slowly.",
+            "indonesian": "Pelan-pelan, ya.",
+            "note": "",
+            "tags": [
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 84,
+            "english": "Please stop here.",
+            "indonesian": "Berhenti di sini, ya.",
+            "note": "",
+            "tags": [
+              "transport"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 85,
+            "english": "Please wait a moment.",
+            "indonesian": "Tunggu sebentar, ya.",
+            "note": "",
+            "tags": [
+              "transport",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 86,
+            "english": "I am on the way.",
+            "indonesian": "Aku lagi di jalan.",
+            "note": "",
+            "tags": [
+              "transport",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 87,
+            "english": "I will arrive soon.",
+            "indonesian": "Aku sebentar lagi sampai.",
+            "note": "",
+            "tags": [
+              "transport",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 88,
+            "english": "I am here.",
+            "indonesian": "Aku sudah di sini.",
+            "note": "",
+            "tags": [
+              "transport",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 89,
+            "english": "Where are you?",
+            "indonesian": "Kamu di mana?",
+            "note": "",
+            "tags": [
+              "transport",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 90,
+            "english": "Can you pick me up?",
+            "indonesian": "Bisa jemput aku?",
+            "note": "",
+            "tags": [
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 91,
+            "english": "Can you send the location?",
+            "indonesian": "Bisa kirim lokasinya?",
+            "note": "",
+            "tags": [
+              "transport",
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 92,
+            "english": "Turn left.",
+            "indonesian": "Belok kiri.",
+            "note": "",
+            "tags": [
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 93,
+            "english": "Turn right.",
+            "indonesian": "Belok kanan.",
+            "note": "",
+            "tags": [
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 94,
+            "english": "Go straight.",
+            "indonesian": "Lurus saja.",
+            "note": "",
+            "tags": [
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 95,
+            "english": "The traffic is bad.",
+            "indonesian": "Macet banget.",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 96,
+            "english": "I need to buy something.",
+            "indonesian": "Aku perlu beli sesuatu.",
+            "note": "",
+            "tags": [
+              "daily",
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 97,
+            "english": "I need cash.",
+            "indonesian": "Aku butuh uang tunai.",
+            "note": "",
+            "tags": [
+              "daily",
+              "travel"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 98,
+            "english": "Where is the ATM?",
+            "indonesian": "ATM-nya di mana?",
+            "note": "",
+            "tags": [
+              "daily",
+              "travel"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 99,
+            "english": "I need a SIM card.",
+            "indonesian": "Aku butuh kartu SIM.",
+            "note": "",
+            "tags": [
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 100,
+            "english": "My phone battery is low.",
+            "indonesian": "Baterai HP-ku hampir habis.",
+            "note": "",
+            "tags": [
+              "daily",
+              "travel"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 101,
+            "english": "Can I charge my phone?",
+            "indonesian": "Boleh cas HP di sini?",
+            "note": "cas = charge",
+            "tags": [
+              "cafe",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 102,
+            "english": "I am going to the gym.",
+            "indonesian": "Aku mau ke gym.",
+            "note": "",
+            "tags": [
+              "gym",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 103,
+            "english": "I am at the gym.",
+            "indonesian": "Aku lagi di gym.",
+            "note": "",
+            "tags": [
+              "gym",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 104,
+            "english": "I want to train legs.",
+            "indonesian": "Aku mau latihan kaki.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 105,
+            "english": "I want to train chest.",
+            "indonesian": "Aku mau latihan dada.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 106,
+            "english": "I want to train back.",
+            "indonesian": "Aku mau latihan punggung.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 107,
+            "english": "I want to train shoulders.",
+            "indonesian": "Aku mau latihan bahu.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 108,
+            "english": "I want to warm up first.",
+            "indonesian": "Aku mau pemanasan dulu.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 109,
+            "english": "How many sets?",
+            "indonesian": "Berapa set?",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 110,
+            "english": "How many reps?",
+            "indonesian": "Berapa repetisi?",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 111,
+            "english": "Is this machine free?",
+            "indonesian": "Alat ini kosong?",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 112,
+            "english": "Can I use this?",
+            "indonesian": "Boleh pakai ini?",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 113,
+            "english": "Are you still using this?",
+            "indonesian": "Masih dipakai?",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 114,
+            "english": "Can we take turns?",
+            "indonesian": "Bisa gantian?",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 115,
+            "english": "This is heavy.",
+            "indonesian": "Ini berat.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 116,
+            "english": "This is too heavy.",
+            "indonesian": "Ini terlalu berat.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 117,
+            "english": "I need lighter weight.",
+            "indonesian": "Aku butuh beban lebih ringan.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 118,
+            "english": "I need heavier weight.",
+            "indonesian": "Aku butuh beban lebih berat.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 119,
+            "english": "Good workout.",
+            "indonesian": "Latihannya bagus.",
+            "note": "",
+            "tags": [
+              "gym"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 120,
+            "english": "I am finished.",
+            "indonesian": "Aku sudah selesai.",
+            "note": "",
+            "tags": [
+              "gym",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 121,
+            "english": "I need a shower.",
+            "indonesian": "Aku perlu mandi.",
+            "note": "",
+            "tags": [
+              "gym",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 122,
+            "english": "I feel good.",
+            "indonesian": "Aku merasa enak.",
+            "note": "",
+            "tags": [
+              "feelings",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 123,
+            "english": "I feel better now.",
+            "indonesian": "Sekarang aku merasa lebih baik.",
+            "note": "",
+            "tags": [
+              "feelings",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 124,
+            "english": "I am busy today.",
+            "indonesian": "Hari ini aku sibuk.",
+            "note": "",
+            "tags": [
+              "daily",
+              "work"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 125,
+            "english": "I am free later.",
+            "indonesian": "Nanti aku kosong.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 126,
+            "english": "I have time now.",
+            "indonesian": "Sekarang aku ada waktu.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 127,
+            "english": "I cannot today.",
+            "indonesian": "Hari ini aku nggak bisa.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 128,
+            "english": "Maybe tomorrow.",
+            "indonesian": "Mungkin besok.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 129,
+            "english": "See you tomorrow.",
+            "indonesian": "Sampai besok.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 130,
+            "english": "See you later.",
+            "indonesian": "Sampai nanti.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 131,
+            "english": "What are you doing?",
+            "indonesian": "Lagi ngapain?",
+            "note": "casual",
+            "tags": [
+              "social"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 132,
+            "english": "I am relaxing.",
+            "indonesian": "Aku lagi santai.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 133,
+            "english": "I am eating.",
+            "indonesian": "Aku lagi makan.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 134,
+            "english": "I am drinking coffee.",
+            "indonesian": "Aku lagi minum kopi.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 135,
+            "english": "I am working at a cafe.",
+            "indonesian": "Aku lagi kerja di kafe.",
+            "note": "",
+            "tags": [
+              "work",
+              "cafe"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 136,
+            "english": "Do you want to join?",
+            "indonesian": "Mau ikut?",
+            "note": "",
+            "tags": [
+              "social"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 137,
+            "english": "Do you want coffee?",
+            "indonesian": "Mau kopi?",
+            "note": "",
+            "tags": [
+              "social",
+              "cafe"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 138,
+            "english": "Do you want to eat?",
+            "indonesian": "Mau makan?",
+            "note": "",
+            "tags": [
+              "social",
+              "food"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 139,
+            "english": "Where do you want to go?",
+            "indonesian": "Mau ke mana?",
+            "note": "",
+            "tags": [
+              "social",
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 140,
+            "english": "I like this place.",
+            "indonesian": "Aku suka tempat ini.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 141,
+            "english": "This place is nice.",
+            "indonesian": "Tempat ini bagus.",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 142,
+            "english": "It is too hot.",
+            "indonesian": "Panas banget.",
+            "note": "",
+            "tags": [
+              "daily",
+              "bali"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 143,
+            "english": "It is raining.",
+            "indonesian": "Lagi hujan.",
+            "note": "",
+            "tags": [
+              "daily",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 144,
+            "english": "The weather is good.",
+            "indonesian": "Cuacanya bagus.",
+            "note": "",
+            "tags": [
+              "daily",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 145,
+            "english": "I need air conditioning.",
+            "indonesian": "Aku butuh AC.",
+            "note": "",
+            "tags": [
+              "daily",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 146,
+            "english": "Can you help me?",
+            "indonesian": "Bisa bantu aku?",
+            "note": "",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 147,
+            "english": "I need help.",
+            "indonesian": "Aku butuh bantuan.",
+            "note": "",
+            "tags": [
+              "daily",
+              "polite"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 148,
+            "english": "One moment.",
+            "indonesian": "Sebentar.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 149,
+            "english": "Wait a second.",
+            "indonesian": "Tunggu sebentar.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 150,
+            "english": "I forgot.",
+            "indonesian": "Aku lupa.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 151,
+            "english": "I remember.",
+            "indonesian": "Aku ingat.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 152,
+            "english": "I lost my keys.",
+            "indonesian": "Kunciku hilang.",
+            "note": "",
+            "tags": [
+              "daily",
+              "problem"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 153,
+            "english": "I cannot find it.",
+            "indonesian": "Aku nggak bisa nemuin.",
+            "note": "",
+            "tags": [
+              "daily",
+              "problem"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 154,
+            "english": "My scooter is here.",
+            "indonesian": "Motorku di sini.",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 155,
+            "english": "My helmet is there.",
+            "indonesian": "Helmku di sana.",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 156,
+            "english": "Is it safe here?",
+            "indonesian": "Di sini aman?",
+            "note": "",
+            "tags": [
+              "travel",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 157,
+            "english": "Can I park here?",
+            "indonesian": "Boleh parkir di sini?",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 158,
+            "english": "I need petrol.",
+            "indonesian": "Aku perlu bensin.",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 159,
+            "english": "Where is the petrol station?",
+            "indonesian": "Pom bensin di mana?",
+            "note": "",
+            "tags": [
+              "transport",
+              "bali"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 160,
+            "english": "I have a reservation.",
+            "indonesian": "Aku ada reservasi.",
+            "note": "",
+            "tags": [
+              "travel",
+              "restaurant"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 161,
+            "english": "I booked a room.",
+            "indonesian": "Aku sudah pesan kamar.",
+            "note": "",
+            "tags": [
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 162,
+            "english": "Can I check in now?",
+            "indonesian": "Bisa check-in sekarang?",
+            "note": "",
+            "tags": [
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 163,
+            "english": "Can I check out late?",
+            "indonesian": "Bisa check-out agak telat?",
+            "note": "",
+            "tags": [
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 164,
+            "english": "The room is clean.",
+            "indonesian": "Kamarnya bersih.",
+            "note": "",
+            "tags": [
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 165,
+            "english": "The room is not clean.",
+            "indonesian": "Kamarnya kurang bersih.",
+            "note": "",
+            "tags": [
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 166,
+            "english": "There is no hot water.",
+            "indonesian": "Air panasnya nggak ada.",
+            "note": "",
+            "tags": [
+              "travel",
+              "problem"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 167,
+            "english": "The internet is slow.",
+            "indonesian": "Internetnya lambat.",
+            "note": "",
+            "tags": [
+              "work",
+              "travel"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 168,
+            "english": "Can you fix it?",
+            "indonesian": "Bisa diperbaiki?",
+            "note": "",
+            "tags": [
+              "problem",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 169,
+            "english": "I need a doctor.",
+            "indonesian": "Aku perlu dokter.",
+            "note": "",
+            "tags": [
+              "health",
+              "travel"
+            ],
+            "priority": 2
+          },
+          {
+            "idx": 170,
+            "english": "I feel sick.",
+            "indonesian": "Aku merasa sakit.",
+            "note": "",
+            "tags": [
+              "health",
+              "daily"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 171,
+            "english": "My stomach hurts.",
+            "indonesian": "Perutku sakit.",
+            "note": "",
+            "tags": [
+              "health"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 172,
+            "english": "I need medicine.",
+            "indonesian": "Aku perlu obat.",
+            "note": "",
+            "tags": [
+              "health"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 173,
+            "english": "Where is the pharmacy?",
+            "indonesian": "Apotek di mana?",
+            "note": "",
+            "tags": [
+              "health",
+              "travel"
+            ],
+            "priority": 3
+          },
+          {
+            "idx": 174,
+            "english": "Can I ask something?",
+            "indonesian": "Boleh tanya sesuatu?",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 175,
+            "english": "Can I ask you?",
+            "indonesian": "Boleh tanya kamu?",
+            "note": "",
+            "tags": [
+              "social",
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 176,
+            "english": "What time is it?",
+            "indonesian": "Jam berapa sekarang?",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 177,
+            "english": "What time do you open?",
+            "indonesian": "Bukanya jam berapa?",
+            "note": "",
+            "tags": [
+              "cafe",
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 178,
+            "english": "What time do you close?",
+            "indonesian": "Tutupnya jam berapa?",
+            "note": "",
+            "tags": [
+              "cafe",
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 179,
+            "english": "I will come back later.",
+            "indonesian": "Aku balik lagi nanti.",
+            "note": "",
+            "tags": [
+              "daily",
+              "shopping"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 180,
+            "english": "I am ready.",
+            "indonesian": "Aku siap.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 181,
+            "english": "I am not ready yet.",
+            "indonesian": "Aku belum siap.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 5
+          },
+          {
+            "idx": 182,
+            "english": "Let us go.",
+            "indonesian": "Ayo jalan.",
+            "note": "",
+            "tags": [
+              "social",
+              "transport"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 183,
+            "english": "Slowly.",
+            "indonesian": "Pelan-pelan.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 184,
+            "english": "Be careful.",
+            "indonesian": "Hati-hati.",
+            "note": "",
+            "tags": [
+              "daily"
+            ],
+            "priority": 4
+          },
+          {
+            "idx": 185,
+            "english": "Have a good day.",
+            "indonesian": "Semoga harimu menyenangkan.",
+            "note": "",
+            "tags": [
+              "social",
+              "polite"
+            ],
+            "priority": 3
+          }
+        ]
+      }
+    ]
+  }
 }
