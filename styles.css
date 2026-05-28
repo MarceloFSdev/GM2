@@ -1829,6 +1829,83 @@ body {
   color: var(--alert);
 }
 
+.fiscal-country-totals {
+  margin-top: 1.25rem;
+}
+.fiscal-country-totals__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+}
+.fiscal-country-totals__head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.fiscal-country-totals__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.fiscal-country-totals__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+.fiscal-country-totals__empty {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.fiscal-country-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text);
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+.fiscal-country-chip__flag {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.fiscal-country-chip__name {
+  font-weight: 500;
+}
+.fiscal-country-chip__days {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.12rem;
+  padding-left: 0.5rem;
+  margin-left: 0.05rem;
+  border-left: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.fiscal-country-chip__days strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.fiscal-country-chip__days-unit {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.fiscal-country-chip--spain {
+  border-color: rgba(126, 212, 165, 0.55);
+  background: rgba(126, 212, 165, 0.08);
+}
+.fiscal-country-chip--spain.fiscal-country-chip--alert {
+  border-color: rgba(255, 138, 122, 0.7);
+  background: rgba(255, 138, 122, 0.12);
+}
+.fiscal-country-chip--spain.fiscal-country-chip--alert .fiscal-country-chip__days strong {
+  color: var(--alert);
+}
+
 .fiscal-timeline-card {
   margin-top: 1.25rem;
 }

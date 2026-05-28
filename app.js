@@ -18,7 +18,7 @@
     world: 'Countries',
     bookings: 'Bookings',
     renewals: 'Renewals',
-    fiscal: 'Fiscal Year',
+    fiscal: 'Year plan',
     schedule: 'Schedule',
     todos: 'To-Do',
     fitness: 'Fitness',
@@ -289,13 +289,69 @@
   };
 
   const COUNTRY_FLAGS = {
+    Argentina: '🇦🇷',
+    Australia: '🇦🇺',
+    Austria: '🇦🇹',
+    Belgium: '🇧🇪',
+    Brazil: '🇧🇷',
+    Cambodia: '🇰🇭',
+    Canada: '🇨🇦',
+    Chile: '🇨🇱',
+    China: '🇨🇳',
+    Colombia: '🇨🇴',
+    'Costa Rica': '🇨🇷',
+    Croatia: '🇭🇷',
+    Cuba: '🇨🇺',
+    'Czech Republic': '🇨🇿',
+    Denmark: '🇩🇰',
+    Egypt: '🇪🇬',
+    Estonia: '🇪🇪',
+    Finland: '🇫🇮',
+    France: '🇫🇷',
+    Germany: '🇩🇪',
     Greece: '🇬🇷',
+    Hungary: '🇭🇺',
+    Iceland: '🇮🇸',
     India: '🇮🇳',
     Indonesia: '🇮🇩',
+    Ireland: '🇮🇪',
+    Israel: '🇮🇱',
+    Italy: '🇮🇹',
+    Japan: '🇯🇵',
+    Jordan: '🇯🇴',
+    Laos: '🇱🇦',
     Malaysia: '🇲🇾',
+    Malta: '🇲🇹',
+    Mexico: '🇲🇽',
+    Morocco: '🇲🇦',
+    Netherlands: '🇳🇱',
+    'New Zealand': '🇳🇿',
+    Norway: '🇳🇴',
+    Peru: '🇵🇪',
+    Philippines: '🇵🇭',
+    Poland: '🇵🇱',
+    Portugal: '🇵🇹',
+    Romania: '🇷🇴',
+    Russia: '🇷🇺',
+    'Saudi Arabia': '🇸🇦',
     Singapore: '🇸🇬',
+    Slovakia: '🇸🇰',
+    Slovenia: '🇸🇮',
+    'South Africa': '🇿🇦',
+    'South Korea': '🇰🇷',
     Spain: '🇪🇸',
+    Sweden: '🇸🇪',
+    Switzerland: '🇨🇭',
+    Taiwan: '🇹🇼',
     Thailand: '🇹🇭',
+    Tunisia: '🇹🇳',
+    Turkey: '🇹🇷',
+    Ukraine: '🇺🇦',
+    'United Arab Emirates': '🇦🇪',
+    'United Kingdom': '🇬🇧',
+    'United States': '🇺🇸',
+    Vatican: '🇻🇦',
+    Vietnam: '🇻🇳',
   };
 
   function countryFlag(country) {
@@ -2456,32 +2512,34 @@
     return out;
   }
 
+  /**
+   * Compute year-plan totals using a per-day country assignment.
+   *
+   *   Priority for each day in the year window:
+   *     1. Logged travel-log stay (only when the view enables it)
+   *     2. Planned trip
+   *     3. Home country (default)
+   *
+   * Logged stays override planned trips because the past is authoritative.
+   * Every dependent number — country tally, days in home, days in Spain,
+   * trip "effective" days, projection from company start — is derived from
+   * this single source of truth so the UI cannot disagree with itself.
+   */
   function computeFiscal() {
     const startMs = parseYmdToUtcMs(fiscalState.yearStart);
     const endMs = parseYmdToUtcMs(fiscalState.yearEnd);
     const valid = Number.isFinite(startMs) && Number.isFinite(endMs) && endMs >= startMs;
     const endExMs = valid ? addUtcDaysMs(endMs, 1) : NaN;
     const totalDays = valid ? Math.floor((endExMs - startMs) / 86400000) : 0;
-    const intervals = [];
     const useLog = fiscalUsesLog();
-    const loggedSegs = useLog ? buildLoggedAbroadSegments(startMs, endExMs, valid) : [];
-    if (useLog) {
-      for (const seg of loggedSegs) intervals.push({ start: seg.start, endEx: seg.endEx });
-    }
+    const home = (homeCountry() || 'Home').trim();
+    const UNASSIGNED = 'Unassigned';
+
     const tripsResolved = fiscalState.trips.map((t) => {
       const sMs = parseYmdToUtcMs(t.start);
       const days = Math.max(0, Math.min(365, Number(t.days) || 0));
       const tEndExMs = Number.isFinite(sMs) ? addUtcDaysMs(sMs, days) : NaN;
       const lastMs = Number.isFinite(tEndExMs) ? addUtcDaysMs(tEndExMs, -1) : NaN;
-      let effective = 0;
-      if (valid && Number.isFinite(sMs)) {
-        const cs = Math.max(sMs, startMs);
-        const ce = Math.min(tEndExMs, endExMs);
-        if (ce > cs) {
-          effective = Math.floor((ce - cs) / 86400000);
-          intervals.push({ start: cs, endEx: ce });
-        }
-      }
       return {
         ...t,
         days,
@@ -2489,47 +2547,84 @@
         endExMs: tEndExMs,
         returnYmd: Number.isFinite(tEndExMs) ? ymdFromMs(tEndExMs) : '—',
         lastDayYmd: Number.isFinite(lastMs) ? ymdFromMs(lastMs) : '—',
-        effective,
+        effective: 0,
       };
     });
-    const merged = mergeIntervals(intervals);
-    let awayDays = 0;
-    for (const iv of merged) awayDays += Math.floor((iv.endEx - iv.start) / 86400000);
-    const inCountry = Math.max(0, totalDays - awayDays);
+
+    const loggedSegs = useLog ? buildLoggedAbroadSegments(startMs, endExMs, valid) : [];
+
+    const dayCountry = valid ? new Array(totalDays).fill(home) : [];
+
+    if (valid) {
+      // Stamp planned trips first.
+      for (const r of tripsResolved) {
+        if (!Number.isFinite(r.startMs)) continue;
+        const c = String(r.country || '').trim() || UNASSIGNED;
+        const startDay = Math.max(0, Math.floor((r.startMs - startMs) / 86400000));
+        const endDay = Math.min(totalDays, Math.floor((r.endExMs - startMs) / 86400000));
+        for (let i = startDay; i < endDay; i += 1) dayCountry[i] = c;
+      }
+      // Logged stays (any country, including home) override planned where they exist.
+      if (useLog) {
+        const todayExMs = addUtcDaysMs(parseYmdToUtcMs(todayUtcYmd()), 1);
+        for (const stay of config.travelLog || []) {
+          if (!stay || !stay.country) continue;
+          const sMs = stayInclusiveStartMs(stay);
+          const eExMs = stay.exitDate ? parseYmdToUtcMs(stay.exitDate) : todayExMs;
+          if (!Number.isFinite(sMs) || !Number.isFinite(eExMs) || eExMs <= sMs) continue;
+          const startDay = Math.max(0, Math.floor((sMs - startMs) / 86400000));
+          const endDay = Math.min(totalDays, Math.floor((eExMs - startMs) / 86400000));
+          for (let i = startDay; i < endDay; i += 1) dayCountry[i] = stay.country;
+        }
+      }
+    }
+
+    const tally = new Map();
+    for (const c of dayCountry) tally.set(c, (tally.get(c) || 0) + 1);
+
+    // A trip's "effective" days are the days where its country still wins after
+    // logged overrides — i.e. the days that actually show up in the timeline.
+    for (const r of tripsResolved) {
+      if (!valid || !Number.isFinite(r.startMs)) continue;
+      const tripCountry = String(r.country || '').trim() || UNASSIGNED;
+      const startDay = Math.max(0, Math.floor((r.startMs - startMs) / 86400000));
+      const endDay = Math.min(totalDays, Math.floor((r.endExMs - startMs) / 86400000));
+      let eff = 0;
+      for (let i = startDay; i < endDay; i += 1) {
+        if (dayCountry[i] === tripCountry) eff += 1;
+      }
+      r.effective = eff;
+    }
+
+    const inCountry = tally.get(home) || 0;
+    const awayDays = Math.max(0, totalDays - inCountry);
+    const daysInSpain = tally.get(ABROAD_ANCHOR_COUNTRY) || 0;
     const threshold = Math.ceil(totalDays / 2);
+
+    const countryTotals = Array.from(tally.entries())
+      .filter(([, d]) => d > 0)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([country, days]) => ({ country, days }));
 
     const companyMs = parseYmdToUtcMs(fiscalState.companyStart);
     const companySet = Number.isFinite(companyMs);
     let projValid = false;
     let projStartMs = NaN;
     let projTotalDays = 0;
-    let projAwayDays = 0;
     let projInCountry = 0;
+    let projAwayDays = 0;
+    let projDaysInSpain = 0;
     let projThreshold = 0;
     if (companySet && valid && companyMs < endExMs) {
       projStartMs = Math.max(companyMs, startMs);
-      projTotalDays = Math.max(0, Math.floor((endExMs - projStartMs) / 86400000));
-      const projIntervals = fiscalState.trips
-        .map((t) => {
-          const sMs = parseYmdToUtcMs(t.start);
-          const d = Math.max(0, Math.min(365, Number(t.days) || 0));
-          if (!Number.isFinite(sMs)) return null;
-          const ivStart = Math.max(sMs, projStartMs);
-          const ivEnd = Math.min(addUtcDaysMs(sMs, d), endExMs);
-          if (ivEnd <= ivStart) return null;
-          return { start: ivStart, endEx: ivEnd };
-        })
-        .filter(Boolean);
-      if (useLog) {
-        for (const seg of loggedSegs) {
-          const ivStart = Math.max(seg.start, projStartMs);
-          const ivEnd = Math.min(seg.endEx, endExMs);
-          if (ivEnd > ivStart) projIntervals.push({ start: ivStart, endEx: ivEnd });
-        }
+      const projStartDay = Math.floor((projStartMs - startMs) / 86400000);
+      projTotalDays = Math.max(0, totalDays - projStartDay);
+      for (let i = projStartDay; i < totalDays; i += 1) {
+        const c = dayCountry[i];
+        if (c === home) projInCountry += 1;
+        if (c === ABROAD_ANCHOR_COUNTRY) projDaysInSpain += 1;
       }
-      const merged = mergeIntervals(projIntervals);
-      for (const iv of merged) projAwayDays += Math.floor((iv.endEx - iv.start) / 86400000);
-      projInCountry = Math.max(0, projTotalDays - projAwayDays);
+      projAwayDays = Math.max(0, projTotalDays - projInCountry);
       projThreshold = Math.ceil(projTotalDays / 2);
       projValid = projTotalDays > 0;
     }
@@ -2541,9 +2636,12 @@
       totalDays,
       awayDays,
       inCountry,
+      daysInSpain,
       threshold,
       tripsResolved,
       loggedSegs,
+      countryTotals,
+      home,
       companySet,
       companyMs,
       projValid,
@@ -2551,6 +2649,7 @@
       projTotalDays,
       projAwayDays,
       projInCountry,
+      projDaysInSpain,
       projThreshold,
     };
   }
@@ -2653,6 +2752,30 @@
     }
   }
 
+  function renderFiscalCountryTotals(countryTotals, threshold) {
+    if (!Array.isArray(countryTotals) || !countryTotals.length) {
+      return '<p class="fiscal-country-totals__empty">No trips planned yet — the entire year would be at home.</p>';
+    }
+    return countryTotals
+      .map(({ country, days }) => {
+        const isSpain = country === ABROAD_ANCHOR_COUNTRY;
+        const overLimit = isSpain && days > threshold;
+        const classes = [
+          'fiscal-country-chip',
+          isSpain ? 'fiscal-country-chip--spain' : '',
+          overLimit ? 'fiscal-country-chip--alert' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        return `<div class="${classes}" data-country="${escapeHtml(country)}">
+          <span class="fiscal-country-chip__flag" aria-hidden="true">${countryFlag(country)}</span>
+          <span class="fiscal-country-chip__name">${escapeHtml(country)}</span>
+          <span class="fiscal-country-chip__days"><strong>${days}</strong><span class="fiscal-country-chip__days-unit">d</span></span>
+        </div>`;
+      })
+      .join('');
+  }
+
   function paintFiscal() {
     const data = computeFiscal();
     const {
@@ -2661,36 +2784,39 @@
       awayDays,
       inCountry,
       threshold,
+      daysInSpain,
       tripsResolved,
-      loggedSegs,
-      startMs,
-      endExMs,
+      countryTotals,
+      home,
       companySet,
       projValid,
       projTotalDays,
-      projAwayDays,
       projInCountry,
+      projDaysInSpain,
       projThreshold,
+      startMs,
+      endExMs,
     } = data;
-    const projDiff = projInCountry - projThreshold;
-    const projOk = projValid && projDiff >= 0;
+    const projHomeDiff = projInCountry - projThreshold;
+    const projOk = projValid && projHomeDiff >= 0;
     const projStatusLabel = !projValid
       ? companySet
-        ? 'Company start is outside fiscal year'
+        ? 'Company start is outside the year window'
         : ''
       : projOk
-      ? `${projDiff} day${projDiff === 1 ? '' : 's'} above projected threshold`
-      : `${Math.abs(projDiff)} day${Math.abs(projDiff) === 1 ? '' : 's'} short of projected threshold`;
+      ? `${projHomeDiff} day${projHomeDiff === 1 ? '' : 's'} above projected threshold`
+      : `${Math.abs(projHomeDiff)} day${Math.abs(projHomeDiff) === 1 ? '' : 's'} short of projected threshold`;
     const projStatusCls = !projValid ? '' : projOk ? 'fiscal-status--ok' : 'fiscal-status--bad';
-    const diff = inCountry - threshold;
-    const ok = valid && diff >= 0;
-    const statusLabel = !valid
-      ? 'Set valid fiscal-year dates'
-      : ok
-      ? `${diff} day${diff === 1 ? '' : 's'} above threshold`
-      : `${Math.abs(diff)} day${Math.abs(diff) === 1 ? '' : 's'} short`;
-    const statusCls = !valid ? '' : ok ? 'fiscal-status--ok' : 'fiscal-status--bad';
-    const home = homeCountry() || 'home country';
+    // Spain card: red when OVER half-year (would trigger Spanish tax residency).
+    const spainHeadroom = threshold - daysInSpain;
+    const spainOk = valid && daysInSpain <= threshold;
+    const spainStatusLabel = !valid
+      ? 'Set valid year dates'
+      : spainOk
+      ? `${spainHeadroom} day${spainHeadroom === 1 ? '' : 's'} of headroom`
+      : `${Math.abs(spainHeadroom)} day${Math.abs(spainHeadroom) === 1 ? '' : 's'} over the limit`;
+    const spainStatusCls = !valid ? '' : spainOk ? 'fiscal-status--ok' : 'fiscal-status--bad';
+    const homeLabel = home || 'home country';
     const mode = fiscalWrap ? fiscalWrap.mode : 'current';
     const isPlanned = mode === 'planned';
     const countryOpts = fiscalCountryOptions();
@@ -2756,14 +2882,12 @@
       .join('');
 
     elFiscal.innerHTML = `
-      <h1 id="fiscal-heading">Fiscal Year Residency</h1>
+      <h1 id="fiscal-heading">Year plan</h1>
       <div class="fiscal-header">
         <p>${
           isPlanned
-            ? `Plan a future year from a clean slate. Add country segments — say 20 days in Spain, two weeks in the Philippines — and watch the totals and timeline build up. The travel log is ignored here so you're planning purely from scratch.`
-            : `Plan trips abroad and see how many days you'd spend in ${escapeHtml(
-                home
-              )} this fiscal year. Tax residency typically requires more than half the year in country — drag the sliders to find a combination that keeps you above the line.`
+            ? `Plan a future year from a clean slate. Add country segments — 20 days in Spain, two weeks in the Philippines — and the totals, timeline, and country breakdown all update live. The travel log is ignored so you're planning purely from scratch.`
+            : `Plan trips abroad and see how the year breaks down by country. Spain is your tax-residency risk country — stay under half the year there (${threshold} days). Drag the trip sliders, move dates, or swap countries; everything below recalculates as you go.`
         }</p>
         <p class="todos-status todos-status--${fiscalSyncState}" data-fiscal-status>${escapeHtml(TODOS_STATUS_LABEL[fiscalSyncState] || '')}</p>
         <div class="fiscal-header__controls">
@@ -2773,11 +2897,11 @@
           </div>
           <div class="fiscal-year-range">
             <label class="fiscal-trip__field">
-              <span>Fiscal year start</span>
+              <span>Year start</span>
               <input type="date" id="fiscal-year-start" value="${escapeHtml(fiscalState.yearStart)}" />
             </label>
             <label class="fiscal-trip__field">
-              <span>Fiscal year end</span>
+              <span>Year end</span>
               <input type="date" id="fiscal-year-end" value="${escapeHtml(fiscalState.yearEnd)}" />
             </label>
             <label class="fiscal-trip__field">
@@ -2800,11 +2924,11 @@
         </div>
       </div>
       <div class="travel-summary">
-        <article class="card summary-card--travel fiscal-summary-card ${statusCls}">
+        <article class="card summary-card--travel fiscal-summary-card">
           <div class="summary-card__body">
             <p class="summary-card__metric" data-metric="in">${inCountry}</p>
-            <h3 class="summary-card__title-line">Days in ${escapeHtml(home)}</h3>
-            <p class="summary-card__subtitle-line">Out of <span data-metric="total">${totalDays}</span> in fiscal year</p>
+            <h3 class="summary-card__title-line">Days in ${escapeHtml(homeLabel)}</h3>
+            <p class="summary-card__subtitle-line">Out of <span data-metric="total">${totalDays}</span> in the year</p>
           </div>
         </article>
         <article class="card summary-card--travel">
@@ -2818,25 +2942,32 @@
             )}</p>
           </div>
         </article>
-        <article class="card summary-card--travel fiscal-summary-card ${statusCls}">
+        <article class="card summary-card--travel fiscal-summary-card ${spainStatusCls}" data-card="spain">
           <div class="summary-card__body">
-            <p class="summary-card__metric" data-metric="threshold">${threshold}</p>
-            <h3 class="summary-card__title-line">Half-year threshold</h3>
-            <p class="summary-card__subtitle-line" data-metric="status">${escapeHtml(statusLabel)}</p>
+            <p class="summary-card__metric" data-metric="spain-days">${daysInSpain}</p>
+            <h3 class="summary-card__title-line">Days in ${escapeHtml(ABROAD_ANCHOR_COUNTRY)}</h3>
+            <p class="summary-card__subtitle-line">Limit <span data-metric="spain-threshold">${threshold}</span> · <span data-metric="spain-status">${escapeHtml(spainStatusLabel)}</span></p>
           </div>
         </article>
         <article class="card summary-card--travel fiscal-summary-card ${projStatusCls}" data-card="projection" ${companySet ? '' : 'hidden'}>
           <div class="summary-card__body">
             <p class="summary-card__metric" data-metric="proj-in">${projInCountry}</p>
-            <h3 class="summary-card__title-line">Projected in-country from company start</h3>
+            <h3 class="summary-card__title-line">Projected days in ${escapeHtml(homeLabel)} from company start</h3>
             <p class="summary-card__subtitle-line">Out of <span data-metric="proj-total">${projTotalDays}</span> · threshold <span data-metric="proj-threshold">${projThreshold}</span></p>
             <p class="summary-card__subtitle-line" data-metric="proj-status">${escapeHtml(projStatusLabel)}</p>
           </div>
         </article>
       </div>
+      <article class="card fiscal-country-totals" data-card="country-totals">
+        <header class="fiscal-country-totals__head">
+          <h2>Country totals</h2>
+          <p class="fiscal-country-totals__hint">Days per country across the whole year. Updates live as you adjust trips.</p>
+        </header>
+        <div class="fiscal-country-totals__list" data-role="country-totals-list">${renderFiscalCountryTotals(countryTotals, threshold)}</div>
+      </article>
       <div class="card fiscal-timeline-card">
-        <div class="panel-head"><h2>Fiscal timeline</h2></div>
-        <p class="fiscal-timeline__hint">Each segment shows time abroad within the fiscal-year window, colored by country.${
+        <div class="panel-head"><h2>Year timeline</h2></div>
+        <p class="fiscal-timeline__hint">Each segment shows time abroad within the year window, colored by country.${
           isPlanned ? '' : ' Logged stays are solid; planned trips are striped.'
         } Pick a country per trip, drag its slider, or move its departure date — the bar reacts live.</p>
         <div class="fiscal-timeline">
@@ -2882,54 +3013,74 @@
   function updateFiscalSummaryAndTimeline() {
     if (!elFiscal) return;
     const data = computeFiscal();
-    const { valid, totalDays, awayDays, inCountry, threshold, tripsResolved, startMs, endExMs } = data;
-    const diff = inCountry - threshold;
-    const ok = valid && diff >= 0;
-    const statusLabel = !valid
-      ? 'Set valid fiscal-year dates'
-      : ok
-      ? `${diff} day${diff === 1 ? '' : 's'} above threshold`
-      : `${Math.abs(diff)} day${Math.abs(diff) === 1 ? '' : 's'} short`;
+    const {
+      valid,
+      totalDays,
+      awayDays,
+      inCountry,
+      threshold,
+      daysInSpain,
+      tripsResolved,
+      countryTotals,
+    } = data;
 
     const setText = (sel, val) => {
       const e = elFiscal.querySelector(sel);
       if (e) e.textContent = val;
     };
+
     setText('[data-metric="in"]', String(inCountry));
     setText('[data-metric="away"]', String(awayDays));
     setText('[data-metric="total"]', String(totalDays));
-    setText('[data-metric="threshold"]', String(threshold));
-    setText('[data-metric="status"]', statusLabel);
     setText(
       '[data-metric="trip-count"]',
       fiscalUsesLog()
         ? `Travel log + ${fiscalState.trips.length} planned trip${fiscalState.trips.length === 1 ? '' : 's'}`
         : `${fiscalState.trips.length} planned trip${fiscalState.trips.length === 1 ? '' : 's'}`
     );
-    const projDiff2 = data.projInCountry - data.projThreshold;
-    const projOk2 = data.projValid && projDiff2 >= 0;
-    const projStatusLabel2 = !data.projValid
+
+    // Spain card (red when OVER the half-year line).
+    const spainHeadroom = threshold - daysInSpain;
+    const spainOk = valid && daysInSpain <= threshold;
+    const spainStatusLabel = !valid
+      ? 'Set valid year dates'
+      : spainOk
+      ? `${spainHeadroom} day${spainHeadroom === 1 ? '' : 's'} of headroom`
+      : `${Math.abs(spainHeadroom)} day${Math.abs(spainHeadroom) === 1 ? '' : 's'} over the limit`;
+    setText('[data-metric="spain-days"]', String(daysInSpain));
+    setText('[data-metric="spain-threshold"]', String(threshold));
+    setText('[data-metric="spain-status"]', spainStatusLabel);
+    const spainCard = elFiscal.querySelector('[data-card="spain"]');
+    if (spainCard) {
+      spainCard.classList.toggle('fiscal-status--ok', valid && spainOk);
+      spainCard.classList.toggle('fiscal-status--bad', valid && !spainOk);
+    }
+
+    // Projection card (home-country residency from company start).
+    const projDiff = data.projInCountry - data.projThreshold;
+    const projOk = data.projValid && projDiff >= 0;
+    const projStatusLabel = !data.projValid
       ? data.companySet
-        ? 'Company start is outside fiscal year'
+        ? 'Company start is outside the year window'
         : ''
-      : projOk2
-      ? `${projDiff2} day${projDiff2 === 1 ? '' : 's'} above projected threshold`
-      : `${Math.abs(projDiff2)} day${Math.abs(projDiff2) === 1 ? '' : 's'} short of projected threshold`;
+      : projOk
+      ? `${projDiff} day${projDiff === 1 ? '' : 's'} above projected threshold`
+      : `${Math.abs(projDiff)} day${Math.abs(projDiff) === 1 ? '' : 's'} short of projected threshold`;
     setText('[data-metric="proj-in"]', String(data.projInCountry));
     setText('[data-metric="proj-total"]', String(data.projTotalDays));
     setText('[data-metric="proj-threshold"]', String(data.projThreshold));
-    setText('[data-metric="proj-status"]', projStatusLabel2);
+    setText('[data-metric="proj-status"]', projStatusLabel);
     const projCard = elFiscal.querySelector('[data-card="projection"]');
     if (projCard) {
-      projCard.classList.toggle('fiscal-status--ok', projOk2);
-      projCard.classList.toggle('fiscal-status--bad', data.projValid && !projOk2);
+      projCard.classList.toggle('fiscal-status--ok', projOk);
+      projCard.classList.toggle('fiscal-status--bad', data.projValid && !projOk);
     }
 
-    elFiscal.querySelectorAll('.fiscal-summary-card').forEach((card) => {
-      card.classList.toggle('fiscal-status--ok', ok);
-      card.classList.toggle('fiscal-status--bad', valid && !ok);
-    });
+    // Country totals chips.
+    const totalsList = elFiscal.querySelector('[data-role="country-totals-list"]');
+    if (totalsList) totalsList.innerHTML = renderFiscalCountryTotals(countryTotals, threshold);
 
+    // Per-trip effective day count.
     tripsResolved.forEach((r) => {
       const node = elFiscal.querySelector(`.fiscal-trip[data-trip-id="${CSS.escape(r.id)}"]`);
       if (!node) return;

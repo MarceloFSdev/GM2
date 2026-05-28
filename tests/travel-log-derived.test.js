@@ -38,7 +38,7 @@ assert.ok(api, 'app exposes test API');
 
 const config = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config.json'), 'utf8'));
 const merged = api.mergeDefaults(config);
-assert.equal(api.collectFlightTrips(merged).length, 2, 'flight trips are de-duplicated across upcomingTrips and bookings');
+assert.equal(api.collectFlightTrips(merged).length, 4, 'flight trips are de-duplicated across upcomingTrips and bookings');
 
 const singaporeStay = merged.travelLog.find((stay) => stay.country === 'Singapore' && stay.entryDate === '2026-04-29');
 assert.deepEqual(
@@ -55,8 +55,12 @@ assert.deepEqual(
   'Singapore flight trip is present in the travel log'
 );
 
-const currentIndonesiaStay = merged.travelLog.find((stay) => stay.country === 'Indonesia' && stay.entryDate === '2026-05-04');
-assert.equal(currentIndonesiaStay?.exitDate, null, 'return flight starts the current Indonesia stay');
+const indonesiaStayAfterSingapore = merged.travelLog.find((stay) => stay.country === 'Indonesia' && stay.entryDate === '2026-05-04');
+assert.equal(indonesiaStayAfterSingapore?.exitDate, '2026-05-30', 'Indonesia stay after Singapore closes when the KL flight departs');
+const malaysiaStay = merged.travelLog.find((stay) => stay.country === 'Malaysia' && stay.entryDate === '2026-05-30');
+assert.equal(malaysiaStay?.exitDate, '2026-06-14', 'KL outbound/return flights create the Malaysia stay');
+const indonesiaStayAfterKL = merged.travelLog.find((stay) => stay.country === 'Indonesia' && stay.entryDate === '2026-06-14');
+assert.equal(indonesiaStayAfterKL?.exitDate, null, 'return flight from KL starts the current open-ended Indonesia stay');
 
 const y2026 = { start: Date.UTC(2026, 0, 1), endEx: Date.UTC(2027, 0, 1) };
 const totals = api.countryDaysInPeriod(merged.travelLog, y2026.start, y2026.endEx);
@@ -89,7 +93,9 @@ missingSingapore.travelLog = missingSingapore.travelLog
 const auto = api.mergeDefaults(missingSingapore);
 const autoSingaporeStay = auto.travelLog.find((stay) => stay.country === 'Singapore' && stay.entryDate === '2026-04-29');
 const autoReturnStay = auto.travelLog.find((stay) => stay.country === 'Indonesia' && stay.entryDate === '2026-05-04');
+const autoPostKLStay = auto.travelLog.find((stay) => stay.country === 'Indonesia' && stay.entryDate === '2026-06-14');
 assert.equal(autoSingaporeStay?.exitDate, '2026-05-04', 'future flight additions auto-close derived stays');
-assert.equal(autoReturnStay?.exitDate, null, 'future return flights auto-create the next current stay');
+assert.equal(autoReturnStay?.exitDate, '2026-05-30', 'derived Indonesia stay closes when the next outbound flight departs');
+assert.equal(autoPostKLStay?.exitDate, null, 'final return flight creates the current open-ended Indonesia stay');
 
 console.log('travel-log-derived tests passed');
