@@ -480,6 +480,25 @@
       "departureCountry": "Malaysia",
       "arrivalCountry": "Indonesia",
       "arrivalDate": "2026-06-14"
+    },
+    {
+      "id": "booking-006",
+      "type": "hotel",
+      "title": "Hotel Chinatown 2",
+      "startDate": "2026-05-30",
+      "endDate": "2026-06-03",
+      "checkIn": "2026-05-30",
+      "checkOut": "2026-06-03",
+      "checkInTime": "from 17:00",
+      "checkOutTime": "before 12:00",
+      "address": "70-72 Jalan Petaling",
+      "city": "Kuala Lumpur",
+      "country": "Malaysia",
+      "phone": "+60 3 2332 4710",
+      "email": "reservation@hotelchinatown2.com",
+      "bookingRef": "XTB1A69BF8",
+      "notes": "4-night stay · Standard single · 247.35 MYR due at check-in · free cancellation until 30 May 2026.",
+      "attachments": []
     }
   ],
   "longTermBookings": [
