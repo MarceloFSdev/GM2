@@ -22,6 +22,7 @@
     schedule: 'Schedule',
     todos: 'To-Do',
     fitness: 'Fitness',
+    birthdays: 'Birthdays',
     'language-audio': 'Language Audio',
   };
 
@@ -55,7 +56,14 @@
   let elSchedule;
   let elTodos;
   let elFitness;
+  let elBirthdays;
   let elLanguageAudio;
+
+  /** Birthday data — config seeded, editable through /api/birthdays when deployed. */
+  let birthdayItems = [];
+  let birthdaysLoaded = false;
+  let birthdaysLoading = false;
+  let birthdaysSyncState = 'idle';
 
   /** Fitness dashboard data (fitness.json, generated from the Mars OS vault). */
   let fitnessData = null;
@@ -689,6 +697,7 @@
       countriesWantToVisit: Array.isArray(o.countriesWantToVisit) ? o.countriesWantToVisit : [],
       upcomingTrips: Array.isArray(o.upcomingTrips) ? o.upcomingTrips : [],
       bookings: Array.isArray(o.bookings) ? o.bookings : [],
+      birthdays: Array.isArray(o.birthdays) ? o.birthdays : [],
       languageAudio: o.languageAudio && typeof o.languageAudio === 'object' ? o.languageAudio : { packs: [] },
     };
     base.travelLog = deriveTravelLogFromFlights(base);
@@ -3902,6 +3911,280 @@
     `;
   }
 
+
+  /* ── Birthdays (config seeded + /api/birthdays editable store) ───────────── */
+
+  function birthdayStatusLabel() {
+    if (birthdaysSyncState === 'loading') return 'Loading…';
+    if (birthdaysSyncState === 'saving') return 'Saving…';
+    if (birthdaysSyncState === 'saved') return 'All changes synced';
+    if (birthdaysSyncState === 'error') return 'Offline — dashboard changes not saved';
+    return '';
+  }
+
+  function normalizeMonthDay(value) {
+    const m = /^(\d{1,2})[-/](\d{1,2})$/.exec(String(value || '').trim());
+    if (!m) return null;
+    const month = Number(m[1]);
+    const day = Number(m[2]);
+    if (!Number.isInteger(month) || !Number.isInteger(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
+    return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  function normalizeBirthday(raw, idx) {
+    const o = raw && typeof raw === 'object' ? raw : {};
+    const name = String(o.name || '').trim();
+    const monthDay = normalizeMonthDay(o.monthDay || o.date);
+    if (!name || !monthDay) return null;
+    return {
+      id: String(o.id || `birthday-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`),
+      name,
+      monthDay,
+      note: String(o.note || '').trim(),
+      createdAt: String(o.createdAt || new Date().toISOString()),
+    };
+  }
+
+  function birthdayKey(b) {
+    return `${String(b.name || '').trim().toLowerCase()}|${b.monthDay}`;
+  }
+
+  function mergeBirthdaySources(...sources) {
+    const map = new Map();
+    sources.flat().forEach((raw, idx) => {
+      const b = normalizeBirthday(raw, idx);
+      if (!b) return;
+      map.set(birthdayKey(b), b);
+    });
+    return [...map.values()];
+  }
+
+  function birthdayNextInfo(monthDay) {
+    const md = normalizeMonthDay(monthDay);
+    if (!md) return { days: null, nextYmd: null, date: null };
+    const [month, day] = md.split('-').map(Number);
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    let target = Date.UTC(now.getFullYear(), month - 1, day);
+    if (target < today) target = Date.UTC(now.getFullYear() + 1, month - 1, day);
+    const d = new Date(target);
+    return {
+      days: Math.round((target - today) / 86400000),
+      nextYmd: `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`,
+      date: d,
+    };
+  }
+
+  function birthdayMonthDayLabel(monthDay) {
+    const info = birthdayNextInfo(monthDay);
+    if (!info.date) return monthDay || '';
+    return info.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  }
+
+  function birthdayCountdown(days) {
+    if (days === null || days === undefined) return '';
+    if (days === 0) return 'today';
+    if (days === 1) return 'tomorrow';
+    return `${days} days`;
+  }
+
+  function sortBirthdays(items) {
+    return [...items].sort((a, b) => {
+      const da = birthdayNextInfo(a.monthDay).days ?? 9999;
+      const db = birthdayNextInfo(b.monthDay).days ?? 9999;
+      if (da !== db) return da - db;
+      return String(a.name || '').localeCompare(String(b.name || ''));
+    });
+  }
+
+  async function loadBirthdaysRemote() {
+    const res = await fetch('/api/birthdays', { cache: 'no-store' });
+    if (!res.ok) throw new Error('birthdays fetch failed');
+    return res.json();
+  }
+
+  async function saveBirthdaysRemote(items) {
+    const res = await fetch('/api/birthdays', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ birthdays: items }),
+    });
+    if (!res.ok) throw new Error('birthdays save failed');
+    return res.json();
+  }
+
+  function setBirthdaysStatus(state) {
+    birthdaysSyncState = state;
+    const el = elBirthdays?.querySelector('[data-birthdays-status]');
+    if (!el) return;
+    el.textContent = birthdayStatusLabel();
+    el.className = `birthdays-status birthdays-status--${state}`;
+  }
+
+  async function persistBirthdays() {
+    setBirthdaysStatus('saving');
+    try {
+      await saveBirthdaysRemote(birthdayItems);
+      setBirthdaysStatus('saved');
+    } catch {
+      setBirthdaysStatus('error');
+    }
+  }
+
+  function birthdayListHtml(items) {
+    if (!items.length) return '<div class="booking-empty">No birthdays added yet.</div>';
+    return `<ul class="birthday-list">${sortBirthdays(items).map((b) => {
+      const info = birthdayNextInfo(b.monthDay);
+      return `<li class="birthday-row" data-birthday-id="${escapeHtml(b.id)}">
+        <div class="birthday-row__date">
+          <strong>${escapeHtml(birthdayMonthDayLabel(b.monthDay))}</strong>
+          <span>${escapeHtml(birthdayCountdown(info.days))}</span>
+        </div>
+        <div class="birthday-row__body">
+          <h3>${escapeHtml(b.name)}</h3>
+          ${b.note ? `<p>${escapeHtml(b.note)}</p>` : ''}
+        </div>
+        <button type="button" class="birthday-row__delete" data-birthday-delete aria-label="Delete ${escapeHtml(b.name)}">×</button>
+      </li>`;
+    }).join('')}</ul>`;
+  }
+
+  function birthdayCalendarHtml(items) {
+    const byMd = new Map();
+    items.forEach((b) => {
+      const arr = byMd.get(b.monthDay) || [];
+      arr.push(b);
+      byMd.set(b.monthDay, arr);
+    });
+    const now = new Date();
+    const months = [];
+    for (let i = 0; i < 12; i += 1) {
+      months.push(new Date(Date.UTC(now.getFullYear(), now.getMonth() + i, 1)));
+    }
+    return `<div class="birthday-calendar">${months.map((m) => {
+      const year = m.getUTCFullYear();
+      const month = m.getUTCMonth();
+      const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      const offset = new Date(Date.UTC(year, month, 1)).getUTCDay();
+      const blanks = Array.from({ length: offset }, () => '<span class="birthday-day birthday-day--blank"></span>').join('');
+      const dayCells = Array.from({ length: daysInMonth }, (_, dIdx) => {
+        const day = dIdx + 1;
+        const md = `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const matches = byMd.get(md) || [];
+        const names = matches.map((b) => b.name).join(', ');
+        return `<span class="birthday-day${matches.length ? ' birthday-day--has' : ''}" title="${escapeHtml(names)}"><span>${day}</span>${matches.length ? `<em>${escapeHtml(matches.map((b) => b.name).join(' · '))}</em>` : ''}</span>`;
+      }).join('');
+      return `<section class="card birthday-month">
+        <h3>${escapeHtml(m.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' }))}</h3>
+        <div class="birthday-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+        <div class="birthday-days">${blanks}${dayCells}</div>
+      </section>`;
+    }).join('')}</div>`;
+  }
+
+  function paintBirthdays() {
+    if (!elBirthdays) return;
+    const items = sortBirthdays(birthdayItems);
+    const next = items[0] || null;
+    const nextInfo = next ? birthdayNextInfo(next.monthDay) : null;
+    elBirthdays.innerHTML = `
+      <header class="view-heading birthday-heading">
+        <div>
+          <p class="eyebrow">Personal calendar</p>
+          <h1 id="birthdays-heading">Birthdays</h1>
+          <p>See upcoming birthdays and add new ones to the dashboard calendar.</p>
+        </div>
+        <span class="birthdays-status birthdays-status--${escapeHtml(birthdaysSyncState)}" data-birthdays-status>${escapeHtml(birthdayStatusLabel())}</span>
+      </header>
+
+      <section class="birthday-hero card">
+        <div>
+          <p class="eyebrow">Next birthday</p>
+          <h2>${next ? escapeHtml(next.name) : 'No birthdays yet'}</h2>
+          <p>${next ? `${escapeHtml(birthdayMonthDayLabel(next.monthDay))} · ${escapeHtml(birthdayCountdown(nextInfo.days))}` : 'Add someone below.'}</p>
+        </div>
+        <strong>${items.length}</strong>
+      </section>
+
+      <div class="birthday-grid">
+        <section class="card birthday-panel">
+          <div class="panel-head"><h2>Add birthday</h2></div>
+          <form class="birthday-form" data-birthday-add>
+            <label>Name<input type="text" name="name" placeholder="Bea" required autocomplete="off" /></label>
+            <label>Date<input type="text" name="monthDay" placeholder="MM-DD" pattern="\\d{1,2}[-/]\\d{1,2}" required /></label>
+            <label>Note<input type="text" name="note" placeholder="optional" autocomplete="off" /></label>
+            <button type="submit">Add</button>
+          </form>
+        </section>
+        <section class="card birthday-panel">
+          <div class="panel-head"><h2>Upcoming list</h2></div>
+          ${birthdaysLoading ? '<p class="booking-empty">Loading birthdays…</p>' : birthdayListHtml(items)}
+        </section>
+      </div>
+
+      <section class="birthday-panel birthday-calendar-panel">
+        <div class="panel-head"><h2>12-month calendar</h2></div>
+        ${birthdayCalendarHtml(items)}
+      </section>
+    `;
+  }
+
+  async function renderBirthdays() {
+    if (!elBirthdays) return;
+    if (birthdaysLoaded) {
+      paintBirthdays();
+      return;
+    }
+    birthdayItems = mergeBirthdaySources(config.birthdays || []);
+    birthdaysLoading = true;
+    birthdaysSyncState = 'loading';
+    paintBirthdays();
+    try {
+      const data = await loadBirthdaysRemote();
+      birthdayItems = mergeBirthdaySources(config.birthdays || [], Array.isArray(data?.birthdays) ? data.birthdays : []);
+      birthdaysSyncState = 'idle';
+    } catch {
+      birthdaysSyncState = birthdayItems.length ? 'idle' : 'error';
+    } finally {
+      birthdaysLoaded = true;
+      birthdaysLoading = false;
+      paintBirthdays();
+    }
+  }
+
+  function wireBirthdays() {
+    if (!elBirthdays) return;
+    elBirthdays.addEventListener('submit', (e) => {
+      const form = e.target.closest('[data-birthday-add]');
+      if (!form) return;
+      e.preventDefault();
+      const b = normalizeBirthday({
+        name: form.querySelector('input[name="name"]')?.value,
+        monthDay: form.querySelector('input[name="monthDay"]')?.value,
+        note: form.querySelector('input[name="note"]')?.value,
+      }, birthdayItems.length);
+      if (!b) return;
+      birthdayItems = mergeBirthdaySources(birthdayItems, [b]);
+      paintBirthdays();
+      persistBirthdays();
+      const next = elBirthdays.querySelector('[data-birthday-add] input[name="name"]');
+      form.reset();
+      next?.focus();
+    });
+    elBirthdays.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-birthday-delete]');
+      if (!btn) return;
+      const row = btn.closest('[data-birthday-id]');
+      const id = row?.getAttribute('data-birthday-id');
+      if (!id) return;
+      const item = birthdayItems.find((b) => b.id === id);
+      if (item && !window.confirm(`Delete birthday for ${item.name}?`)) return;
+      birthdayItems = birthdayItems.filter((b) => b.id !== id);
+      paintBirthdays();
+      persistBirthdays();
+    });
+  }
+
   function getLanguageAudioPacks(c = config) {
     const packs = c?.languageAudio?.packs;
     if (!Array.isArray(packs)) return [];
@@ -4000,7 +4283,7 @@
   }
 
   function allowedView(view) {
-    return ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'fiscal', 'schedule', 'todos', 'fitness', 'language-audio'].includes(view);
+    return ['dashboard', 'travel', 'clocks', 'world', 'bookings', 'renewals', 'birthdays', 'fiscal', 'schedule', 'todos', 'fitness', 'language-audio'].includes(view);
   }
 
   function setView(view) {
@@ -4019,6 +4302,7 @@
       world: $('view-world'),
       bookings: $('view-bookings'),
       renewals: $('view-renewals'),
+      birthdays: $('view-birthdays'),
       fiscal: $('view-fiscal'),
       schedule: $('view-schedule'),
       todos: $('view-todos'),
@@ -4051,6 +4335,7 @@
     if (view === 'world') renderWorldCountries();
     if (view === 'bookings') renderBookings();
     if (view === 'renewals') renderRenewals();
+    if (view === 'birthdays') renderBirthdays();
     if (view === 'fiscal') renderFiscal();
     if (view === 'schedule') renderSchedule();
     if (view === 'todos') renderTodos();
@@ -4149,6 +4434,7 @@
     elWorld = $('world-mount');
     elBookings = $('bookings-mount');
     elRenewals = $('renewals-mount');
+    elBirthdays = $('birthdays-mount');
     elFiscal = $('fiscal-mount');
     elSchedule = $('schedule-mount');
     elTodos = $('todos-mount');
@@ -4175,6 +4461,7 @@
     wireSidebarCollapse();
     wireAlertsPopover();
     wireTodos();
+    wireBirthdays();
     refreshAlertsChrome();
 
     let initial = (config.app && config.app.defaultView) || 'dashboard';
@@ -4212,6 +4499,9 @@
       mergeDefaults,
       parseYmdToUtcMs,
       getLanguageAudioPacks,
+      normalizeBirthday,
+      sortBirthdays,
+      birthdayNextInfo,
       renderLanguageAudioPackCard,
     };
   }

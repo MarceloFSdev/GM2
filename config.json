@@ -2600,5 +2600,19 @@
         ]
       }
     ]
-  }
+  },
+  "birthdays": [
+    {
+      "id": "birthday-bea-05-30",
+      "name": "Bea",
+      "monthDay": "05-30",
+      "note": ""
+    },
+    {
+      "id": "birthday-juan-07-05",
+      "name": "Juan",
+      "monthDay": "07-05",
+      "note": ""
+    }
+  ]
 }
