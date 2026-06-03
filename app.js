@@ -9,7 +9,18 @@
   const STORAGE_DASH_STAY_PERIOD = 'chronos-gmt-dashboard-stay-period';
   const STORAGE_FISCAL = 'chronos-gmt-fiscal-planner';
   const STORAGE_TODOS_COLLAPSED = 'chronos-gmt-todos-collapsed';
+  const STORAGE_TODOS_VIEW = 'chronos-gmt-todos-view';
+  const STORAGE_TODOS_ARCHIVE_OPEN = 'chronos-gmt-todos-archive-open';
   const ABROAD_ANCHOR_COUNTRY = 'Spain';
+
+  /** Kanban stages, in column order. 'done' mirrors the task `done` flag. */
+  const TODO_STATUSES = [
+    { key: 'todo', label: 'To Do' },
+    { key: 'in-progress', label: 'In Progress' },
+    { key: 'waiting', label: 'Waiting For' },
+    { key: 'done', label: 'Completed' },
+  ];
+  const TODO_STATUS_KEYS = TODO_STATUSES.map((s) => s.key);
 
   const VIEW_TITLES = {
     dashboard: 'Dashboard',
@@ -79,15 +90,22 @@
 
   /** To-Do list state — synced to the /api/todos backend (Workers KV). */
   let todoItems = [];
+  /** Tasks moved out of the active list; never feed alerts/Kanban. */
+  let todosArchived = [];
   let todosLoaded = false;
   let todosLoading = false;
   let todosSyncState = 'idle';
-  let todosSortable = null;
+  /** Live SortableJS instances (active list, each subtask list, each Kanban column). */
+  let todosSortables = [];
   let todosEditingId = null;
   /** Per-device set of collapsed task ids (subtasks hidden). */
   let todosCollapsed = null;
   /** Transient set of task ids whose add-subtask field is open. */
   const todosSubaddOpen = new Set();
+  /** Per-device view: 'list' | 'kanban'. */
+  let todosViewMode = null;
+  /** Per-device: is the archive drawer expanded. */
+  let todosArchiveOpen = null;
 
   const clockHandlers = new Map();
 
@@ -1558,7 +1576,7 @@
     const res = await fetch('/api/todos', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ todos: items }),
+      body: JSON.stringify({ todos: items, archived: todosArchived }),
     });
     if (!res.ok) throw new Error('todos save failed');
     return res.json();
@@ -1596,26 +1614,55 @@
     return { cls, text: `${formatBookingDate(deadline)}${suffix}` };
   }
 
-  function todoDueBadge(deadline) {
-    const meta = todoDeadlineMeta(deadline);
-    return meta ? `<span class="${meta.cls}">${escapeHtml(meta.text)}</span>` : '';
+  // Clickable deadline chip. Shows the date when set, a faint "＋ date" prompt
+  // when not. Clicking it opens the native date picker (wired in wireTodos).
+  function todoDateChip(item) {
+    const meta = todoDeadlineMeta(item.deadline);
+    const cls = meta ? meta.cls : 'todos-due todos-due--empty';
+    const text = meta ? meta.text : '＋ date';
+    const label = item.deadline ? 'Change deadline' : 'Add deadline';
+    return `<span class="todos-due-wrap" data-todo-date>
+        <button type="button" class="${cls} todos-due--btn" aria-label="${label}" title="${label}">${escapeHtml(text)}</button>
+        <input type="date" class="todos-due__input" data-todo-date-input value="${item.deadline ? escapeHtml(item.deadline) : ''}" tabindex="-1" aria-hidden="true" />
+      </span>`;
   }
 
   // Ensure loaded/created items carry every field the UI expects.
   function normalizeTask(t, isTop) {
     const o = t && typeof t === 'object' ? t : {};
     const prefix = isTop ? 'todo' : 'sub';
+    // 'done' status and the done flag are two views of the same truth.
+    const done = o.done === true || o.status === 'done';
     const item = {
       id: typeof o.id === 'string' && o.id ? o.id : `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       text: typeof o.text === 'string' ? o.text : '',
-      done: o.done === true,
+      done,
       urgent: o.urgent === true,
       deadline: typeof o.deadline === 'string' && o.deadline ? o.deadline : null,
       createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date().toISOString(),
-      doneAt: typeof o.doneAt === 'string' ? o.doneAt : null,
+      doneAt: typeof o.doneAt === 'string' ? o.doneAt : done ? new Date().toISOString() : null,
     };
-    if (isTop) item.subtasks = Array.isArray(o.subtasks) ? o.subtasks.map((s) => normalizeTask(s, false)) : [];
+    if (isTop) {
+      item.status = done ? 'done' : TODO_STATUS_KEYS.includes(o.status) && o.status !== 'done' ? o.status : 'todo';
+      item.subtasks = Array.isArray(o.subtasks) ? o.subtasks.map((s) => normalizeTask(s, false)) : [];
+    }
     return item;
+  }
+
+  // Keep a task's `done` flag and Kanban `status` in lockstep after a mutation.
+  function setTaskStatus(task, status) {
+    if (!task) return;
+    task.status = TODO_STATUS_KEYS.includes(status) ? status : 'todo';
+    const done = task.status === 'done';
+    task.done = done;
+    task.doneAt = done ? task.doneAt || new Date().toISOString() : null;
+  }
+
+  function setTaskDone(item, done) {
+    item.done = done;
+    item.doneAt = done ? new Date().toISOString() : null;
+    // Only top-level tasks carry a Kanban status; reset to 'todo' when reopened.
+    if (Object.prototype.hasOwnProperty.call(item, 'status')) item.status = done ? 'done' : 'todo';
   }
 
   function getTodosCollapsed() {
@@ -1639,6 +1686,48 @@
     }
   }
 
+  function getTodosViewMode() {
+    if (todosViewMode) return todosViewMode;
+    let stored = null;
+    try {
+      stored = localStorage.getItem(STORAGE_TODOS_VIEW);
+    } catch {
+      /* ignore */
+    }
+    todosViewMode = stored === 'kanban' ? 'kanban' : 'list';
+    return todosViewMode;
+  }
+
+  function setTodosViewMode(mode) {
+    todosViewMode = mode === 'kanban' ? 'kanban' : 'list';
+    try {
+      localStorage.setItem(STORAGE_TODOS_VIEW, todosViewMode);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function getTodosArchiveOpen() {
+    if (todosArchiveOpen !== null) return todosArchiveOpen;
+    let stored = null;
+    try {
+      stored = localStorage.getItem(STORAGE_TODOS_ARCHIVE_OPEN);
+    } catch {
+      /* ignore */
+    }
+    todosArchiveOpen = stored === '1';
+    return todosArchiveOpen;
+  }
+
+  function setTodosArchiveOpen(open) {
+    todosArchiveOpen = !!open;
+    try {
+      localStorage.setItem(STORAGE_TODOS_ARCHIVE_OPEN, todosArchiveOpen ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }
+
   // The text + checkbox, or an inline input when this item is being edited.
   // Note: a plain div (not a <label>) so clicking the title does NOT toggle
   // done — only the checkbox itself does.
@@ -1653,12 +1742,65 @@
   }
 
   function renderSubtaskRow(sub) {
-    return `<li class="todos-item todos-subitem${sub.done ? ' todos-item--done' : ''}" data-sub-id="${escapeHtml(sub.id)}">
-      ${todoMainHtml(sub, 'Toggle subtask')}
-      ${todoDueBadge(sub.deadline)}
-      <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit subtask" title="Edit">✎</button>
-      <button type="button" class="todos-item__del" data-todo-del aria-label="Delete subtask">×</button>
+    return `<li class="todos-item todos-subitem${sub.done ? ' todos-item--done' : ''}${sub.urgent ? ' todos-subitem--urgent' : ''}" data-sub-id="${escapeHtml(sub.id)}">
+      <span class="todos-drag todos-drag--sub" data-todos-sub-handle aria-hidden="true" title="Drag to reorder">⠿</span>
+      <div class="todos-item__lead">
+        ${todoMainHtml(sub, 'Toggle subtask')}
+        ${todoDateChip(sub)}
+      </div>
+      <div class="todos-item__actions">
+        <button type="button" class="todos-light${sub.urgent ? ' todos-light--on' : ''}" data-todo-urgent aria-pressed="${sub.urgent ? 'true' : 'false'}" aria-label="Mark urgent" title="${sub.urgent ? 'Urgent — click to clear' : 'Mark urgent'}"></button>
+        <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit subtask" title="Edit">✎</button>
+        <button type="button" class="todos-item__del" data-todo-del aria-label="Delete subtask">×</button>
+      </div>
     </li>`;
+  }
+
+  // Move done top-level tasks (and any done subtasks under active parents) into
+  // the archive. Reversible — restore from the Archive drawer.
+  function archiveDoneTasks() {
+    const movedTop = todoItems.filter((t) => t.done);
+    const remaining = todoItems.filter((t) => !t.done);
+    const detached = [];
+    remaining.forEach((t) => {
+      if (!Array.isArray(t.subtasks)) return;
+      const doneSubs = t.subtasks.filter((s) => s.done);
+      if (!doneSubs.length) return;
+      t.subtasks = t.subtasks.filter((s) => !s.done);
+      // A detached subtask becomes a standalone archived task.
+      doneSubs.forEach((s) => detached.push(normalizeTask({ ...s, subtasks: [] }, true)));
+    });
+    todosArchived = [...movedTop, ...detached, ...todosArchived];
+    todoItems = remaining;
+  }
+
+  function renderArchivedRow(item) {
+    const meta = todoDeadlineMeta(item.deadline);
+    return `<li class="todos-item todos-archived" data-archived-id="${escapeHtml(item.id)}">
+      <div class="todos-item__lead">
+        <span class="todos-item__text">${escapeHtml(item.text)}</span>
+        ${meta ? `<span class="${meta.cls}">${escapeHtml(meta.text)}</span>` : ''}
+      </div>
+      <div class="todos-item__actions">
+        <button type="button" class="todos-archived__restore" data-todos-restore aria-label="Restore task" title="Restore to list">↩</button>
+        <button type="button" class="todos-item__del" data-todos-archived-del aria-label="Delete permanently" title="Delete permanently">×</button>
+      </div>
+    </li>`;
+  }
+
+  function renderArchive() {
+    if (!todosArchived.length) return '';
+    const open = getTodosArchiveOpen();
+    return `<div class="todos-archive${open ? ' is-open' : ''}">
+      <div class="todos-archive__head">
+        <button type="button" class="todos-archive__toggle" data-todos-archive-toggle aria-expanded="${open ? 'true' : 'false'}">
+          <span class="todos-archive__caret" aria-hidden="true">${open ? '▾' : '▸'}</span>
+          <span>Archive · ${todosArchived.length}</span>
+        </button>
+        ${open ? '<button type="button" class="todos-archive__clear" data-todos-archive-clear>Clear archive</button>' : ''}
+      </div>
+      ${open ? `<ul class="todos-list todos-list--archive">${todosArchived.map(renderArchivedRow).join('')}</ul>` : ''}
+    </div>`;
   }
 
   function renderTaskGroup(item, draggable) {
@@ -1672,18 +1814,22 @@
     return `<li class="todos-item todos-task${item.done ? ' todos-item--done' : ''}${item.urgent ? ' todos-task--urgent' : ''}${collapsed ? ' todos-task--collapsed' : ''}" data-id="${escapeHtml(item.id)}">
       <div class="todos-task__head">
         ${draggable ? '<span class="todos-drag" data-todos-handle aria-hidden="true" title="Drag to reorder">⠿</span>' : ''}
-        ${todoMainHtml(item, 'Toggle complete')}
-        <button type="button" class="todos-light${item.urgent ? ' todos-light--on' : ''}" data-todo-urgent aria-pressed="${item.urgent ? 'true' : 'false'}" aria-label="Mark urgent" title="${item.urgent ? 'Urgent — click to clear' : 'Mark urgent'}"></button>
-        ${hasSubs ? `<button type="button" class="todos-collapse" data-todo-collapse aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Expand subtasks' : 'Collapse subtasks'}" title="${collapsed ? 'Expand' : 'Collapse'}">${collapsed ? '▸' : '▾'}</button>` : ''}
-        ${hasSubs ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
-        ${todoDueBadge(item.deadline)}
-        <button type="button" class="todos-subadd-toggle${subaddOpen ? ' is-open' : ''}" data-subadd-toggle data-parent="${escapeHtml(item.id)}" aria-expanded="${subaddOpen ? 'true' : 'false'}" aria-label="Add subtask" title="Add subtask">+</button>
-        <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit task" title="Edit">✎</button>
-        <button type="button" class="todos-item__del" data-todo-del aria-label="Delete task">×</button>
+        <div class="todos-item__lead">
+          ${todoMainHtml(item, 'Toggle complete')}
+          ${hasSubs ? `<button type="button" class="todos-collapse" data-todo-collapse aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Expand subtasks' : 'Collapse subtasks'}" title="${collapsed ? 'Expand' : 'Collapse'}">${collapsed ? '▸' : '▾'}</button>` : ''}
+          ${hasSubs ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
+          ${todoDateChip(item)}
+        </div>
+        <div class="todos-item__actions">
+          <button type="button" class="todos-subadd-toggle${subaddOpen ? ' is-open' : ''}" data-subadd-toggle data-parent="${escapeHtml(item.id)}" aria-expanded="${subaddOpen ? 'true' : 'false'}" aria-label="Add subtask" title="Add subtask">+</button>
+          <button type="button" class="todos-light${item.urgent ? ' todos-light--on' : ''}" data-todo-urgent aria-pressed="${item.urgent ? 'true' : 'false'}" aria-label="Mark urgent" title="${item.urgent ? 'Urgent — click to clear' : 'Mark urgent'}"></button>
+          <button type="button" class="todos-item__edit" data-todo-edit aria-label="Edit task" title="Edit">✎</button>
+          <button type="button" class="todos-item__del" data-todo-del aria-label="Delete task">×</button>
+        </div>
       </div>
       ${hasSubs || subaddOpen
         ? `<div class="todos-task__body"${collapsed ? ' hidden' : ''}>
-        ${hasSubs ? `<ul class="todos-subtasks">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
+        ${hasSubs ? `<ul class="todos-subtasks" data-todos-subsortable data-parent="${escapeHtml(item.id)}">${subs.map(renderSubtaskRow).join('')}</ul>` : ''}
         ${subaddOpen
           ? `<form class="todos-subadd" data-subtask-add data-parent="${escapeHtml(item.id)}">
               <input type="text" class="todos-subadd__input" name="text" placeholder="Add subtask…" autocomplete="off" maxlength="2000" aria-label="New subtask" />
@@ -1696,16 +1842,98 @@
     </li>`;
   }
 
+  // A Kanban card mirrors a top-level task: text, urgent dot, deadline + subtask
+  // progress. Editing happens in List view; the board is for staging.
+  function renderKanbanCard(item) {
+    const subs = Array.isArray(item.subtasks) ? item.subtasks : [];
+    const doneCount = subs.filter((s) => s.done).length;
+    const meta = todoDeadlineMeta(item.deadline);
+    const hasMeta = meta || subs.length;
+    return `<li class="todos-kcard${item.urgent ? ' todos-kcard--urgent' : ''}" data-id="${escapeHtml(item.id)}">
+      <div class="todos-kcard__top">
+        <span class="todos-kcard__text">${escapeHtml(item.text)}</span>
+        ${item.urgent ? '<span class="todos-light todos-light--on todos-kcard__dot" aria-label="Urgent"></span>' : ''}
+      </div>
+      ${hasMeta
+        ? `<div class="todos-kcard__meta">
+            ${meta ? `<span class="${meta.cls}">${escapeHtml(meta.text)}</span>` : ''}
+            ${subs.length ? `<span class="todos-progress">${doneCount}/${subs.length}</span>` : ''}
+          </div>`
+        : ''}
+    </li>`;
+  }
+
+  function renderKanban() {
+    const cols = TODO_STATUSES.map((s) => {
+      const items = todoItems.filter((t) => (t.status || (t.done ? 'done' : 'todo')) === s.key);
+      return `<div class="todos-kcol" data-kanban-col="${s.key}">
+        <div class="todos-kcol__head">
+          <span class="todos-kcol__title">${escapeHtml(s.label)}</span>
+          <span class="todos-kcol__count">${items.length}</span>
+        </div>
+        <ul class="todos-kcol__list" data-kanban-list data-status="${s.key}">${items.map(renderKanbanCard).join('')}</ul>
+      </div>`;
+    }).join('');
+    return `<div class="todos-kanban">${cols}</div>`;
+  }
+
+  // There is one master order (todoItems); every column is just that list
+  // filtered to a stage, rendered in master order. A board drag is therefore one
+  // of two things:
+  //   • across columns → a stage change only. The master order is untouched, so
+  //     the card re-snaps to its master-order slot in the new column.
+  //   • within a column → a reorder. The same-stage cards are permuted among the
+  //     array slots they already occupy, leaving every other stage in place.
+  function syncKanbanFromDom(evt) {
+    if (!evt || !evt.item) return;
+    const task = findTask(evt.item.getAttribute('data-id'));
+    if (!task) return;
+    const fromStatus = evt.from && evt.from.getAttribute('data-status');
+    const toStatus = evt.to && evt.to.getAttribute('data-status');
+
+    if (fromStatus !== toStatus) {
+      setTaskStatus(task, toStatus);
+    } else {
+      if (evt.oldIndex === evt.newIndex) return; // dropped back in place
+      const colItems = [...evt.to.querySelectorAll('[data-id]')]
+        .map((li) => findTask(li.getAttribute('data-id')))
+        .filter(Boolean);
+      const colSet = new Set(colItems);
+      const slots = [];
+      todoItems.forEach((t, i) => {
+        if (colSet.has(t)) slots.push(i);
+      });
+      slots.forEach((slotIdx, k) => {
+        todoItems[slotIdx] = colItems[k];
+      });
+    }
+    persistTodos();
+    // Defer the repaint so SortableJS finishes unwinding the drag first.
+    requestAnimationFrame(() => paintTodos());
+  }
+
   function paintTodos() {
     if (!elTodos) return;
+    const mode = getTodosViewMode();
     const active = todoItems.filter((t) => !t.done);
     const done = todoItems.filter((t) => t.done);
+
+    const listBody = `
+        ${active.length ? `<ul class="todos-list" data-todos-sortable>${active.map((t) => renderTaskGroup(t, true)).join('')}</ul>` : ''}
+        ${todosLoaded && !todoItems.length ? '<p class="todos-empty">No tasks yet. Add your first one above.</p>' : ''}
+        ${done.length ? `<p class="todos-done-label">Done · ${done.length}</p><ul class="todos-list todos-list--done">${done.map((t) => renderTaskGroup(t, false)).join('')}</ul>` : ''}`;
 
     elTodos.innerHTML = `
       <h1 id="todos-heading">To-Do</h1>
       <div class="travel-header">
         <div>
-          <p>A simple checklist synced to the cloud, so it stays in step across every device. Give a task a deadline, and group related steps as subtasks.</p>
+          <p>A simple checklist synced to the cloud, so it stays in step across every device. Give a task a deadline, group related steps as subtasks, or switch to the board to organise by stage.</p>
+        </div>
+      </div>
+      <div class="todos-viewbar">
+        <div class="todos-viewtoggle" role="group" aria-label="To-Do view">
+          <button type="button" class="todos-viewtoggle__btn${mode === 'list' ? ' is-active' : ''}" data-todos-view="list" aria-pressed="${mode === 'list' ? 'true' : 'false'}">List</button>
+          <button type="button" class="todos-viewtoggle__btn${mode === 'kanban' ? ' is-active' : ''}" data-todos-view="kanban" aria-pressed="${mode === 'kanban' ? 'true' : 'false'}">Board</button>
         </div>
       </div>
       <section class="card todos-card">
@@ -1716,45 +1944,97 @@
         </form>
         <p class="todos-status todos-status--${todosSyncState}" data-todos-status>${escapeHtml(TODOS_STATUS_LABEL[todosSyncState] || '')}</p>
         ${todosLoading && !todosLoaded ? '<p class="todos-empty">Loading…</p>' : ''}
-        ${active.length ? `<ul class="todos-list" data-todos-sortable>${active.map((t) => renderTaskGroup(t, true)).join('')}</ul>` : ''}
-        ${todosLoaded && !todoItems.length ? '<p class="todos-empty">No tasks yet. Add your first one above.</p>' : ''}
-        ${done.length ? `<p class="todos-done-label">Done · ${done.length}</p><ul class="todos-list todos-list--done">${done.map((t) => renderTaskGroup(t, false)).join('')}</ul>` : ''}
-        ${hasDoneTasks() ? `<div class="todos-actions"><button type="button" class="todos-clear" data-todos-clear-done>Clear ‘done’ tasks</button></div>` : ''}
+        ${mode === 'kanban' ? renderKanban() : listBody}
+        ${hasDoneTasks() ? `<div class="todos-actions"><button type="button" class="todos-clear" data-todos-clear-done>Archive ‘done’ tasks</button></div>` : ''}
+        ${renderArchive()}
       </section>
     `;
     initTodosSortable();
   }
 
-  // (Re)create the SortableJS instance for the active list. innerHTML rebuilds
-  // destroy the old DOM each paint, so destroy the stale instance first.
-  function initTodosSortable() {
-    if (todosSortable) {
+  function destroyTodosSortables() {
+    todosSortables.forEach((s) => {
       try {
-        todosSortable.destroy();
+        s.destroy();
       } catch {
         /* ignore */
       }
-      todosSortable = null;
-    }
-    const list = elTodos && elTodos.querySelector('[data-todos-sortable]');
-    if (!list || !window.Sortable) return;
-    todosSortable = window.Sortable.create(list, {
-      handle: '.todos-drag',
-      animation: 150,
-      // Pointer-based dragging (not native HTML5 DnD): consistent on touch + desktop.
-      forceFallback: true,
-      fallbackTolerance: 3,
-      ghostClass: 'todos-item--ghost',
-      onEnd: (evt) => {
-        if (evt.oldIndex === evt.newIndex) return;
-        const active = todoItems.filter((t) => !t.done);
-        const done = todoItems.filter((t) => t.done);
-        const [moved] = active.splice(evt.oldIndex, 1);
-        active.splice(evt.newIndex, 0, moved);
-        todoItems = [...active, ...done];
-        persistTodos();
-      },
     });
+    todosSortables = [];
+  }
+
+  // Shared options for every pointer-based (touch + desktop) sortable list.
+  const TODOS_SORTABLE_BASE = {
+    animation: 150,
+    forceFallback: true,
+    fallbackTolerance: 3,
+    ghostClass: 'todos-item--ghost',
+  };
+
+  // (Re)create SortableJS instances. innerHTML rebuilds destroy the old DOM each
+  // paint, so destroy the stale instances first. Covers the active top-level
+  // list and one instance per subtask list. Kanban columns are wired separately.
+  function initTodosSortable() {
+    destroyTodosSortables();
+    if (!elTodos || !window.Sortable) return;
+
+    const list = elTodos.querySelector('[data-todos-sortable]');
+    if (list) {
+      todosSortables.push(
+        window.Sortable.create(list, {
+          ...TODOS_SORTABLE_BASE,
+          // Distinct handle attr so grabbing a subtask handle never drags the task.
+          handle: '[data-todos-handle]',
+          onEnd: (evt) => {
+            if (evt.oldIndex === evt.newIndex) return;
+            const active = todoItems.filter((t) => !t.done);
+            const done = todoItems.filter((t) => t.done);
+            const [moved] = active.splice(evt.oldIndex, 1);
+            active.splice(evt.newIndex, 0, moved);
+            todoItems = [...active, ...done];
+            persistTodos();
+          },
+        }),
+      );
+    }
+
+    elTodos.querySelectorAll('[data-todos-subsortable]').forEach((ul) => {
+      const parentId = ul.getAttribute('data-parent');
+      todosSortables.push(
+        window.Sortable.create(ul, {
+          ...TODOS_SORTABLE_BASE,
+          handle: '[data-todos-sub-handle]',
+          onEnd: () => reorderSubtasksFromDom(parentId, ul),
+        }),
+      );
+    });
+
+    // Kanban columns share one drag group so cards move between stages.
+    elTodos.querySelectorAll('[data-kanban-list]').forEach((ul) => {
+      todosSortables.push(
+        window.Sortable.create(ul, {
+          ...TODOS_SORTABLE_BASE,
+          group: 'todos-kanban',
+          draggable: '.todos-kcard',
+          onEnd: syncKanbanFromDom,
+        }),
+      );
+    });
+  }
+
+  // After a subtask drag, rebuild the parent's subtasks array to match the DOM
+  // order (done subtasks re-sink to the bottom on the next paint).
+  function reorderSubtasksFromDom(parentId, ul) {
+    const task = findTask(parentId);
+    if (!task || !Array.isArray(task.subtasks)) return;
+    const order = [...ul.querySelectorAll('[data-sub-id]')].map((li) => li.getAttribute('data-sub-id'));
+    const byId = new Map(task.subtasks.map((s) => [s.id, s]));
+    const next = order.map((id) => byId.get(id)).filter(Boolean);
+    task.subtasks.forEach((s) => {
+      if (!next.includes(s)) next.push(s);
+    });
+    task.subtasks = next;
+    persistTodos();
   }
 
   // Any completed task or completed subtask anywhere.
@@ -1782,6 +2062,8 @@
       const data = await loadTodos();
       const raw = Array.isArray(data && data.todos) ? data.todos : [];
       todoItems = raw.map((t) => normalizeTask(t, true));
+      const rawArchived = Array.isArray(data && data.archived) ? data.archived : [];
+      todosArchived = rawArchived.map((t) => normalizeTask(t, true));
       todosLoaded = true;
       todosSyncState = 'idle';
     } catch {
@@ -1794,6 +2076,16 @@
 
   function findTask(id) {
     return todoItems.find((t) => t.id === id);
+  }
+
+  // Resolve the task or subtask object that owns a DOM element inside a row.
+  function taskRefFromEl(el) {
+    const parentLi = el.closest('[data-id]');
+    const task = findTask(parentLi && parentLi.getAttribute('data-id'));
+    if (!task) return null;
+    const subLi = el.closest('[data-sub-id]');
+    if (!subLi) return task;
+    return (task.subtasks || []).find((s) => s.id === subLi.getAttribute('data-sub-id')) || null;
   }
 
   // Event delegation wired once; survives the innerHTML repaints in paintTodos().
@@ -1833,33 +2125,92 @@
     });
 
     elTodos.addEventListener('change', (e) => {
+      const dateInput = e.target.closest('[data-todo-date-input]');
+      if (dateInput) {
+        const target = taskRefFromEl(dateInput);
+        if (!target) return;
+        const v = dateInput.value;
+        target.deadline = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+        paintTodos();
+        persistTodos();
+        return;
+      }
       const cb = e.target.closest('[data-todo-toggle]');
       if (!cb) return;
-      const parentLi = cb.closest('[data-id]');
-      const task = findTask(parentLi && parentLi.getAttribute('data-id'));
-      if (!task) return;
-      const subLi = cb.closest('[data-sub-id]');
-      const target = subLi ? (task.subtasks || []).find((s) => s.id === subLi.getAttribute('data-sub-id')) : task;
+      const target = taskRefFromEl(cb);
       if (!target) return;
-      target.done = cb.checked;
-      target.doneAt = cb.checked ? new Date().toISOString() : null;
+      setTaskDone(target, cb.checked);
       paintTodos();
       persistTodos();
     });
 
     elTodos.addEventListener('click', (e) => {
+      const viewBtn = e.target.closest('[data-todos-view]');
+      if (viewBtn) {
+        const mode = viewBtn.getAttribute('data-todos-view');
+        if (mode !== getTodosViewMode()) {
+          setTodosViewMode(mode);
+          paintTodos();
+        }
+        return;
+      }
       if (e.target.closest('[data-todos-clear-done]')) {
-        const n = countDoneTasks();
-        if (!n) return;
-        if (!window.confirm(`Clear ${n} done task${n === 1 ? '' : 's'}? This can't be undone.`)) return;
-        todoItems = todoItems
-          .filter((t) => !t.done)
-          .map((t) => {
-            t.subtasks = (t.subtasks || []).filter((s) => !s.done);
-            return t;
-          });
+        if (!countDoneTasks()) return;
+        // Archive (reversible) rather than delete.
+        archiveDoneTasks();
+        setTodosArchiveOpen(true);
         paintTodos();
         persistTodos();
+        return;
+      }
+      const archiveToggle = e.target.closest('[data-todos-archive-toggle]');
+      if (archiveToggle) {
+        setTodosArchiveOpen(!getTodosArchiveOpen());
+        paintTodos();
+        return;
+      }
+      if (e.target.closest('[data-todos-archive-clear]')) {
+        const n = todosArchived.length;
+        if (!n) return;
+        if (!window.confirm(`Permanently delete ${n} archived task${n === 1 ? '' : 's'}? This can't be undone.`)) return;
+        todosArchived = [];
+        paintTodos();
+        persistTodos();
+        return;
+      }
+      const restoreBtn = e.target.closest('[data-todos-restore]');
+      if (restoreBtn) {
+        const li = restoreBtn.closest('[data-archived-id]');
+        const id = li && li.getAttribute('data-archived-id');
+        const idx = todosArchived.findIndex((t) => t.id === id);
+        if (idx === -1) return;
+        const [item] = todosArchived.splice(idx, 1);
+        todoItems.unshift(item);
+        paintTodos();
+        persistTodos();
+        return;
+      }
+      const archivedDel = e.target.closest('[data-todos-archived-del]');
+      if (archivedDel) {
+        const li = archivedDel.closest('[data-archived-id]');
+        const id = li && li.getAttribute('data-archived-id');
+        todosArchived = todosArchived.filter((t) => t.id !== id);
+        paintTodos();
+        persistTodos();
+        return;
+      }
+      const dateChip = e.target.closest('[data-todo-date]');
+      if (dateChip) {
+        const input = dateChip.querySelector('[data-todo-date-input]');
+        if (input) {
+          // showPicker() needs a user gesture (this click) and isn't universal;
+          // fall back to focusing the native control.
+          try {
+            input.showPicker();
+          } catch {
+            input.focus();
+          }
+        }
         return;
       }
       const collapseBtn = e.target.closest('[data-todo-collapse]');
@@ -1876,10 +2227,9 @@
       }
       const urgentBtn = e.target.closest('[data-todo-urgent]');
       if (urgentBtn) {
-        const li = urgentBtn.closest('[data-id]');
-        const task = findTask(li && li.getAttribute('data-id'));
-        if (!task) return;
-        task.urgent = !task.urgent;
+        const target = taskRefFromEl(urgentBtn);
+        if (!target) return;
+        target.urgent = !target.urgent;
         paintTodos();
         persistTodos();
         return;
@@ -1922,16 +2272,9 @@
       const parentLi = del.closest('[data-id]');
       const parentId = parentLi && parentLi.getAttribute('data-id');
       const subLi = del.closest('[data-sub-id]');
-      if (subLi) {
-        const task = findTask(parentId);
-        if (task) task.subtasks = (task.subtasks || []).filter((s) => s.id !== subLi.getAttribute('data-sub-id'));
-      } else if (parentId) {
-        todoItems = todoItems.filter((t) => t.id !== parentId);
-      } else {
-        return;
-      }
-      paintTodos();
-      persistTodos();
+      if (!parentId) return;
+      // The × no longer deletes outright — ask whether to archive or delete.
+      openTodoRemovalModal(parentId, subLi && subLi.getAttribute('data-sub-id'));
     });
 
     elTodos.addEventListener('keydown', (e) => {
@@ -1987,6 +2330,82 @@
     }
     paintTodos();
     if (changed) persistTodos();
+  }
+
+  // ── Delete / archive confirm modal ──────────────────────────────────────
+  let todoModalEl = null;
+  let todoPendingRemoval = null;
+
+  function ensureTodoModal() {
+    if (todoModalEl) return todoModalEl;
+    const wrap = document.createElement('div');
+    wrap.className = 'todo-modal-backdrop';
+    wrap.hidden = true;
+    wrap.setAttribute('data-todo-modal', '');
+    wrap.innerHTML = `
+      <div class="todo-modal" role="dialog" aria-modal="true" aria-labelledby="todo-modal-title">
+        <h2 class="todo-modal__title" id="todo-modal-title">Remove this task?</h2>
+        <p class="todo-modal__text" data-todo-modal-text></p>
+        <div class="todo-modal__actions">
+          <button type="button" class="todo-modal__btn" data-todo-modal-cancel>Cancel</button>
+          <button type="button" class="todo-modal__btn todo-modal__btn--archive" data-todo-modal-archive>Archive</button>
+          <button type="button" class="todo-modal__btn todo-modal__btn--delete" data-todo-modal-delete>Delete</button>
+        </div>
+      </div>`;
+    wrap.addEventListener('click', (e) => {
+      if (e.target === wrap || e.target.closest('[data-todo-modal-cancel]')) {
+        closeTodoModal();
+      } else if (e.target.closest('[data-todo-modal-archive]')) {
+        applyTodoRemoval('archive');
+      } else if (e.target.closest('[data-todo-modal-delete]')) {
+        applyTodoRemoval('delete');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && todoModalEl && !todoModalEl.hidden) closeTodoModal();
+    });
+    document.body.appendChild(wrap);
+    todoModalEl = wrap;
+    return wrap;
+  }
+
+  function openTodoRemovalModal(parentId, subId) {
+    todoPendingRemoval = { parentId, subId: subId || null };
+    const modal = ensureTodoModal();
+    const task = findTask(parentId);
+    const item = subId && task ? (task.subtasks || []).find((s) => s.id === subId) : task;
+    const isSub = !!subId;
+    modal.querySelector('#todo-modal-title').textContent = isSub ? 'Remove this subtask?' : 'Remove this task?';
+    modal.querySelector('[data-todo-modal-text]').textContent = item && item.text ? `“${item.text}”` : '';
+    modal.hidden = false;
+    const cancel = modal.querySelector('[data-todo-modal-cancel]');
+    if (cancel) cancel.focus();
+  }
+
+  function closeTodoModal() {
+    todoPendingRemoval = null;
+    if (todoModalEl) todoModalEl.hidden = true;
+  }
+
+  function applyTodoRemoval(action) {
+    const pending = todoPendingRemoval;
+    closeTodoModal();
+    if (!pending) return;
+    const { parentId, subId } = pending;
+    const task = findTask(parentId);
+    if (!task) return;
+    if (subId) {
+      const sub = (task.subtasks || []).find((s) => s.id === subId);
+      if (!sub) return;
+      task.subtasks = (task.subtasks || []).filter((s) => s.id !== subId);
+      // Archiving a subtask promotes it to a standalone archived task.
+      if (action === 'archive') todosArchived.unshift(normalizeTask({ ...sub, subtasks: [] }, true));
+    } else {
+      todoItems = todoItems.filter((t) => t.id !== parentId);
+      if (action === 'archive') todosArchived.unshift(task);
+    }
+    paintTodos();
+    persistTodos();
   }
 
   function paintWcRail() {
@@ -4503,6 +4922,9 @@
       sortBirthdays,
       birthdayNextInfo,
       renderLanguageAudioPackCard,
+      normalizeTask,
+      setTaskStatus,
+      setTaskDone,
     };
   }
 

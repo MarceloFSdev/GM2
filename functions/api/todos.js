@@ -12,6 +12,9 @@
 
 const KV_KEY = 'todos';
 
+/** Kanban stages a top-level task can sit in. 'done' mirrors the `done` flag. */
+const STATUS_KEYS = ['todo', 'in-progress', 'waiting', 'done'];
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -50,7 +53,9 @@ function sanitizeTask(raw, idx, allowSub) {
   if (!raw || typeof raw !== 'object') return null;
   const text = typeof raw.text === 'string' ? raw.text.trim() : '';
   if (!text) return null;
-  const done = raw.done === true;
+  // `done` and `status` are kept coherent: a 'done' status implies done, and a
+  // done task always lands in the 'done' stage.
+  const done = raw.done === true || raw.status === 'done';
   const item = {
     id: typeof raw.id === 'string' && raw.id ? raw.id : genId(allowSub ? 'todo' : 'sub', idx),
     text: text.slice(0, 2000),
@@ -61,6 +66,7 @@ function sanitizeTask(raw, idx, allowSub) {
     doneAt: done ? (typeof raw.doneAt === 'string' ? raw.doneAt : new Date().toISOString()) : null,
   };
   if (allowSub) {
+    item.status = done ? 'done' : STATUS_KEYS.includes(raw.status) && raw.status !== 'done' ? raw.status : 'todo';
     item.subtasks = Array.isArray(raw.subtasks)
       ? raw.subtasks.map((s, i) => sanitizeTask(s, i, false)).filter(Boolean)
       : [];
@@ -77,8 +83,14 @@ function sanitizeTodos(input) {
 export async function onRequestGet({ env }) {
   if (!env.TODOS_KV) return json({ error: 'KV binding TODOS_KV is not configured' }, 500);
   const stored = await env.TODOS_KV.get(KV_KEY, 'json');
-  if (stored && Array.isArray(stored.todos)) return json(stored);
-  return json({ todos: [], updatedAt: null });
+  if (stored && Array.isArray(stored.todos)) {
+    return json({
+      todos: stored.todos,
+      archived: Array.isArray(stored.archived) ? stored.archived : [],
+      updatedAt: stored.updatedAt || null,
+    });
+  }
+  return json({ todos: [], archived: [], updatedAt: null });
 }
 
 export async function onRequestPut({ request, env }) {
@@ -94,8 +106,10 @@ export async function onRequestPut({ request, env }) {
 
   const todos = sanitizeTodos(body && body.todos);
   if (todos === null) return json({ error: 'expected { todos: [...] }' }, 400);
+  // Archived tasks live in the same document; absent/invalid input means "none".
+  const archived = sanitizeTodos(body && body.archived) || [];
 
-  const doc = { todos, updatedAt: new Date().toISOString() };
+  const doc = { todos, archived, updatedAt: new Date().toISOString() };
   await env.TODOS_KV.put(KV_KEY, JSON.stringify(doc));
   return json(doc);
 }

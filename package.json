@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "start": "serve . -l 8765",
-    "test": "node tests/travel-log-derived.test.js && node tests/language-audio.test.js && node tests/birthdays.test.js",
+    "test": "node tests/travel-log-derived.test.js && node tests/language-audio.test.js && node tests/birthdays.test.js && node tests/todos-model.test.js",
     "build:fitness": "node scripts/build-fitness.mjs"
   },
   "devDependencies": {

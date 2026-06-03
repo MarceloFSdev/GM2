@@ -2855,8 +2855,15 @@ body {
 
 /* ── To-Do list ────────────────────────────────────────────────────────── */
 .todos-card {
-  max-width: 760px;
-  margin-top: 1.25rem;
+  max-width: 1100px;
+  margin-top: 0;
+}
+/* The List/Board toggle sits above the card, aligned to its right edge. */
+.todos-viewbar {
+  max-width: 1100px;
+  display: flex;
+  justify-content: flex-end;
+  margin: 1.25rem 0 0.6rem;
 }
 .todos-add {
   display: flex;
@@ -2929,8 +2936,27 @@ body {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  /* Sizes to its content so the date chip sits right beside the text; the
+     parent .todos-item__lead is the flex:1 growing column. */
+  flex: 0 1 auto;
+  min-width: 0;
+}
+/* Left column: checkbox · text · collapse · progress · date — grows to fill,
+   leaving the fixed action group flush to the right edge. */
+.todos-item__lead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   flex: 1;
   min-width: 0;
+}
+/* Right column: urgent dot · add-subtask · edit · delete. All fixed width, so
+   the red dot lands at the same x on every row and the × stays in the corner. */
+.todos-item__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 .todos-item__check {
   flex: none;
@@ -3040,6 +3066,274 @@ body {
   border-color: rgba(224, 135, 154, 0.45);
 }
 
+/* Archive drawer */
+.todos-archive {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+.todos-archive__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.todos-archive__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  transition: color var(--transition);
+}
+.todos-archive__toggle:hover {
+  color: var(--text);
+}
+.todos-archive__caret {
+  font-size: 0.7rem;
+}
+.todos-archive__clear {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.todos-archive__clear:hover {
+  color: #e0879a;
+  border-color: rgba(224, 135, 154, 0.45);
+}
+.todos-list--archive {
+  margin-top: 0.7rem;
+  opacity: 0.8;
+}
+.todos-archived {
+  background: rgba(12, 16, 26, 0.32);
+}
+.todos-archived .todos-item__text {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+.todos-archived__restore {
+  flex: none;
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.todos-archived__restore:hover {
+  color: var(--accent);
+  border-color: var(--border);
+}
+
+/* Delete / archive confirm modal */
+.todo-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 6, 12, 0.62);
+  backdrop-filter: blur(4px);
+}
+.todo-modal-backdrop[hidden] {
+  display: none;
+}
+.todo-modal {
+  width: 100%;
+  max-width: 380px;
+  padding: 1.4rem 1.4rem 1.2rem;
+  background: rgba(16, 19, 28, 0.98);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.todo-modal__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.todo-modal__text {
+  margin: 0 0 1.2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+.todo-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.todo-modal__btn {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.5rem 0.95rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.todo-modal__btn:hover {
+  border-color: var(--accent);
+}
+.todo-modal__btn--archive {
+  color: var(--accent);
+  border-color: rgba(126, 184, 212, 0.5);
+}
+.todo-modal__btn--delete {
+  color: #e0879a;
+  border-color: rgba(224, 135, 154, 0.45);
+}
+.todo-modal__btn--delete:hover {
+  background: rgba(224, 135, 154, 0.12);
+  border-color: rgba(224, 135, 154, 0.7);
+}
+
+/* List / Board toggle */
+.todos-viewtoggle {
+  flex: none;
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  background: rgba(12, 16, 26, 0.55);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.todos-viewtoggle__btn {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.todos-viewtoggle__btn:hover {
+  color: var(--text);
+}
+.todos-viewtoggle__btn.is-active {
+  color: var(--bg-deep);
+  background: var(--accent);
+}
+
+/* Kanban board */
+.todos-kanban {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+.todos-kcol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0.6rem;
+  background: rgba(12, 16, 26, 0.35);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.todos-kcol__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.2rem;
+}
+.todos-kcol__title {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.todos-kcol__count {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.todos-kcol__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 3rem;
+}
+.todos-kcard {
+  padding: 0.65rem 0.7rem;
+  background: rgba(12, 16, 26, 0.6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: grab;
+}
+.todos-kcard:active {
+  cursor: grabbing;
+}
+.todos-kcard--urgent {
+  border-color: rgba(239, 77, 99, 0.45);
+}
+.todos-kcard__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.todos-kcard__text {
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--text);
+  word-break: break-word;
+}
+.todos-kcard__dot {
+  margin-top: 0.28rem;
+}
+.todos-kcard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+@media (max-width: 720px) {
+  .todos-kanban {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+  }
+  .todos-kcol {
+    flex: 0 0 80%;
+  }
+}
+
 /* drag-to-reorder + inline edit */
 .todos-drag {
   flex: none;
@@ -3053,6 +3347,10 @@ body {
 }
 .todos-drag:active {
   cursor: grabbing;
+}
+.todos-drag--sub {
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 .todos-item--ghost {
   opacity: 0.4;
@@ -3139,7 +3437,8 @@ body {
   border-color: #ef4d63;
   box-shadow: 0 0 6px 1px rgba(239, 77, 99, 0.85);
 }
-.todos-task--urgent {
+.todos-task--urgent,
+.todos-subitem--urgent {
   border-color: rgba(239, 77, 99, 0.45);
 }
 
@@ -3224,6 +3523,39 @@ body {
 .todos-due--overdue {
   color: #e0879a;
   border-color: rgba(224, 135, 154, 0.45);
+}
+/* Editable deadline: the visible chip is a button; a transparent native date
+   input overlays it so the picker anchors here, while the wrapper's click
+   handler calls showPicker(). */
+.todos-due-wrap {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+}
+.todos-due--btn {
+  font: inherit;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.todos-due--btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.todos-due--empty {
+  color: var(--text-dim);
+  border-style: dashed;
+}
+.todos-due__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  color-scheme: dark;
 }
 .todos-subtasks {
   list-style: none;
