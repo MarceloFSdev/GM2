@@ -183,6 +183,16 @@
       "date": "2026-05-04",
       "action": "entry",
       "country": "Indonesia"
+    },
+    {
+      "date": "2026-07-19",
+      "action": "exit",
+      "country": "Indonesia"
+    },
+    {
+      "date": "2026-07-19",
+      "action": "entry",
+      "country": "Spain"
     }
   ],
   "travelLog": [
@@ -272,9 +282,19 @@
       "city": "Bali",
       "timezone": "Asia/Makassar",
       "entryDate": "2026-05-04",
+      "exitDate": "2026-07-19",
+      "entryType": "flight",
+      "notes": "Bali stay after returning from Kuala Lumpur; ends with planned Spain flight."
+    },
+    {
+      "id": "stay-010",
+      "country": "Spain",
+      "city": "TBD",
+      "timezone": "Europe/Madrid",
+      "entryDate": "2026-07-19",
       "exitDate": null,
       "entryType": "flight",
-      "notes": "Current stay after returning from Singapore."
+      "notes": "Planned arrival from Bali. Exact Spanish arrival city/airport pending."
     }
   ],
   "alerts": [],
@@ -370,6 +390,27 @@
       "attachments": [
         "docs/bookings/2026-05-30_DPS-KUL_BatikAir-OD309_kiwi-792505571.pdf"
       ]
+    },
+    {
+      "id": "trip-005",
+      "departureDate": "2026-07-19",
+      "departureTime": "",
+      "departureCity": "Denpasar",
+      "departureCountry": "Indonesia",
+      "departureAirport": "DPS",
+      "departureAirportName": "Ngurah Rai International",
+      "arrivalDate": "2026-07-19",
+      "arrivalTime": "",
+      "arrivalCity": "Spain",
+      "arrivalCountry": "Spain",
+      "arrivalAirport": "",
+      "arrivalAirportName": "Spain airport TBD",
+      "airline": "Flight details pending",
+      "flightNumber": "TBD",
+      "duration": "TBD",
+      "notes": "Planned Bali → Spain flight. Exact itinerary pending.",
+      "bookingRef": "",
+      "attachments": []
     }
   ],
   "bookings": [
@@ -397,6 +438,22 @@
       "arrivalDate": "2026-04-29"
     },
     {
+      "id": "booking-002",
+      "type": "hotel",
+      "title": "Campbell Inn",
+      "startDate": "2026-04-29",
+      "endDate": "2026-05-04",
+      "checkIn": "2026-04-29",
+      "checkOut": "2026-05-04",
+      "checkInTime": "after 15:00",
+      "checkOutTime": "before 11:00",
+      "address": "Campbell Lane",
+      "city": "Singapore",
+      "country": "Singapore",
+      "notes": "4-star · postal 209922 · 5-night stay.",
+      "attachments": []
+    },
+    {
       "id": "booking-003",
       "type": "flight",
       "title": "Singapore → Denpasar",
@@ -418,22 +475,6 @@
       "departureCountry": "Singapore",
       "arrivalCountry": "Indonesia",
       "arrivalDate": "2026-05-04"
-    },
-    {
-      "id": "booking-002",
-      "type": "hotel",
-      "title": "Campbell Inn",
-      "startDate": "2026-04-29",
-      "endDate": "2026-05-04",
-      "checkIn": "2026-04-29",
-      "checkOut": "2026-05-04",
-      "checkInTime": "after 15:00",
-      "checkOutTime": "before 11:00",
-      "address": "Campbell Lane",
-      "city": "Singapore",
-      "country": "Singapore",
-      "notes": "4-star · postal 209922 · 5-night stay.",
-      "attachments": []
     },
     {
       "id": "booking-004",
@@ -459,6 +500,25 @@
       "arrivalDate": "2026-05-30"
     },
     {
+      "id": "booking-006",
+      "type": "hotel",
+      "title": "Hotel Chinatown 2",
+      "startDate": "2026-05-30",
+      "endDate": "2026-06-03",
+      "checkIn": "2026-05-30",
+      "checkOut": "2026-06-03",
+      "checkInTime": "from 17:00",
+      "checkOutTime": "before 12:00",
+      "address": "70-72 Jalan Petaling",
+      "city": "Kuala Lumpur",
+      "country": "Malaysia",
+      "phone": "+60 3 2332 4710",
+      "email": "reservation@hotelchinatown2.com",
+      "bookingRef": "XTB1A69BF8",
+      "notes": "4-night stay · Standard single · 247.35 MYR due at check-in · free cancellation until 30 May 2026.",
+      "attachments": []
+    },
+    {
       "id": "booking-005",
       "type": "flight",
       "title": "Kuala Lumpur → Denpasar",
@@ -482,22 +542,35 @@
       "arrivalDate": "2026-06-14"
     },
     {
-      "id": "booking-006",
-      "type": "hotel",
-      "title": "Hotel Chinatown 2",
-      "startDate": "2026-05-30",
-      "endDate": "2026-06-03",
-      "checkIn": "2026-05-30",
-      "checkOut": "2026-06-03",
-      "checkInTime": "from 17:00",
-      "checkOutTime": "before 12:00",
-      "address": "70-72 Jalan Petaling",
-      "city": "Kuala Lumpur",
-      "country": "Malaysia",
-      "phone": "+60 3 2332 4710",
-      "email": "reservation@hotelchinatown2.com",
-      "bookingRef": "XTB1A69BF8",
-      "notes": "4-night stay · Standard single · 247.35 MYR due at check-in · free cancellation until 30 May 2026.",
+      "id": "booking-007",
+      "type": "flight",
+      "title": "Denpasar → Spain",
+      "startDate": "2026-07-19",
+      "airline": "Flight details pending",
+      "flightNumber": "TBD",
+      "departureAirport": "DPS",
+      "departureCity": "Denpasar",
+      "departureTime": "",
+      "arrivalAirport": "",
+      "arrivalCity": "Spain",
+      "arrivalTime": "",
+      "duration": "TBD",
+      "notes": "Imported from upcoming trips. Exact itinerary pending.",
+      "bookingRef": "",
+      "attachments": [],
+      "departureCountry": "Indonesia",
+      "arrivalCountry": "Spain",
+      "arrivalDate": "2026-07-19"
+    },
+    {
+      "id": "booking-008",
+      "type": "trip",
+      "title": "Galicia trip",
+      "startDate": "2026-08-06",
+      "endDate": "2026-08-15",
+      "city": "Galicia",
+      "country": "Spain",
+      "notes": "Planned Galicia, Spain trip. Exact city/accommodation pending.",
       "attachments": []
     }
   ],
