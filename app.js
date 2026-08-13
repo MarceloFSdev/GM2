@@ -3554,6 +3554,7 @@
     });
   }
 
+  const SCHEDULE_TIME_ZONE = 'Europe/Madrid';
   const SCHEDULE_ANCHOR_MIN = 330;
   const SCHEDULE_BLOCKS = [
     { start: 330, end: 360, label: 'Morning launch', kind: 'wake', summary: 'Wake up. No phone. Shower, write today’s target, read the plan.' },
@@ -3610,8 +3611,31 @@
   }
 
   function nowMinutesLocal() {
-    const d = new Date();
-    return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: SCHEDULE_TIME_ZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+    const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return Number(byType.hour) * 60 + Number(byType.minute) + Number(byType.second) / 60;
+  }
+
+  function scheduleClockParts() {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: SCHEDULE_TIME_ZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+    const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return {
+      hh: byType.hour || '00',
+      mm: byType.minute || '00',
+      ss: byType.second || '00',
+    };
   }
 
   function scheduleProgressPct(nowMin, b) {
@@ -3748,11 +3772,8 @@
 
     const clockEl = elSchedule.querySelector('[data-role="now-clock"]');
     if (clockEl) {
-      const d = new Date();
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mm = String(d.getMinutes()).padStart(2, '0');
-      const ss = String(d.getSeconds()).padStart(2, '0');
-      clockEl.textContent = `${hh}:${mm}:${ss}`;
+      const { hh, mm, ss } = scheduleClockParts();
+      clockEl.textContent = `${hh}:${mm}:${ss} Madrid`;
     }
 
     const labelEl = elSchedule.querySelector('[data-role="now-label"]');
@@ -4942,6 +4963,7 @@
       getScheduleHeadlines: () => SCHEDULE_HEADLINES.map((headline) => ({ ...headline })),
       fmtMinAsClock,
       scheduleBlockLength,
+      scheduleClockParts,
     };
   }
 
