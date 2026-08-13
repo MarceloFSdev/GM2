@@ -30,7 +30,7 @@
     bookings: 'Bookings',
     renewals: 'Renewals',
     fiscal: 'Year plan',
-    schedule: 'Schedule',
+    schedule: 'Daily Rhythm',
     todos: 'To-Do',
     fitness: 'Fitness',
     birthdays: 'Birthdays',
@@ -3554,32 +3554,34 @@
     });
   }
 
-  const SCHEDULE_ANCHOR_MIN = 240;
+  const SCHEDULE_ANCHOR_MIN = 330;
   const SCHEDULE_BLOCKS = [
-    { start: 240, end: 660, label: 'Main sleep', kind: 'sleep', summary: 'Anchor block. Dark room, AC, eye mask, phone away. Treat this as your real night.' },
-    { start: 660, end: 750, label: 'Breakfast + light work', kind: 'wake', summary: 'Coffee here. Breakfast, sunlight, planning, inbox, light tasks, checking leads/automations.' },
-    { start: 750, end: 870, label: 'Gym + chill work', kind: 'gym', summary: 'Train in the first half of the day. Optional light work/admin around gym time.' },
-    { start: 870, end: 915, label: 'Post-gym meal + reset', kind: 'meal', summary: 'Protein + carbs. Not a giant coma meal. Start dimming stimulation before the nap.' },
-    { start: 930, end: 1020, label: 'Second sleep / nap', kind: 'sleep', summary: '90-minute pre-shift nap. The move that protects the night work block.' },
-    { start: 1020, end: 1050, label: 'Wake buffer', kind: 'wake', summary: 'Water, light, quick walk/shower. No calls the second you wake up.' },
-    { start: 1050, end: 1290, label: 'Deep work block', kind: 'work', summary: 'Coworking opens. Coffee + protein snack at the start. Best block for sales follow-up, systems, funnels, demos.' },
-    { start: 1290, end: 1350, label: 'Dinner break', kind: 'meal', summary: 'Real dinner. Keep it sane. Avoid making 11pm the biggest meal of your day.' },
-    { start: 1350, end: 180, label: 'US calls + night shift', kind: 'shift', summary: 'Calls, follow-up, support, sales. No more caffeine. Keep the work operational and focused.' },
-    { start: 180, end: 240, label: 'Shutdown', kind: 'wind', summary: 'Hard stop, low light, shower, prep room, no doom-scrolling. Protect the 4am sleep start.' },
+    { start: 330, end: 360, label: 'Morning launch', kind: 'wake', summary: 'Wake up. No phone. Shower, write today’s target, read the plan.' },
+    { start: 360, end: 480, label: 'Build focus 1', kind: 'work', summary: 'Deep build block. Phone away. One clear task, no inbox drift.' },
+    { start: 480, end: 510, label: 'Reset break', kind: 'meal', summary: 'Step away, food/water, quick reset. Do not turn this into scrolling.' },
+    { start: 510, end: 630, label: 'Build focus 2', kind: 'work', summary: 'Second deep block. Close the phone and finish the next useful loop.' },
+    { start: 630, end: 720, label: 'Gym + recovery', kind: 'gym', summary: 'Protein shake, gym, shower, food. Training is part of the workday.' },
+    { start: 720, end: 840, label: 'Sales block', kind: 'shift', summary: 'Outreach, follow-ups, calls, demos, lead handling. One measurable sales output.' },
+    { start: 840, end: 870, label: 'Lunch + reset', kind: 'meal', summary: 'Eat, reset, log next steps. Keep the break contained.' },
+    { start: 870, end: 960, label: 'Client/light work', kind: 'work', summary: 'Client tasks, admin, cleanup. Useful but contained; no rabbit holes.' },
+    { start: 960, end: 1050, label: 'Daily shutdown + language', kind: 'wind', summary: 'Write tomorrow’s plan, write what got done, one hour language learning.' },
+    { start: 1050, end: 1170, label: 'Evening buffer', kind: 'wind', summary: 'Dinner, walk, low-stimulation personal time. No new work loops.' },
+    { start: 1170, end: 1230, label: 'Wind down', kind: 'wind', summary: 'Dim lights, close loops, prep sleep. Phone off at 8:00pm.' },
+    { start: 1230, end: 330, label: 'Sleep', kind: 'sleep', summary: 'No phone. Protect the next morning. Sleep is the next productivity block.' },
   ];
   const SCHEDULE_RULES = [
-    { metric: 'Total sleep', target: '7+ hours actual sleep across both blocks' },
-    { metric: 'Main sleep', target: 'At least 6 hours actual sleep most days' },
-    { metric: 'Nap', target: '60-90 minutes actual sleep; skip it max 1x/week' },
-    { metric: 'Caffeine', target: 'Coffee at 11am and 5:30pm only. No later caffeine.' },
-    { metric: 'Hard stop', target: 'Stop work by 3:00am unless there is a real emergency' },
-    { metric: 'Red flags', target: 'Irritability, anxiety, bad gym performance, needing late caffeine, or missing the nap repeatedly' },
+    { metric: 'Time zone', target: 'Spain time. Telegram reminders match this schedule.' },
+    { metric: 'Main focus', target: 'Protect 6:00–10:30 for deep build work.' },
+    { metric: 'Sales output', target: '12:00 sales block must produce outreach, follow-up, calls, demos, or logged next steps.' },
+    { metric: 'Phone rule', target: 'No phone on wake. Phone off/away at 20:00.' },
+    { metric: 'Shutdown', target: '16:00 starts tomorrow’s plan, today’s log, and language learning.' },
+    { metric: 'Sleep', target: '20:30 bed target. Do not trade sleep for low-value browsing.' },
   ];
   const SCHEDULE_HEADLINES = [
-    { label: 'Main sleep', value: '4:00am – 11:00am', kind: 'sleep' },
-    { label: 'Second sleep', value: '3:30pm – 5:00pm', kind: 'sleep' },
-    { label: 'Main shift', value: '5:30pm – 3:00am', kind: 'shift' },
-    { label: 'Caffeine cutoff', value: '5:30pm — last one', kind: 'wake' },
+    { label: 'Wake', value: '5:30am', kind: 'wake' },
+    { label: 'Main focus', value: '6:00am – 10:30am', kind: 'work' },
+    { label: 'Sales', value: '12:00pm – 2:00pm', kind: 'shift' },
+    { label: 'Sleep target', value: '8:30pm · Spain time', kind: 'sleep' },
   ];
 
   function fmtMinAsClock(min) {
@@ -3673,9 +3675,19 @@
     ).join('');
 
     elSchedule.innerHTML = `
-      <h1 id="schedule-heading">Schedule</h1>
-      <div class="schedule-header">
-        <p>Biphasic Bali → US-market schedule. Long anchor sleep at 4am, tactical 90-minute nap before the night shift, caffeine only at 11am and 5:30pm. Run this as a 14-day experiment, not a personality trait — if the nap fails, the whole system fails.</p>
+      <h1 id="schedule-heading">Daily Rhythm</h1>
+      <div class="schedule-hero">
+        <div class="schedule-hero__copy">
+          <p class="schedule-eyebrow">Spain-time operating schedule</p>
+          <p class="schedule-hero__title">Protect the morning, sell at midday, shut down clean.</p>
+          <p class="schedule-hero__text">This view is the source of truth for the Telegram reminders. At a glance: what block you are in, what comes next, and where the high-leverage work sits.</p>
+        </div>
+        <div class="schedule-hero__stack" aria-label="Core rhythm">
+          <span><strong>05:30</strong> launch</span>
+          <span><strong>06:00–10:30</strong> build</span>
+          <span><strong>12:00–14:00</strong> sales</span>
+          <span><strong>20:30</strong> bed</span>
+        </div>
       </div>
 
       <div class="schedule-headlines">${headlineHtml}</div>
@@ -3698,7 +3710,7 @@
       <article class="card schedule-timeline-card">
         <header class="schedule-timeline-card__head">
           <h2>24-hour timeline</h2>
-          <p class="schedule-timeline-card__hint">Starts at 4am wake. Hover a block for details.</p>
+          <p class="schedule-timeline-card__hint">Starts at 5:30am Spain time. Current block is highlighted.</p>
         </header>
         <div class="schedule-timeline">
           <div class="schedule-timeline__bar" data-role="timeline-bar">
@@ -4925,6 +4937,11 @@
       normalizeTask,
       setTaskStatus,
       setTaskDone,
+      getScheduleBlocks: () => SCHEDULE_BLOCKS.map((block) => ({ ...block })),
+      getScheduleRules: () => SCHEDULE_RULES.map((rule) => ({ ...rule })),
+      getScheduleHeadlines: () => SCHEDULE_HEADLINES.map((headline) => ({ ...headline })),
+      fmtMinAsClock,
+      scheduleBlockLength,
     };
   }
 
