@@ -115,4 +115,26 @@ const { normalizeTask, setTaskStatus, setTaskDone } = api;
   assert.equal(Object.prototype.hasOwnProperty.call(sub, 'status'), false, 'subtasks stay status-free when toggled');
 }
 
+// ── Completing a task clears its urgency (done is never urgent) ───────────────
+{
+  const loaded = normalizeTask({ text: 'x', urgent: true, status: 'done' }, true);
+  assert.equal(loaded.urgent, false, 'a done task loads as not urgent');
+}
+{
+  const t = normalizeTask({ text: 't', urgent: true }, true);
+  assert.equal(t.urgent, true, 'an open task keeps its urgency');
+  setTaskDone(t, true);
+  assert.equal(t.urgent, false, 'checking a task off clears urgency');
+}
+{
+  const t = normalizeTask({ text: 't', urgent: true }, true);
+  setTaskStatus(t, 'done');
+  assert.equal(t.urgent, false, 'dragging a card to Completed clears urgency');
+}
+{
+  const sub = normalizeTask({ text: 'sub', urgent: true }, false);
+  setTaskDone(sub, true);
+  assert.equal(sub.urgent, false, 'completing a subtask clears its urgency too');
+}
+
 console.log('todos-model.test.js: all assertions passed');

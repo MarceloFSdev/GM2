@@ -3386,6 +3386,16 @@ body {
   gap: 0.4rem;
   margin-top: 0.5rem;
 }
+/* Completed-column cards are greyed back a little. (Completing a task clears its
+   urgency, so a done card never shows the red dot.) */
+.todos-kcard--done {
+  background: rgba(12, 16, 26, 0.4);
+  border-color: rgba(255, 255, 255, 0.04);
+}
+.todos-kcard--done .todos-kcard__text {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
 @media (max-width: 720px) {
   .todos-kanban {
     display: flex;

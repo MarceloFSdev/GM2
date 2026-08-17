@@ -1637,7 +1637,8 @@
       id: typeof o.id === 'string' && o.id ? o.id : `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       text: typeof o.text === 'string' ? o.text : '',
       done,
-      urgent: o.urgent === true,
+      // Completing a task clears its urgency, so a done task is never urgent.
+      urgent: o.urgent === true && !done,
       deadline: typeof o.deadline === 'string' && o.deadline ? o.deadline : null,
       createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date().toISOString(),
       doneAt: typeof o.doneAt === 'string' ? o.doneAt : done ? new Date().toISOString() : null,
@@ -1656,11 +1657,13 @@
     const done = task.status === 'done';
     task.done = done;
     task.doneAt = done ? task.doneAt || new Date().toISOString() : null;
+    if (done) task.urgent = false; // completing clears urgency
   }
 
   function setTaskDone(item, done) {
     item.done = done;
     item.doneAt = done ? new Date().toISOString() : null;
+    if (done) item.urgent = false; // completing clears urgency
     // Only top-level tasks carry a Kanban status; reset to 'todo' when reopened.
     if (Object.prototype.hasOwnProperty.call(item, 'status')) item.status = done ? 'done' : 'todo';
   }
@@ -1849,7 +1852,7 @@
     const doneCount = subs.filter((s) => s.done).length;
     const meta = todoDeadlineMeta(item.deadline);
     const hasMeta = meta || subs.length;
-    return `<li class="todos-kcard${item.urgent ? ' todos-kcard--urgent' : ''}" data-id="${escapeHtml(item.id)}">
+    return `<li class="todos-kcard${item.urgent ? ' todos-kcard--urgent' : ''}${item.done ? ' todos-kcard--done' : ''}" data-id="${escapeHtml(item.id)}">
       <div class="todos-kcard__top">
         <span class="todos-kcard__text">${escapeHtml(item.text)}</span>
         ${item.urgent ? '<span class="todos-light todos-light--on todos-kcard__dot" aria-label="Urgent"></span>' : ''}
