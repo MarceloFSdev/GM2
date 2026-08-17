@@ -2519,10 +2519,6 @@ body {
 
 /* ====== Schedule view ====== */
 .schedule-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.42fr);
-  gap: 1rem;
-  align-items: stretch;
   margin: 0.65rem 0 1.2rem;
   padding: 1.25rem;
   border: 1px solid rgba(126, 184, 212, 0.2);
@@ -2531,11 +2527,6 @@ body {
     radial-gradient(circle at 18% 0%, rgba(126, 184, 212, 0.16), transparent 36%),
     linear-gradient(135deg, rgba(12, 16, 26, 0.86), rgba(5, 8, 14, 0.72));
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-@media (max-width: 860px) {
-  .schedule-hero {
-    grid-template-columns: 1fr;
-  }
 }
 .schedule-eyebrow {
   margin: 0 0 0.45rem;
@@ -2560,27 +2551,6 @@ body {
   font-size: 0.95rem;
   line-height: 1.55;
 }
-.schedule-hero__stack {
-  display: grid;
-  gap: 0.5rem;
-  align-content: center;
-}
-.schedule-hero__stack span {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.62rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.035);
-  color: var(--text-muted);
-  font-size: 0.82rem;
-}
-.schedule-hero__stack strong {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
 .schedule-headlines {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2696,10 +2666,6 @@ body {
   background: linear-gradient(90deg, #a89bd4, rgba(168, 155, 212, 0.35));
 }
 
-.schedule-timeline-card {
-  margin-bottom: 1.1rem;
-}
-.schedule-timeline-card__head,
 .schedule-list-card__head {
   display: flex;
   align-items: baseline;
@@ -2707,7 +2673,6 @@ body {
   gap: 1rem;
   margin-bottom: 0.85rem;
 }
-.schedule-timeline-card__head h2,
 .schedule-list-card__head h2 {
   margin: 0;
   font-size: 0.85rem;
@@ -2716,171 +2681,247 @@ body {
   color: var(--text-muted);
   font-weight: 500;
 }
-.schedule-timeline-card__hint {
+
+/* ── Daily Rhythm: vertical timeline ──────────────────────────────────────
+   One continuous rail down the day. Each block's height tracks its length, so
+   the gaps and the long stretches are visible without reading any numbers. */
+.rhythm-card {
+  margin-bottom: 1.1rem;
+}
+.rhythm-card__hint {
   margin: 0;
   font-size: 0.72rem;
   color: var(--text-dim);
 }
-.schedule-timeline__bar {
+.rhythm {
   position: relative;
-  height: 72px;
-  border-radius: var(--radius-md);
-  background: rgba(8, 10, 16, 0.66);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  overflow: hidden;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.schedule-timeline__seg {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-right: 1px solid rgba(0, 0, 0, 0.35);
-  transition: filter 0.2s ease;
-  min-width: 2px;
-}
-.schedule-timeline__seg:hover {
-  filter: brightness(1.2);
-}
-.schedule-timeline__seg--sleep {
-  background: linear-gradient(180deg, rgba(126, 184, 212, 0.55), rgba(126, 184, 212, 0.25));
-}
-.schedule-timeline__seg--wake {
-  background: linear-gradient(180deg, rgba(212, 196, 126, 0.5), rgba(212, 196, 126, 0.22));
-}
-.schedule-timeline__seg--meal {
-  background: linear-gradient(180deg, rgba(212, 170, 126, 0.5), rgba(212, 170, 126, 0.22));
-}
-.schedule-timeline__seg--gym {
-  background: linear-gradient(180deg, rgba(143, 224, 181, 0.5), rgba(143, 224, 181, 0.22));
-}
-.schedule-timeline__seg--work {
-  background: linear-gradient(180deg, rgba(255, 168, 122, 0.5), rgba(255, 168, 122, 0.22));
-}
-.schedule-timeline__seg--shift {
-  background: linear-gradient(180deg, rgba(255, 138, 122, 0.65), rgba(255, 138, 122, 0.3));
-}
-.schedule-timeline__seg--wind {
-  background: linear-gradient(180deg, rgba(168, 155, 212, 0.5), rgba(168, 155, 212, 0.22));
-}
-.schedule-timeline__seg--active {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 18px rgba(255, 255, 255, 0.08);
-  filter: brightness(1.15);
-}
-.schedule-timeline__now {
-  position: absolute;
-  top: -4px;
-  bottom: -4px;
-  width: 2px;
-  background: #fff;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
-  transition: left 1s linear;
-  pointer-events: none;
-  z-index: 2;
-}
-.schedule-timeline__now::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -3px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-}
-.schedule-timeline__ticks {
+.rhythm-block {
   position: relative;
-  height: 1.2rem;
-  margin-top: 0.4rem;
+  display: grid;
+  grid-template-columns: var(--rhythm-gutter) 1.5rem minmax(0, 1fr);
+  gap: 0 0.85rem;
+  min-height: var(--rb-h);
 }
-.schedule-timeline__tick {
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
+.rhythm {
+  --rhythm-gutter: 5.4rem;
 }
-.schedule-timeline__tick-label {
-  font-size: 0.65rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-dim);
-  letter-spacing: 0.04em;
+.rhythm-block--wake {
+  --rb-color: #d4c47e;
+  --rb-soft: rgba(212, 196, 126, 0.13);
+  --rb-glow: rgba(212, 196, 126, 0.3);
+}
+.rhythm-block--work {
+  --rb-color: #ffa87a;
+  --rb-soft: rgba(255, 168, 122, 0.13);
+  --rb-glow: rgba(255, 168, 122, 0.3);
+}
+.rhythm-block--meal {
+  --rb-color: #d4aa7e;
+  --rb-soft: rgba(212, 170, 126, 0.13);
+  --rb-glow: rgba(212, 170, 126, 0.3);
+}
+.rhythm-block--gym {
+  --rb-color: #8fe0b5;
+  --rb-soft: rgba(143, 224, 181, 0.13);
+  --rb-glow: rgba(143, 224, 181, 0.3);
+}
+.rhythm-block--shift {
+  --rb-color: #ff8a7a;
+  --rb-soft: rgba(255, 138, 122, 0.15);
+  --rb-glow: rgba(255, 138, 122, 0.32);
+}
+.rhythm-block--wind {
+  --rb-color: #a89bd4;
+  --rb-soft: rgba(168, 155, 212, 0.13);
+  --rb-glow: rgba(168, 155, 212, 0.3);
+}
+.rhythm-block--sleep {
+  --rb-color: #7eb8d4;
+  --rb-soft: rgba(126, 184, 212, 0.13);
+  --rb-glow: rgba(126, 184, 212, 0.3);
 }
 
-.schedule-list-card {
-  margin-bottom: 1.1rem;
+.rhythm-block__gutter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  padding-top: 0.1rem;
+  transition: opacity var(--transition);
 }
-.schedule-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.62rem;
-}
-@media (max-width: 900px) {
-  .schedule-list {
-    grid-template-columns: 1fr;
-  }
-}
-.schedule-row {
-  display: grid;
-  grid-template-columns: 7.4rem 1fr;
-  gap: 0.85rem;
-  min-height: 5.35rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  background: rgba(8, 10, 16, 0.48);
-  transition: border-color var(--transition), background var(--transition), transform var(--transition);
-}
-@media (max-width: 640px) {
-  .schedule-row {
-    grid-template-columns: 1fr;
-    gap: 0.25rem;
-  }
-}
-.schedule-row__time {
-  font-size: 0.82rem;
+.rhythm-block__start {
+  font-size: 0.85rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   color: var(--text);
-  padding-top: 0.08rem;
+  white-space: nowrap;
 }
-.schedule-row__label {
-  margin: 0 0 0.24rem;
-  font-size: 1.02rem;
-  color: var(--text);
+.rhythm-block__dur {
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+}
+
+/* The rail column has no vertical spacing, so consecutive blocks join into one
+   unbroken line even though the bodies are separated cards. */
+.rhythm-block__rail {
+  position: relative;
+}
+.rhythm-block__rail::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--rb-color);
+  opacity: 0.34;
+}
+.rhythm-block__dot {
+  position: absolute;
+  left: 50%;
+  top: 0.3rem;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+  background: var(--bg-page);
+  border: 2px solid var(--rb-color);
+  z-index: 1;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.rhythm-block__body {
+  margin-bottom: 0.3rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--rb-color);
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--rb-soft), rgba(8, 10, 16, 0.36) 58%);
+  transition: opacity var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.rhythm-block__label {
+  margin: 0 0 0.22rem;
+  font-size: 1rem;
   font-weight: 650;
   letter-spacing: -0.012em;
+  color: var(--text);
 }
-.schedule-row__summary {
+.rhythm-block__summary {
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.5;
   color: var(--text-muted);
 }
-.schedule-row--sleep {
-  border-left: 3px solid rgba(126, 184, 212, 0.6);
+
+/* Finished blocks recede so the eye lands on where the day actually is. */
+.rhythm-block.is-past .rhythm-block__body,
+.rhythm-block.is-past .rhythm-block__gutter {
+  opacity: 0.58;
 }
-.schedule-row--wake {
-  border-left: 3px solid rgba(212, 196, 126, 0.6);
+.rhythm-block.is-past .rhythm-block__dot {
+  background: var(--rb-color);
 }
-.schedule-row--meal {
-  border-left: 3px solid rgba(212, 170, 126, 0.6);
+.rhythm-block.is-active .rhythm-block__body {
+  border-color: var(--rb-color);
+  box-shadow: 0 0 26px var(--rb-soft);
 }
-.schedule-row--gym {
-  border-left: 3px solid rgba(143, 224, 181, 0.6);
+.rhythm-block.is-active .rhythm-block__label {
+  color: var(--rb-color);
 }
-.schedule-row--work {
-  border-left: 3px solid rgba(255, 168, 122, 0.6);
+.rhythm-block.is-active .rhythm-block__dot {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 5px var(--rb-soft), 0 0 14px var(--rb-glow);
 }
-.schedule-row--shift {
-  border-left: 3px solid rgba(255, 138, 122, 0.7);
+
+.rhythm-end {
+  display: grid;
+  grid-template-columns: var(--rhythm-gutter) 1.5rem minmax(0, 1fr);
+  gap: 0 0.85rem;
+  align-items: center;
+  min-height: 1.6rem;
 }
-.schedule-row--wind {
-  border-left: 3px solid rgba(168, 155, 212, 0.6);
+.rhythm-end__time {
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
 }
-.schedule-row--active {
-  background: linear-gradient(135deg, rgba(126, 184, 212, 0.16), rgba(12, 16, 26, 0.56));
-  border-color: rgba(126, 184, 212, 0.55);
-  box-shadow: 0 0 26px rgba(126, 184, 212, 0.12);
-  transform: translateY(-1px);
+.rhythm-end__time::after {
+  content: '';
+}
+.rhythm-end__text {
+  grid-column: 3;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+}
+
+/* Live position line, moved by updateScheduleNow(). */
+.rhythm-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition: top 1s linear;
+}
+.rhythm-now[hidden] {
+  display: none;
+}
+.rhythm-now::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--rhythm-gutter) + 0.85rem);
+  right: 0;
+  top: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.42);
+}
+.rhythm-now__time {
+  position: absolute;
+  left: var(--rhythm-gutter);
+  top: 0;
+  transform: translate(-100%, -50%);
+  padding: 0.12rem 0.36rem;
+  border-radius: 999px;
+  background: #f2f5f8;
+  color: #05070c;
+  font-size: 0.64rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+@media (max-width: 640px) {
+  .rhythm {
+    --rhythm-gutter: 4rem;
+  }
+  .rhythm-block,
+  .rhythm-end {
+    gap: 0 0.55rem;
+    grid-template-columns: var(--rhythm-gutter) 1.1rem minmax(0, 1fr);
+  }
+  .rhythm-block__start {
+    font-size: 0.78rem;
+  }
+  .rhythm-block__label {
+    font-size: 0.94rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rhythm-now {
+    transition: none;
+  }
 }
 
 .schedule-rules {

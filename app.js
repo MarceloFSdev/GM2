@@ -3656,6 +3656,27 @@
     return `${h}h ${m}m`;
   }
 
+  function scheduleFmtDuration(min) {
+    const h = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+  }
+
+  /**
+   * Row height for a block on the vertical timeline. Longer blocks are taller so
+   * the day reads as real elapsed time, but on a compressed curve: a linear
+   * px-per-minute scale either squashes the 30m breaks below readable height or
+   * stretches the 9h sleep block across several screens.
+   */
+  const SCHEDULE_ROW_BASE_PX = 48;
+  const SCHEDULE_ROW_SCALE_PX = 5.6;
+
+  function scheduleBlockHeight(b) {
+    return Math.round(SCHEDULE_ROW_BASE_PX + scheduleBlockLength(b) ** 0.6 * SCHEDULE_ROW_SCALE_PX);
+  }
+
   function renderSchedule() {
     if (!elSchedule) return;
 
@@ -3666,32 +3687,20 @@
       </article>`
     ).join('');
 
-    const tickHtml = [0, 4, 8, 12, 16, 20, 24]
-      .map((h) => {
-        const min = (SCHEDULE_ANCHOR_MIN + h * 60) % 1440;
-        const leftPct = ((h * 60) / 1440) * 100;
-        return `<span class="schedule-timeline__tick" style="left:${leftPct.toFixed(3)}%">
-          <span class="schedule-timeline__tick-label">${escapeHtml(fmtMinAsClock(min))}</span>
-        </span>`;
-      })
-      .join('');
-
-    const segHtml = SCHEDULE_BLOCKS.map((b, i) => {
+    const blocksHtml = SCHEDULE_BLOCKS.map((b, i) => {
       const len = scheduleBlockLength(b);
-      const leftPct = (scheduleAnchorOffset(b.start) / 1440) * 100;
-      const widthPct = (len / 1440) * 100;
-      return `<span class="schedule-timeline__seg schedule-timeline__seg--${b.kind}" data-block-index="${i}" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(3)}%" title="${escapeHtml(`${b.label} · ${fmtMinAsClock(b.start)}–${fmtMinAsClock(b.end)}`)}"></span>`;
-    }).join('');
-
-    const rowsHtml = SCHEDULE_BLOCKS.map((b, i) => {
       const range = `${fmtMinAsClock(b.start)} – ${fmtMinAsClock(b.end)}`;
-      return `<div class="schedule-row schedule-row--${b.kind}" data-block-index="${i}">
-        <div class="schedule-row__time">${escapeHtml(range)}</div>
-        <div class="schedule-row__body">
-          <p class="schedule-row__label">${escapeHtml(b.label)}</p>
-          <p class="schedule-row__summary">${escapeHtml(b.summary)}</p>
+      return `<li class="rhythm-block rhythm-block--${b.kind}" data-block-index="${i}" style="--rb-h:${scheduleBlockHeight(b)}px" title="${escapeHtml(range)}">
+        <div class="rhythm-block__gutter">
+          <span class="rhythm-block__start">${escapeHtml(fmtMinAsClock(b.start))}</span>
+          <span class="rhythm-block__dur">${escapeHtml(scheduleFmtDuration(len))}</span>
         </div>
-      </div>`;
+        <div class="rhythm-block__rail" aria-hidden="true"><span class="rhythm-block__dot"></span></div>
+        <div class="rhythm-block__body">
+          <p class="rhythm-block__label">${escapeHtml(b.label)}</p>
+          <p class="rhythm-block__summary">${escapeHtml(b.summary)}</p>
+        </div>
+      </li>`;
     }).join('');
 
     const rulesHtml = SCHEDULE_RULES.map(
@@ -3708,12 +3717,6 @@
           <p class="schedule-eyebrow">Spain-time operating schedule</p>
           <p class="schedule-hero__title">Protect the morning, sell at midday, shut down clean.</p>
           <p class="schedule-hero__text">This view is the source of truth for the Telegram reminders. At a glance: what block you are in, what comes next, and where the high-leverage work sits.</p>
-        </div>
-        <div class="schedule-hero__stack" aria-label="Core rhythm">
-          <span><strong>05:30</strong> launch</span>
-          <span><strong>06:00–10:30</strong> build</span>
-          <span><strong>12:00–14:00</strong> sales</span>
-          <span><strong>20:30</strong> bed</span>
         </div>
       </div>
 
@@ -3734,25 +3737,19 @@
         </div>
       </article>
 
-      <article class="card schedule-timeline-card">
-        <header class="schedule-timeline-card__head">
-          <h2>24-hour timeline</h2>
-          <p class="schedule-timeline-card__hint">Starts at 5:30am Spain time. Current block is highlighted.</p>
-        </header>
-        <div class="schedule-timeline">
-          <div class="schedule-timeline__bar" data-role="timeline-bar">
-            ${segHtml}
-            <span class="schedule-timeline__now" data-role="timeline-now" style="left:0%"></span>
-          </div>
-          <div class="schedule-timeline__ticks">${tickHtml}</div>
-        </div>
-      </article>
-
-      <article class="card schedule-list-card">
+      <article class="card rhythm-card">
         <header class="schedule-list-card__head">
-          <h2>Daily blocks</h2>
+          <h2>The day, top to bottom</h2>
+          <p class="rhythm-card__hint">Madrid time · block height = how long it lasts</p>
         </header>
-        <div class="schedule-list">${rowsHtml}</div>
+        <ol class="rhythm" data-role="rhythm">
+          ${blocksHtml}
+          <li class="rhythm-end">
+            <span class="rhythm-end__time">${escapeHtml(fmtMinAsClock(SCHEDULE_ANCHOR_MIN))}</span>
+            <span class="rhythm-end__text">Back to the top — next morning starts here.</span>
+          </li>
+          <span class="rhythm-now" data-role="rhythm-now" hidden><span class="rhythm-now__time" data-role="rhythm-now-time">--:--</span></span>
+        </ol>
       </article>
 
       <article class="card schedule-rules-card">
@@ -3772,12 +3769,10 @@
     const nowMin = nowMinutesLocal();
     const activeIdx = SCHEDULE_BLOCKS.findIndex((b) => scheduleIsNowIn(nowMin, b));
     const active = activeIdx >= 0 ? SCHEDULE_BLOCKS[activeIdx] : null;
+    const { hh, mm, ss } = scheduleClockParts();
 
     const clockEl = elSchedule.querySelector('[data-role="now-clock"]');
-    if (clockEl) {
-      const { hh, mm, ss } = scheduleClockParts();
-      clockEl.textContent = `${hh}:${mm}:${ss} Madrid`;
-    }
+    if (clockEl) clockEl.textContent = `${hh}:${mm}:${ss} Madrid`;
 
     const labelEl = elSchedule.querySelector('[data-role="now-label"]');
     const metaEl = elSchedule.querySelector('[data-role="now-meta"]');
@@ -3802,18 +3797,29 @@
       if (nowCard) nowCard.setAttribute('data-kind', 'idle');
     }
 
-    elSchedule.querySelectorAll('.schedule-row').forEach((row) => {
+    // Blocks are listed in day order from the 5:30am anchor, so anything before
+    // the active index has already happened today.
+    elSchedule.querySelectorAll('.rhythm-block').forEach((row) => {
       const idx = Number(row.getAttribute('data-block-index'));
-      row.classList.toggle('schedule-row--active', idx === activeIdx);
-    });
-    elSchedule.querySelectorAll('.schedule-timeline__seg').forEach((seg) => {
-      const idx = Number(seg.getAttribute('data-block-index'));
-      seg.classList.toggle('schedule-timeline__seg--active', idx === activeIdx);
+      row.classList.toggle('is-active', idx === activeIdx);
+      row.classList.toggle('is-past', activeIdx >= 0 && idx < activeIdx);
     });
 
-    const nowOffsetPct = (scheduleAnchorOffset(nowMin) / 1440) * 100;
-    const nowMarker = elSchedule.querySelector('[data-role="timeline-now"]');
-    if (nowMarker) nowMarker.style.left = `${nowOffsetPct.toFixed(3)}%`;
+    const marker = elSchedule.querySelector('[data-role="rhythm-now"]');
+    const activeRow = activeIdx >= 0 ? elSchedule.querySelector(`.rhythm-block[data-block-index="${activeIdx}"]`) : null;
+    if (marker) {
+      // Measured from the DOM rather than summed from --rb-h so the line stays
+      // on the real position when a long summary wraps to an extra line.
+      if (activeRow) {
+        const pct = scheduleProgressPct(nowMin, active);
+        marker.style.top = `${(activeRow.offsetTop + (pct / 100) * activeRow.offsetHeight).toFixed(1)}px`;
+        marker.hidden = false;
+      } else {
+        marker.hidden = true;
+      }
+      const markerTime = marker.querySelector('[data-role="rhythm-now-time"]');
+      if (markerTime) markerTime.textContent = `${hh}:${mm}`;
+    }
   }
 
   async function renderWorldCountries() {
@@ -4966,6 +4972,8 @@
       getScheduleHeadlines: () => SCHEDULE_HEADLINES.map((headline) => ({ ...headline })),
       fmtMinAsClock,
       scheduleBlockLength,
+      scheduleBlockHeight,
+      scheduleFmtDuration,
       scheduleClockParts,
     };
   }
