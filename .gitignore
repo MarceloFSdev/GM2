@@ -2,3 +2,6 @@
 .wrangler/
 node_modules/.mf/
 .dev.vars
+
+# Local wrangler auth/session cache written by `npx wrangler` — not project state
+node_modules/.cache/
