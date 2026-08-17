@@ -3558,34 +3558,36 @@
   }
 
   const SCHEDULE_TIME_ZONE = 'Europe/Madrid';
-  const SCHEDULE_ANCHOR_MIN = 330;
+  const SCHEDULE_ANCHOR_MIN = 450;
+  // Keep these as single-line literals: Hermes parses this array out of app.js by
+  // regex to drive the Telegram alarms (scripts/schedule-phase-notifier.py).
   const SCHEDULE_BLOCKS = [
-    { start: 330, end: 360, label: 'Morning launch', kind: 'wake', summary: 'Wake up. No phone. Shower, write today’s target, read the plan.' },
-    { start: 360, end: 480, label: 'Build focus 1', kind: 'work', summary: 'Deep build block. Phone away. One clear task, no inbox drift.' },
-    { start: 480, end: 510, label: 'Reset break', kind: 'meal', summary: 'Step away, food/water, quick reset. Do not turn this into scrolling.' },
-    { start: 510, end: 630, label: 'Build focus 2', kind: 'work', summary: 'Second deep block. Close the phone and finish the next useful loop.' },
-    { start: 630, end: 720, label: 'Gym + recovery', kind: 'gym', summary: 'Protein shake, gym, shower, food. Training is part of the workday.' },
-    { start: 720, end: 840, label: 'Sales block', kind: 'shift', summary: 'Outreach, follow-ups, calls, demos, lead handling. One measurable sales output.' },
-    { start: 840, end: 870, label: 'Lunch + reset', kind: 'meal', summary: 'Eat, reset, log next steps. Keep the break contained.' },
-    { start: 870, end: 960, label: 'Client/light work', kind: 'work', summary: 'Client tasks, admin, cleanup. Useful but contained; no rabbit holes.' },
-    { start: 960, end: 1050, label: 'Daily shutdown + language', kind: 'wind', summary: 'Write tomorrow’s plan, write what got done, one hour language learning.' },
-    { start: 1050, end: 1170, label: 'Evening buffer', kind: 'wind', summary: 'Dinner, walk, low-stimulation personal time. No new work loops.' },
-    { start: 1170, end: 1230, label: 'Wind down', kind: 'wind', summary: 'Dim lights, close loops, prep sleep. Phone off at 8:00pm.' },
-    { start: 1230, end: 330, label: 'Sleep', kind: 'sleep', summary: 'No phone. Protect the next morning. Sleep is the next productivity block.' },
+    { start: 450, end: 480, label: 'Morning launch', kind: 'wake', summary: 'Wake up. No phone. Shower, write today’s target, read the plan.' },
+    { start: 480, end: 600, label: 'Build focus 1', kind: 'work', summary: 'Deep build block. Phone away. One clear task, no inbox drift.' },
+    { start: 600, end: 630, label: 'Reset break', kind: 'meal', summary: 'Step away, food/water, quick reset. Do not turn this into scrolling.' },
+    { start: 630, end: 750, label: 'Build focus 2', kind: 'work', summary: 'Second deep block. Close the phone and finish the next useful loop.' },
+    { start: 750, end: 840, label: 'Gym + recovery', kind: 'gym', summary: 'Protein shake, gym, shower, food. Training is part of the workday.' },
+    { start: 840, end: 960, label: 'Sales block', kind: 'shift', summary: 'Outreach, follow-ups, calls, demos, lead handling. One measurable sales output.' },
+    { start: 960, end: 990, label: 'Lunch + reset', kind: 'meal', summary: 'Eat, reset, log next steps. Keep the break contained.' },
+    { start: 990, end: 1080, label: 'Client/light work', kind: 'work', summary: 'Client tasks, admin, cleanup. Useful but contained; no rabbit holes.' },
+    { start: 1080, end: 1170, label: 'Daily shutdown + language', kind: 'wind', summary: 'Write tomorrow’s plan, write what got done, one hour language learning.' },
+    { start: 1170, end: 1290, label: 'Evening buffer', kind: 'wind', summary: 'Dinner, walk, low-stimulation personal time. No new work loops.' },
+    { start: 1290, end: 1350, label: 'Wind down', kind: 'wind', summary: 'Dim lights, close loops, prep sleep. Phone off at 10:00pm.' },
+    { start: 1350, end: 450, label: 'Sleep', kind: 'sleep', summary: 'No phone. Protect the next morning. Sleep is the next productivity block.' },
   ];
   const SCHEDULE_RULES = [
     { metric: 'Time zone', target: 'Spain time. Telegram reminders match this schedule.' },
-    { metric: 'Main focus', target: 'Protect 6:00–10:30 for deep build work.' },
-    { metric: 'Sales output', target: '12:00 sales block must produce outreach, follow-up, calls, demos, or logged next steps.' },
-    { metric: 'Phone rule', target: 'No phone on wake. Phone off/away at 20:00.' },
-    { metric: 'Shutdown', target: '16:00 starts tomorrow’s plan, today’s log, and language learning.' },
-    { metric: 'Sleep', target: '20:30 bed target. Do not trade sleep for low-value browsing.' },
+    { metric: 'Main focus', target: 'Protect 8:00–12:30 for deep build work.' },
+    { metric: 'Sales output', target: '14:00 sales block must produce outreach, follow-up, calls, demos, or logged next steps.' },
+    { metric: 'Phone rule', target: 'No phone on wake. Phone off/away at 22:00.' },
+    { metric: 'Shutdown', target: '18:00 starts tomorrow’s plan, today’s log, and language learning.' },
+    { metric: 'Sleep', target: '22:30 bed target. Do not trade sleep for low-value browsing.' },
   ];
   const SCHEDULE_HEADLINES = [
-    { label: 'Wake', value: '5:30am', kind: 'wake' },
-    { label: 'Main focus', value: '6:00am – 10:30am', kind: 'work' },
-    { label: 'Sales', value: '12:00pm – 2:00pm', kind: 'shift' },
-    { label: 'Sleep target', value: '8:30pm · Spain time', kind: 'sleep' },
+    { label: 'Wake', value: '7:30am', kind: 'wake' },
+    { label: 'Main focus', value: '8:00am – 12:30pm', kind: 'work' },
+    { label: 'Sales', value: '2:00pm – 4:00pm', kind: 'shift' },
+    { label: 'Sleep target', value: '10:30pm · Spain time', kind: 'sleep' },
   ];
 
   function fmtMinAsClock(min) {
@@ -3715,7 +3717,7 @@
       <div class="schedule-hero">
         <div class="schedule-hero__copy">
           <p class="schedule-eyebrow">Spain-time operating schedule</p>
-          <p class="schedule-hero__title">Protect the morning, sell at midday, shut down clean.</p>
+          <p class="schedule-hero__title">Protect the morning, sell in the afternoon, shut down clean.</p>
           <p class="schedule-hero__text">This view is the source of truth for the Telegram reminders. At a glance: what block you are in, what comes next, and where the high-leverage work sits.</p>
         </div>
       </div>
