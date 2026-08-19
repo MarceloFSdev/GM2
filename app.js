@@ -3558,38 +3558,38 @@
   }
 
   const SCHEDULE_TIME_ZONE = 'Europe/Madrid';
-  const SCHEDULE_ANCHOR_MIN = 450;
+  const SCHEDULE_ANCHOR_MIN = 510;
   // Keep these as single-line literals: Hermes parses this array out of app.js by
   // regex to drive the Telegram alarms (scripts/schedule-phase-notifier.py).
   const SCHEDULE_BLOCKS = [
-    { start: 450, end: 480, label: 'Morning launch', kind: 'wake', summary: 'Wake up. No phone. Shower, write today’s target, read the plan.' },
-    { start: 480, end: 600, label: 'Build focus 1', kind: 'work', summary: 'Deep build block. Phone away. One clear task, no inbox drift.' },
-    { start: 600, end: 630, label: 'Reset break', kind: 'meal', summary: 'Step away, food/water, quick reset. Do not turn this into scrolling.' },
-    { start: 630, end: 750, label: 'Build focus 2', kind: 'work', summary: 'Second deep block. Close the phone and finish the next useful loop.' },
-    { start: 750, end: 840, label: 'Gym + recovery', kind: 'gym', summary: 'Protein shake, gym, shower, food. Training is part of the workday.' },
-    { start: 840, end: 960, label: 'Sales block', kind: 'shift', summary: 'Outreach, follow-ups, calls, demos, lead handling. One measurable sales output.' },
-    { start: 960, end: 990, label: 'Break', kind: 'meal', summary: 'Thirty minutes off. Get outside if you can.' },
-    { start: 990, end: 1080, label: 'Client/light work', kind: 'work', summary: 'Client tasks, admin, the small stuff. Keep it moving, no rabbit holes.' },
-    { start: 1080, end: 1110, label: 'Meal', kind: 'meal', summary: 'Eat properly. Sit down, no screen.' },
-    { start: 1110, end: 1140, label: 'Work shutdown', kind: 'wind', summary: 'Write what got done, write tomorrow’s plan. Work is finished for the day.' },
-    { start: 1140, end: 1200, label: 'Language', kind: 'wind', summary: 'One hour. Phone somewhere else.' },
-    { start: 1200, end: 1410, label: 'Evening', kind: 'wind', summary: 'Off the clock. Walk, people, something low key. No alerts until 11:30.' },
-    { start: 1410, end: 0, label: 'Wind down', kind: 'wind', summary: 'Supplements. Phone on the charger, out of the bedroom.' },
-    { start: 0, end: 450, label: 'Sleep', kind: 'sleep', summary: 'Lights off at midnight. Seven and a half hours to 7:30.' },
+    { start: 510, end: 540, label: 'Morning launch', kind: 'wake', summary: 'Wake up. No phone. Shower, write today’s target, read the plan.' },
+    { start: 540, end: 660, label: 'Build focus 1', kind: 'work', summary: 'Deep build block. Phone away. One clear task, no inbox drift.' },
+    { start: 660, end: 690, label: 'Reset break', kind: 'meal', summary: 'Step away, food/water, quick reset. Do not turn this into scrolling.' },
+    { start: 690, end: 810, label: 'Build focus 2', kind: 'work', summary: 'Second deep block. Close the phone and finish the next useful loop.' },
+    { start: 810, end: 900, label: 'Gym + recovery', kind: 'gym', summary: 'Protein shake, gym, shower, food. Training is part of the workday.' },
+    { start: 900, end: 1020, label: 'Sales block', kind: 'shift', summary: 'Outreach, follow-ups, calls, demos, lead handling. One measurable sales output.' },
+    { start: 1020, end: 1050, label: 'Break', kind: 'meal', summary: 'Thirty minutes off. Get outside if you can.' },
+    { start: 1050, end: 1140, label: 'Client/light work', kind: 'work', summary: 'Client tasks, admin, the small stuff. Keep it moving, no rabbit holes.' },
+    { start: 1140, end: 1170, label: 'Meal', kind: 'meal', summary: 'Eat properly. Sit down, no screen.' },
+    { start: 1170, end: 1200, label: 'Work shutdown', kind: 'wind', summary: 'Write what got done, write tomorrow’s plan. Work is finished for the day.' },
+    { start: 1200, end: 1260, label: 'Language', kind: 'wind', summary: 'One hour. Phone somewhere else.' },
+    { start: 1260, end: 30, label: 'Evening', kind: 'wind', summary: 'Off the clock. Walk, people, something low key. No alerts until 00:30.' },
+    { start: 30, end: 60, label: 'Wind down', kind: 'wind', summary: 'Supplements. Phone on the charger, out of the bedroom.' },
+    { start: 60, end: 510, label: 'Sleep', kind: 'sleep', summary: 'Lights off at 1:00. Seven and a half hours to 8:30.' },
   ];
   const SCHEDULE_RULES = [
     { metric: 'Time zone', target: 'Spain time. Telegram reminders match this schedule.' },
-    { metric: 'Main focus', target: 'Protect 8:00–12:30 for deep build work.' },
-    { metric: 'Sales output', target: '14:00 sales block must produce outreach, follow-up, calls, demos, or logged next steps.' },
-    { metric: 'Phone rule', target: 'No phone on wake. Phone on the charger and out of the bedroom at 23:30.' },
-    { metric: 'Shutdown', target: '18:30 ends the work day: today’s log, tomorrow’s plan. The evening is not work.' },
-    { metric: 'Sleep', target: '00:00 lights off. Do not trade sleep for low-value browsing.' },
+    { metric: 'Main focus', target: 'Protect 9:00–13:30 for deep build work.' },
+    { metric: 'Sales output', target: '15:00 sales block must produce outreach, follow-up, calls, demos, or logged next steps.' },
+    { metric: 'Phone rule', target: 'No phone on wake. Phone on the charger and out of the bedroom at 00:30.' },
+    { metric: 'Shutdown', target: '19:30 ends the work day: today’s log, tomorrow’s plan. The evening is not work.' },
+    { metric: 'Sleep', target: '01:00 lights off. Do not trade sleep for low-value browsing.' },
   ];
   const SCHEDULE_HEADLINES = [
-    { label: 'Wake', value: '7:30am', kind: 'wake' },
-    { label: 'Main focus', value: '8:00am – 12:30pm', kind: 'work' },
-    { label: 'Sales', value: '2:00pm – 4:00pm', kind: 'shift' },
-    { label: 'Lights off', value: '12:00am · Spain time', kind: 'sleep' },
+    { label: 'Wake', value: '8:30am', kind: 'wake' },
+    { label: 'Main focus', value: '9:00am – 1:30pm', kind: 'work' },
+    { label: 'Sales', value: '3:00pm – 5:00pm', kind: 'shift' },
+    { label: 'Lights off', value: '1:00am · Spain time', kind: 'sleep' },
   ];
 
   function fmtMinAsClock(min) {

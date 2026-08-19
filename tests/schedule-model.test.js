@@ -47,16 +47,16 @@ const {
 
 const blocks = getScheduleBlocks();
 assert.equal(blocks.length, 14, 'schedule has clear daily blocks');
-assert.deepEqual(Array.from(blocks.map((b) => b.start)), [450, 480, 600, 630, 750, 840, 960, 990, 1080, 1110, 1140, 1200, 1410, 0]);
+assert.deepEqual(Array.from(blocks.map((b) => b.start)), [510, 540, 660, 690, 810, 900, 1020, 1050, 1140, 1170, 1200, 1260, 30, 60]);
 assert.equal(blocks[0].label, 'Morning launch');
-assert.equal(blocks[0].start, 450, 'wake at 7:30am');
+assert.equal(blocks[0].start, 510, 'wake at 8:30am');
 assert.equal(blocks[1].label, 'Build focus 1');
-assert.equal(blocks[1].start, 480, 'work starts at 8:00am');
+assert.equal(blocks[1].start, 540, 'work starts at 9:00am');
 assert.equal(blocks.at(-1).label, 'Sleep');
-assert.equal(blocks.at(-1).start, 0, 'lights off at midnight');
-assert.equal(scheduleBlockLength(blocks.at(-1)), 450, 'sleep runs midnight to 7:30, seven and a half hours');
-assert.equal(fmtMinAsClock(450), '7:30am');
-assert.equal(fmtMinAsClock(1410), '11:30pm');
+assert.equal(blocks.at(-1).start, 60, 'lights off at 1:00am');
+assert.equal(scheduleBlockLength(blocks.at(-1)), 450, 'sleep runs 1:00 to 8:30, seven and a half hours');
+assert.equal(fmtMinAsClock(510), '8:30am');
+assert.equal(fmtMinAsClock(30), '12:30am');
 assert.equal(fmtMinAsClock(0), '12am');
 
 // Blocks tile the full day with no gaps or overlaps, in order from the anchor.
@@ -71,14 +71,14 @@ assert.equal(
 );
 
 const headlines = getScheduleHeadlines();
-assert.equal(headlines[0].value, '7:30am');
+assert.equal(headlines[0].value, '8:30am');
 assert.ok(headlines.some((h) => h.label === 'Lights off'));
 assert.ok(headlines.some((h) => h.label === 'Main focus'));
 assert.ok(headlines.some((h) => h.value.includes('Spain time')));
 
 const rules = getScheduleRules();
 assert.ok(rules.some((r) => r.metric === 'Phone rule'));
-assert.ok(rules.some((r) => r.target.includes('23:30')));
+assert.ok(rules.some((r) => r.target.includes('00:30')));
 
 // ── Vertical timeline: row height tracks block length ────────────────────────
 assert.equal(scheduleFmtDuration(30), '30m');
