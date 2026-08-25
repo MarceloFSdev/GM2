@@ -1182,6 +1182,11 @@ body {
 
 .summary-card--travel {
   min-height: 8rem;
+}
+/* Year-plan cards keep the same height whether or not the projection line is
+   shown, so switching Current ↔ Planned doesn't move the sections below. */
+#view-fiscal .summary-card--travel {
+  min-height: 10.5rem;
   padding: 1.25rem 1.35rem;
 }
 .summary-card__metric {
@@ -1704,33 +1709,57 @@ body {
   }
 }
 
+/* Fixed two-column grid: intro + sync status on the left, controls on the
+   right. Nothing here wraps or re-flows when the status text or mode copy
+   changes length, so toggling views never shifts the layout below. */
 .fiscal-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: end;
+  column-gap: 1.5rem;
+  row-gap: 0.5rem;
   margin: 0.5rem 0 1.25rem;
 }
 .fiscal-header > p {
+  grid-column: 1;
+  grid-row: 1;
   margin: 0;
   max-width: 42rem;
+  min-height: 5.4rem; /* four lines — mode copy differs in length */
+  align-self: start;
   color: var(--text-muted);
   font-size: 0.9rem;
   line-height: 1.5;
 }
-
+.fiscal-header > .todos-status {
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 1.1rem;
+  margin: 0;
+  align-self: end;
+}
 .fiscal-header__controls {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.85rem;
 }
 @media (max-width: 720px) {
-  .fiscal-header__controls {
-    align-items: stretch;
-    width: 100%;
+  .fiscal-header {
+    grid-template-columns: 1fr;
   }
+  .fiscal-header > p,
+  .fiscal-header > .todos-status,
+  .fiscal-header__controls {
+    grid-column: 1;
+  }
+  .fiscal-header > p { grid-row: 1; min-height: 0; }
+  .fiscal-header__controls { grid-row: 2; align-items: stretch; width: 100%; }
+  .fiscal-header > .todos-status { grid-row: 3; }
 }
 .fiscal-mode {
   align-self: flex-end;
@@ -5051,4 +5080,90 @@ body {
   .birthday-hero { flex-direction: column; }
   .birthday-grid { grid-template-columns: 1fr; }
   .birthday-row { grid-template-columns: 78px 1fr auto; }
+}
+
+
+/* ── Year plan: realized so far vs projected ─────────────────────────────── */
+.summary-card__projection {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.7rem 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.summary-card__projection strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.summary-card__projection-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 0.15rem;
+}
+.fiscal-summary-card.fiscal-status--ok .summary-card__projection strong {
+  color: #8fe0b5;
+}
+.fiscal-summary-card.fiscal-status--bad .summary-card__projection strong {
+  color: var(--alert);
+}
+.fiscal-country-chip__arrow {
+  margin: 0 0.3rem;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+.fiscal-country-chip__proj {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fiscal-timeline__future {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.22) 0 4px,
+    rgba(0, 0, 0, 0.06) 4px 8px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+.fiscal-timeline__today {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+  z-index: 4;
+  pointer-events: auto;
+}
+.fiscal-timeline__today i {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  padding: 0.12rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(10, 12, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+}
+.fiscal-timeline__legend-swatch--today {
+  background: #fff;
+  width: 3px;
+  border-radius: 1px;
 }
