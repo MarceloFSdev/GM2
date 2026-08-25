@@ -46,10 +46,10 @@
     "New Zealand"
   ],
   "currentBase": {
-    "city": "Bali",
-    "country": "Indonesia",
-    "timezone": "Asia/Makassar",
-    "startDate": "2026-03-07",
+    "city": "Madrid",
+    "country": "Spain",
+    "timezone": "Europe/Madrid",
+    "startDate": "2026-07-20",
     "residencyLabel": "Active Residence"
   },
   "worldClocks": {
@@ -190,7 +190,7 @@
       "country": "Indonesia"
     },
     {
-      "date": "2026-07-19",
+      "date": "2026-07-20",
       "action": "entry",
       "country": "Spain"
     }
@@ -289,12 +289,12 @@
     {
       "id": "stay-010",
       "country": "Spain",
-      "city": "TBD",
+      "city": "Madrid",
       "timezone": "Europe/Madrid",
-      "entryDate": "2026-07-19",
+      "entryDate": "2026-07-20",
       "exitDate": null,
       "entryType": "flight",
-      "notes": "Planned arrival from Bali. Exact Spanish arrival city/airport pending."
+      "notes": "Arrived MAD 15:00 Mon 20 Jul 2026 from Bali via SIN/ATH/BGY (Kiwi 799150594)."
     }
   ],
   "alerts": [],
@@ -394,22 +394,22 @@
     {
       "id": "trip-005",
       "departureDate": "2026-07-19",
-      "departureTime": "",
+      "departureTime": "19:45",
       "departureCity": "Denpasar",
       "departureCountry": "Indonesia",
       "departureAirport": "DPS",
       "departureAirportName": "Ngurah Rai International",
-      "arrivalDate": "2026-07-19",
-      "arrivalTime": "",
-      "arrivalCity": "Spain",
+      "arrivalDate": "2026-07-20",
+      "arrivalTime": "15:00",
+      "arrivalCity": "Madrid",
       "arrivalCountry": "Spain",
-      "arrivalAirport": "",
-      "arrivalAirportName": "Spain airport TBD",
-      "airline": "Flight details pending",
-      "flightNumber": "TBD",
-      "duration": "TBD",
-      "notes": "Planned Bali → Spain flight. Exact itinerary pending.",
-      "bookingRef": "",
+      "arrivalAirport": "MAD",
+      "arrivalAirportName": "Adolfo Suárez Madrid–Barajas",
+      "airline": "Scoot / Ryanair",
+      "flightNumber": "TR283 · TR50 · FR1318 · FR5120",
+      "duration": "1d 1h 15m",
+      "notes": "Kiwi.com itinerary 799150594, four self-transfer legs: DPS 19:45 Sun 19/07 → SIN (Scoot TR283) → ATH (Scoot TR50) → BGY (Ryanair FR1318/Malta Air MW1318) → MAD 15:00 Mon 20/07 (Ryanair FR5120). Recorded as one flight so transit countries don’t count as stays.",
+      "bookingRef": "799150594",
       "attachments": []
     }
   ],
@@ -544,23 +544,23 @@
     {
       "id": "booking-007",
       "type": "flight",
-      "title": "Denpasar → Spain",
+      "title": "Denpasar → Madrid",
       "startDate": "2026-07-19",
-      "airline": "Flight details pending",
-      "flightNumber": "TBD",
+      "airline": "Scoot / Ryanair",
+      "flightNumber": "TR283 · TR50 · FR1318 · FR5120",
       "departureAirport": "DPS",
       "departureCity": "Denpasar",
-      "departureTime": "",
-      "arrivalAirport": "",
-      "arrivalCity": "Spain",
-      "arrivalTime": "",
-      "duration": "TBD",
-      "notes": "Imported from upcoming trips. Exact itinerary pending.",
-      "bookingRef": "",
+      "departureTime": "19:45",
+      "arrivalAirport": "MAD",
+      "arrivalCity": "Madrid",
+      "arrivalTime": "15:00",
+      "duration": "1d 1h 15m",
+      "notes": "Imported from upcoming trips. Kiwi.com itinerary 799150594, four self-transfer legs: DPS 19:45 Sun 19/07 → SIN (Scoot TR283) → ATH (Scoot TR50) → BGY (Ryanair FR1318/Malta Air MW1318) → MAD 15:00 Mon 20/07 (Ryanair FR5120). Recorded as one flight so transit countries don’t count as stays.",
+      "bookingRef": "799150594",
       "attachments": [],
       "departureCountry": "Indonesia",
       "arrivalCountry": "Spain",
-      "arrivalDate": "2026-07-19"
+      "arrivalDate": "2026-07-20"
     },
     {
       "id": "booking-008",
