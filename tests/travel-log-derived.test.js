@@ -100,6 +100,6 @@ const autoSpainStay = auto.travelLog.find((stay) => stay.country === 'Spain' && 
 assert.equal(autoSingaporeStay?.exitDate, '2026-05-04', 'future flight additions auto-close derived stays');
 assert.equal(autoReturnStay?.exitDate, '2026-05-30', 'derived Indonesia stay closes when the next outbound flight departs');
 assert.equal(autoPostKLStay?.exitDate, '2026-07-19', 'derived Indonesia stay closes when the Spain flight departs');
-assert.equal(autoSpainStay?.exitDate, null, 'Spain stay remains open-ended until a return is added');
+assert.equal(autoSpainStay?.exitDate, '2026-07-25', 'manual Madrid stay closes at the France trip; derivation keeps it');
 
 console.log('travel-log-derived tests passed');
