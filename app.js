@@ -3058,6 +3058,9 @@
       awayDays: Math.max(0, soFarDays - inCountrySoFar),
       daysInSpain: tallySoFar.get(ABROAD_ANCHOR_COUNTRY) || 0,
     };
+    // Days in neither the home country nor Spain.
+    soFar.otherDays = Math.max(0, soFar.awayDays - soFar.daysInSpain);
+    const otherDays = Math.max(0, awayDays - daysInSpain);
 
     return {
       valid,
@@ -3073,6 +3076,7 @@
       countryTotals,
       home,
       soFar,
+      otherDays,
       yearEndYmd: valid ? ymdFromMs(endMs) : '—',
     };
   }
@@ -3223,6 +3227,7 @@
       startMs,
       endExMs,
       soFar,
+      otherDays,
       yearEndYmd,
     } = data;
     const split = !!(soFar && soFar.has);
@@ -3359,12 +3364,14 @@
           <div class="summary-card__body">
             <p class="summary-card__metric" data-metric="away">${split ? soFar.awayDays : awayDays}</p>
             <h3 class="summary-card__title-line">Days abroad</h3>
-            <p class="summary-card__subtitle-line" data-metric="trip-count">${escapeHtml(
-              split ? 'So far · from the travel log' : fiscalUsesLog() ? `Travel log + ${plannedLabel}` : plannedLabel
-            )}</p>
+            <p class="summary-card__subtitle-line">${
+              split
+                ? `So far · Spain <strong data-metric="spain-sofar">${soFar.daysInSpain}</strong> · other countries <strong data-metric="other-sofar">${soFar.otherDays}</strong>`
+                : `<span data-metric="trip-count">${escapeHtml(fiscalUsesLog() ? `Travel log + ${plannedLabel}` : plannedLabel)}</span> · other countries <strong data-metric="other">${otherDays}</strong>`
+            }</p>
             ${
               split
-                ? `<p class="summary-card__projection"><span class="summary-card__projection-label">Projected</span><strong data-metric="away-proj">${awayDays}</strong> with <span data-metric="trip-count-proj">${escapeHtml(plannedLabel)}</span></p>`
+                ? `<p class="summary-card__projection"><span class="summary-card__projection-label">Projected</span><strong data-metric="away-proj">${awayDays}</strong> · other countries <strong data-metric="other">${otherDays}</strong> · <span data-metric="trip-count-proj">${escapeHtml(plannedLabel)}</span></p>`
                 : ''
             }
           </div>
@@ -3455,6 +3462,7 @@
       tripsResolved,
       countryTotals,
       soFar,
+      otherDays,
     } = data;
     const split = !!(soFar && soFar.has);
 
@@ -3471,6 +3479,11 @@
     setText('[data-metric="in-proj"]', String(inCountry));
     setText('[data-metric="away-proj"]', String(awayDays));
     setText('[data-metric="trip-count-proj"]', plannedLabel);
+    setText('[data-metric="other"]', String(otherDays));
+    if (split) {
+      setText('[data-metric="spain-sofar"]', String(soFar.daysInSpain));
+      setText('[data-metric="other-sofar"]', String(soFar.otherDays));
+    }
     if (!split) setText('[data-metric="trip-count"]', fiscalUsesLog() ? `Travel log + ${plannedLabel}` : plannedLabel);
 
     // Spain card (red when OVER the half-year line).

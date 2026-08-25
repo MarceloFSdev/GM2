@@ -5175,3 +5175,9 @@ body {
   width: 3px;
   border-radius: 1px;
 }
+
+.summary-card__subtitle-line strong {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

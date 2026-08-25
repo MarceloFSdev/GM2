@@ -31,6 +31,8 @@ assert.ok(cur.soFar.daysInSpain <= cur.daysInSpain, 'realized Spain days never e
 assert.ok(cur.soFar.inCountry <= cur.inCountry, 'realized home days never exceed projected');
 assert.equal(cur.soFar.inCountry + cur.soFar.awayDays, cur.soFar.days, 'so-far home + abroad = elapsed days');
 assert.equal(cur.inCountry + cur.awayDays, cur.totalDays, 'projected home + abroad = year');
+assert.equal(cur.otherDays, cur.awayDays - cur.daysInSpain, 'other countries = abroad minus Spain');
+assert.equal(cur.soFar.otherDays, cur.soFar.awayDays - cur.soFar.daysInSpain, 'so-far other countries = abroad minus Spain');
 for (const c of cur.countryTotals) assert.ok(c.soFar <= c.days, `${c.country}: so far ≤ projected`);
 assert.equal(cur.countryTotals.reduce((n, c) => n + c.soFar, 0), cur.soFar.days, 'chip so-far values sum to elapsed days');
 
