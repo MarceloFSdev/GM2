@@ -62,7 +62,7 @@ assert.equal(malaysiaStay?.exitDate, '2026-06-14', 'KL outbound/return flights c
 const indonesiaStayAfterKL = merged.travelLog.find((stay) => stay.country === 'Indonesia' && stay.entryDate === '2026-06-14');
 assert.equal(indonesiaStayAfterKL?.exitDate, '2026-07-19', 'return flight from KL starts the Indonesia stay until the Spain flight');
 const spainStay = merged.travelLog.find((stay) => stay.country === 'Spain' && stay.entryDate === '2026-07-20');
-assert.equal(spainStay?.exitDate, null, 'Bali to Madrid flight (lands 20 Jul) starts the open-ended Spain stay');
+assert.equal(spainStay?.exitDate, '2026-07-25', 'Madrid stay after Bali flight closes when the France trip starts');
 
 const y2026 = { start: Date.UTC(2026, 0, 1), endEx: Date.UTC(2027, 0, 1) };
 const totals = api.countryDaysInPeriod(merged.travelLog, y2026.start, y2026.endEx);

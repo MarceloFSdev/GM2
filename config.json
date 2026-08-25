@@ -193,6 +193,26 @@
       "date": "2026-07-20",
       "action": "entry",
       "country": "Spain"
+    },
+    {
+      "date": "2026-07-25",
+      "action": "exit",
+      "country": "Spain"
+    },
+    {
+      "date": "2026-07-25",
+      "action": "entry",
+      "country": "France"
+    },
+    {
+      "date": "2026-08-03",
+      "action": "exit",
+      "country": "France"
+    },
+    {
+      "date": "2026-08-03",
+      "action": "entry",
+      "country": "Spain"
     }
   ],
   "travelLog": [
@@ -292,9 +312,29 @@
       "city": "Madrid",
       "timezone": "Europe/Madrid",
       "entryDate": "2026-07-20",
-      "exitDate": null,
+      "exitDate": "2026-07-25",
       "entryType": "flight",
       "notes": "Arrived MAD 15:00 Mon 20 Jul 2026 from Bali via SIN/ATH/BGY (Kiwi 799150594)."
+    },
+    {
+      "id": "stay-011",
+      "country": "France",
+      "city": "TBD",
+      "timezone": "Europe/Paris",
+      "entryDate": "2026-07-25",
+      "exitDate": "2026-08-03",
+      "entryType": "entry",
+      "notes": "Trip from Madrid; city/transport not recorded."
+    },
+    {
+      "id": "stay-012",
+      "country": "Spain",
+      "city": "Madrid",
+      "timezone": "Europe/Madrid",
+      "entryDate": "2026-08-03",
+      "exitDate": null,
+      "entryType": "entry",
+      "notes": "Back from France. Galicia trip from 2026-08-06 (booking-008) falls inside this stay."
     }
   ],
   "alerts": [],
