@@ -45,7 +45,9 @@ assert.equal(withTrip.daysInSpain, cur.daysInSpain + 10, 'but adds to the projec
 // Toggle off: planned-only, single numbers, log ignored.
 const off = api.computeFiscalFor({ ...view, useTravelLog: false }, 'current', config);
 assert.equal(off.soFar.has, false, 'with the log switched off there is no so-far split');
-assert.equal(off.loggedSegs.length, 0, 'log segments are not drawn when the toggle is off');
+assert.ok(off.loggedSegs.length > 0, 'the travel-log record is still drawn when the toggle is off');
+assert.equal(off.logGhosted, true, '…but ghosted (not counted)');
+assert.equal(cur.logGhosted, false, 'counted log is drawn solid');
 assert.equal(off.awayDays, 0, 'no trips + no log = whole year at home');
 
 // Planned future year: no so-far reading, log ignored.

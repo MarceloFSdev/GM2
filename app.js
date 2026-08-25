@@ -2983,7 +2983,11 @@
       };
     });
 
-    const loggedSegs = useLog ? buildLoggedAbroadSegments(startMs, endExMs, valid) : [];
+    // The travel-log record is always drawn on the current-year timeline; the
+    // toggle only decides whether it is counted (solid) or ghosted (not counted).
+    const isCurrentMode = !!(fiscalWrap && fiscalWrap.mode === 'current');
+    const loggedSegs = isCurrentMode ? buildLoggedAbroadSegments(startMs, endExMs, valid) : [];
+    const logGhosted = isCurrentMode && !useLog;
 
     const dayCountry = valid ? new Array(totalDays).fill(home) : [];
 
@@ -3077,17 +3081,18 @@
       home,
       soFar,
       otherDays,
+      logGhosted,
       yearEndYmd: valid ? ymdFromMs(endMs) : '—',
     };
   }
 
-  function fiscalLoggedSegHtml(seg, startMs, span) {
+  function fiscalLoggedSegHtml(seg, startMs, span, ghosted = false) {
     if (span <= 0) return '';
     const leftPct = ((seg.start - startMs) / span) * 100;
     const widthPct = ((seg.endEx - seg.start) / span) * 100;
     const color = fiscalCountryColor(seg.country);
-    const title = `${seg.country}${seg.city ? ' · ' + seg.city : ''} · ${seg.days}d (travel log)`;
-    return `<span class="fiscal-timeline__logged" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(
+    const title = `${seg.country}${seg.city ? ' · ' + seg.city : ''} · ${seg.days}d (travel log${ghosted ? ', not counted' : ''})`;
+    return `<span class="fiscal-timeline__logged${ghosted ? ' fiscal-timeline__logged--ghost' : ''}" style="left:${leftPct.toFixed(3)}%;width:${widthPct.toFixed(
       3
     )}%;--fiscal-c:${color}" title="${escapeHtml(title)}"></span>`;
   }
@@ -3117,7 +3122,7 @@
       .filter((m) => m.leftPct > 0.01)
       .map((m) => `<span class="fiscal-timeline__month-divider" style="left:${m.leftPct.toFixed(3)}%"></span>`)
       .join('');
-    const logged = (data.loggedSegs || []).map((seg) => fiscalLoggedSegHtml(seg, startMs, span)).join('');
+    const logged = (data.loggedSegs || []).map((seg) => fiscalLoggedSegHtml(seg, startMs, span, !!data.logGhosted)).join('');
     const segs = (data.tripsResolved || [])
       .map((r) => fiscalPlannedSegHtml(r, startMs, endExMs, span))
       .join('');
@@ -3149,7 +3154,9 @@
       );
     if (hasLogged)
       items.push(
-        `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--solid"></span>Logged (solid)</span>`
+        data.logGhosted
+          ? `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--ghost"></span>Travel log (shown, not counted — switch on “Account for travel log”)</span>`
+          : `<span class="fiscal-timeline__legend-item"><span class="fiscal-timeline__legend-swatch fiscal-timeline__legend-swatch--solid"></span>Logged (solid)</span>`
       );
     if (data.soFar && data.soFar.has)
       items.push(
@@ -3407,7 +3414,11 @@
       <div class="card fiscal-timeline-card">
         <div class="panel-head"><h2>Year timeline</h2></div>
         <p class="fiscal-timeline__hint">Each segment shows time abroad within the year window, colored by country.${
-          isPlanned ? '' : ' Logged stays are solid; planned trips are striped.'
+          isPlanned
+            ? ''
+            : fiscalUsesLog()
+            ? ' Logged stays are solid; planned trips are striped.'
+            : ' Logged stays are ghosted (the travel log is switched off, so they are shown but not counted); planned trips are striped.'
         } Pick a country per trip, drag its slider, or move its departure date — the bar reacts live.</p>
         <div class="fiscal-timeline">
           <div class="fiscal-timeline__bar" id="fiscal-timeline-bar">${barHtml}</div>

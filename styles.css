@@ -5181,3 +5181,16 @@ body {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* Travel log drawn but not counted (toggle off) */
+.fiscal-timeline__logged--ghost {
+  background: color-mix(in srgb, var(--fiscal-c, #7ecbff) 22%, transparent);
+  border-left-color: color-mix(in srgb, var(--fiscal-c, #7ecbff) 45%, transparent);
+  border-right-color: color-mix(in srgb, var(--fiscal-c, #7ecbff) 45%, transparent);
+  box-shadow: none;
+  z-index: 0;
+}
+.fiscal-timeline__legend-swatch--ghost {
+  background: rgba(126, 203, 255, 0.25);
+  border: 1px dashed rgba(126, 203, 255, 0.6);
+}
