@@ -20,7 +20,7 @@ const api = sandbox.window.__chronosTestApi;
 const config = api.mergeDefaults(JSON.parse(fs.readFileSync(path.join(repoRoot, 'config.json'), 'utf8')));
 
 const y = new Date().getUTCFullYear();
-const view = { yearStart: `${y}-01-01`, yearEnd: `${y}-12-31`, trips: [] };
+const view = { yearStart: `${y}-01-01`, yearEnd: `${y}-12-31`, useTravelLog: true, trips: [] };
 
 // Current year: the log is always accounted for, and "so far" is cut at today.
 const cur = api.computeFiscalFor(view, 'current', config);
@@ -39,6 +39,12 @@ const spainSoFar = cur.soFar.daysInSpain;
 const withTrip = api.computeFiscalFor({ ...view, trips: [{ id: 't1', label: 'Xmas', country: 'Spain', start: `${y}-12-20`, days: 10 }] }, 'current');
 assert.equal(withTrip.soFar.daysInSpain, spainSoFar, 'a future planned trip leaves the so-far count alone');
 assert.equal(withTrip.daysInSpain, cur.daysInSpain + 10, 'but adds to the projection');
+
+// Toggle off: planned-only, single numbers, log ignored.
+const off = api.computeFiscalFor({ ...view, useTravelLog: false }, 'current', config);
+assert.equal(off.soFar.has, false, 'with the log switched off there is no so-far split');
+assert.equal(off.loggedSegs.length, 0, 'log segments are not drawn when the toggle is off');
+assert.equal(off.awayDays, 0, 'no trips + no log = whole year at home');
 
 // Planned future year: no so-far reading, log ignored.
 const next = api.computeFiscalFor({ yearStart: `${y + 1}-01-01`, yearEnd: `${y + 1}-12-31`, trips: [] }, 'planned', config);

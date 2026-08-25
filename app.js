@@ -2668,10 +2668,11 @@
 
   /** Whether the travel log feeds the active view (only the current-year view, when enabled). */
   function fiscalUsesLog() {
-    // The current-year view always layers the travel log under the planned
-    // trips: what already happened is authoritative, what's planned fills the
-    // rest. The planned-future-year view starts from a clean slate.
-    return !!(fiscalWrap && fiscalWrap.mode === 'current');
+    // Current year, toggle ON: the travel log is layered under the planned
+    // trips (past is authoritative) and every number splits into realized so
+    // far vs projected. Toggle OFF: planned trips only, single numbers.
+    // The planned-future-year view always starts from a clean slate.
+    return !!(fiscalWrap && fiscalWrap.mode === 'current' && fiscalState && fiscalState.useTravelLog);
   }
 
   function defaultFiscalCurrentView() {
@@ -3018,7 +3019,7 @@
     // starts nothing is realized yet, after it ends everything is.
     const todayMs = parseYmdToUtcMs(todayUtcYmd());
     const elapsedDays = valid ? Math.floor((addUtcDaysMs(todayMs, 1) - startMs) / 86400000) : 0;
-    const hasSoFar = valid && elapsedDays > 0 && elapsedDays < totalDays;
+    const hasSoFar = valid && useLog && elapsedDays > 0 && elapsedDays < totalDays;
     const soFarDays = valid ? Math.max(0, Math.min(totalDays, elapsedDays)) : 0;
     const tallySoFar = new Map();
     for (let i = 0; i < soFarDays; i += 1) tallySoFar.set(dayCountry[i], (tallySoFar.get(dayCountry[i]) || 0) + 1);
@@ -3307,7 +3308,9 @@
         <p>${
           isPlanned
             ? `Plan a future year from a clean slate. Add country segments — 20 days in Spain, two weeks in the Philippines — and the totals, timeline, and country breakdown all update live. The travel log is ignored so you're planning purely from scratch.`
-            : `The travel log fills in what has already happened; planned trips fill in the rest. Big numbers are realized so far, the projection adds the planned trips through year end. Spain is your tax-residency risk country — stay under half the year there (${threshold} days).`
+            : fiscalUsesLog()
+            ? `The travel log fills in what has already happened; planned trips fill in the rest. Big numbers are realized so far, the projection adds the planned trips through year end. Spain is your tax-residency risk country — stay under half the year there (${threshold} days).`
+            : `Plan trips abroad and see how the year breaks down by country. Spain is your tax-residency risk country — stay under half the year there (${threshold} days). Drag the trip sliders, move dates, or swap countries; everything below recalculates as you go.`
         }</p>
         <p class="todos-status todos-status--${fiscalSyncState}" data-fiscal-status>${escapeHtml(TODOS_STATUS_LABEL[fiscalSyncState] || '')}</p>
         <div class="fiscal-header__controls">
@@ -3323,6 +3326,14 @@
             <label class="fiscal-trip__field">
               <span>Year end</span>
               <input type="date" id="fiscal-year-end" value="${escapeHtml(fiscalState.yearEnd)}" />
+            </label>
+            <label class="fiscal-trip__field fiscal-trip__field--toggle${isPlanned ? ' is-hidden' : ''}"${isPlanned ? ' aria-hidden="true"' : ''}>
+              <span>Account for travel log</span>
+              <label class="fiscal-toggle">
+                <input type="checkbox" id="fiscal-use-log" ${fiscalState.useTravelLog ? 'checked' : ''}${isPlanned ? ' disabled tabindex="-1"' : ''} />
+                <span class="fiscal-toggle__track"><span class="fiscal-toggle__thumb"></span></span>
+                <span class="fiscal-toggle__label">${fiscalState.useTravelLog ? 'On' : 'Off'}</span>
+              </label>
             </label>
           </div>
         </div>
@@ -3519,6 +3530,11 @@
     });
     $('fiscal-year-end')?.addEventListener('change', (e) => {
       fiscalState.yearEnd = e.target.value;
+      saveFiscalState();
+      paintFiscal();
+    });
+    $('fiscal-use-log')?.addEventListener('change', (e) => {
+      fiscalState.useTravelLog = !!e.target.checked;
       saveFiscalState();
       paintFiscal();
     });

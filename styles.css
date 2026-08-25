@@ -1726,7 +1726,7 @@ body {
   grid-row: 1;
   margin: 0;
   max-width: 42rem;
-  min-height: 5.4rem; /* four lines — mode copy differs in length */
+  min-height: 6.75rem; /* five lines — mode copy differs in length */
   align-self: start;
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -2035,6 +2035,14 @@ body {
 
 .fiscal-trip__field--toggle {
   justify-content: flex-end;
+  min-width: 11.5rem; /* 'On'/'Off' must not change the row width */
+}
+/* Planned-year mode keeps the toggle in the flow (invisible) so the controls
+   column — and therefore the intro column and everything below — keeps one
+   width across modes. */
+.fiscal-trip__field--toggle.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 .fiscal-toggle {
   display: inline-flex;
